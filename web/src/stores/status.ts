@@ -76,8 +76,16 @@ export const useStatusStore = defineStore('status', () => {
     }
   }
 
+  function shouldHideLogEntryInFrontend(entry: any) {
+    const tag = String(entry?.tag || '')
+    const msg = String(entry?.msg || '')
+    return tag === '系统' && /^ACE 上报成功：发送 \d+ 字节，回灌 \d+ 字节，耗时 \d+ms$/.test(msg)
+  }
+
   function pushRealtimeLog(entry: any) {
     const next = normalizeLogEntry(entry)
+    if (shouldHideLogEntryInFrontend(next))
+      return
     logs.value.push(next)
     if (logs.value.length > 1000)
       logs.value = logs.value.slice(-1000)
@@ -126,7 +134,9 @@ export const useStatusStore = defineStore('status', () => {
     if (currentRealtimeAccountId.value && accountId && accountId !== 'all' && accountId !== currentRealtimeAccountId.value)
       return
     const list = Array.isArray(body.logs) ? body.logs : []
-    logs.value = list.map((item: any) => normalizeLogEntry(item))
+    logs.value = list
+      .map((item: any) => normalizeLogEntry(item))
+      .filter((item: any) => !shouldHideLogEntryInFrontend(item))
   }
 
   function handleRealtimeAccountLogsSnapshot(payload: any) {
@@ -263,7 +273,9 @@ export const useStatusStore = defineStore('status', () => {
         return
       if (data.ok) {
         logs.value = Array.isArray(data.data)
-          ? data.data.map((item: any) => normalizeLogEntry(item))
+          ? data.data
+              .map((item: any) => normalizeLogEntry(item))
+              .filter((item: any) => !shouldHideLogEntryInFrontend(item))
           : []
         error.value = ''
       }

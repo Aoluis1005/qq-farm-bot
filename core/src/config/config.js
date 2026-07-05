@@ -14,6 +14,10 @@ const CONFIG = {
     clientVersion: DEFAULT_SYSTEM_CONFIG.clientVersion,
     platform: DEFAULT_SYSTEM_CONFIG.platform,
     os: DEFAULT_SYSTEM_CONFIG.os,
+    tsdkAceEnabled: process.env.FARM_TSDK_ACE_ENABLED !== 'false',
+    // 官方 AceManager: SdkInitEx(3167, 0)
+    tsdkGameId: Number(process.env.FARM_TSDK_GAME_ID || 3167),
+    tsdkAppKey: String(process.env.FARM_TSDK_APP_KEY || '0'),
     heartbeatInterval: 25000,         // 心跳间隔 25秒
     farmCheckInterval: 3000,           // 农场检查间隔 3秒
     friendCheckInterval: 12000,        // 好友检查间隔 12秒

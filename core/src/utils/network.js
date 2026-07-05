@@ -7,12 +7,15 @@ const EventEmitter = require('node:events');
 const process = require('node:process');
 const WebSocket = require('ws');
 const { CONFIG } = require('../config/config');
+const { AceService } = require('../services/ace-service');
 const { createScheduler } = require('../services/scheduler');
 const { updateStatusFromLogin, updateStatusGold, updateStatusLevel } = require('../services/status');
 const { recordOperation, recordTongQiGift, getTongQiGiftCount } = require('../services/stats');
 const { types } = require('./proto');
 const { toLong, toNum, syncServerTime, log, logWarn } = require('./utils');
 const cryptoWasm = require('./crypto-wasm');
+const { createGatewayToken } = require('./gateway-token');
+const { TsdkRuntime } = require('./tsdk-runtime');
 
 // 延迟加载 warehouse 模块避免循环依赖
 let warehouseModule = null;
@@ -42,6 +45,66 @@ let serverSeq = 0;
 const pendingCallbacks = new Map();
 let wsErrorState = { code: 0, at: 0, message: '' };
 const networkScheduler = createScheduler('network');
+let tsdkRuntime = null;
+let aceService = null;
+let initialGamePackInfo = '';
+
+function logAce(level, message) {
+    if (level === 'warn' || level === 'error') logWarn('ACE', message);
+    else log('ACE', message);
+}
+
+function createTsdkRuntime(deviceProtocol) {
+    return new TsdkRuntime({
+        accountId: process.env.FARM_ACCOUNT_ID,
+        gameId: CONFIG.tsdkGameId,
+        appKey: CONFIG.tsdkAppKey,
+        deviceInfo: {
+            deviceModel: deviceProtocol && deviceProtocol.deviceModel,
+            deviceBrand: deviceProtocol && deviceProtocol.deviceBrand,
+            deviceId: deviceProtocol && deviceProtocol.deviceId,
+            platform: CONFIG.os,
+        },
+        logger: logAce,
+    });
+}
+
+async function startSecurityRuntime(deviceProtocol) {
+    stopSecurityRuntime('重新初始化');
+    if (!CONFIG.tsdkAceEnabled) {
+        throw new Error('TSDK/ACE 已通过 FARM_TSDK_ACE_ENABLED=false 关闭，网关请求不会使用伪造 Token');
+    }
+    tsdkRuntime = createTsdkRuntime(deviceProtocol);
+    initialGamePackInfo = '';
+    cryptoWasm.setRuntime(tsdkRuntime);
+    await tsdkRuntime.init();
+}
+
+function startAceService() {
+    if (!tsdkRuntime || !tsdkRuntime.ready) throw new Error('TSDK 尚未就绪');
+    if (aceService) aceService.stop('重新启动');
+    aceService = new AceService({
+        runtime: tsdkRuntime,
+        sendRequest: sendMsgAsync,
+        isConnected,
+        types,
+        logger: logAce,
+    });
+    aceService.start();
+}
+
+function stopSecurityRuntime(reason = '停止') {
+    if (aceService) {
+        aceService.stop(reason);
+        aceService = null;
+    }
+    if (tsdkRuntime) {
+        tsdkRuntime.destroy();
+        tsdkRuntime = null;
+    }
+    initialGamePackInfo = '';
+    cryptoWasm.setRuntime(null);
+}
 
 function rejectAllPendingRequests(reason = '请求被中断') {
     const entries = Array.from(pendingCallbacks.entries());
@@ -123,6 +186,8 @@ async function encodeMsg(serviceName, methodName, bodyBytes, clientSeqValue) {
     if (finalBody.length > 0) {
         finalBody = await cryptoWasm.encryptBuffer(finalBody);
     }
+    const gatewayToken = initialGamePackInfo || createGatewayToken();
+    initialGamePackInfo = '';
     const msg = types.GateMessage.create({
         meta: {
             service_name: serviceName,
@@ -133,7 +198,7 @@ async function encodeMsg(serviceName, methodName, bodyBytes, clientSeqValue) {
             server_seq: toLong(serverSeq),
         },
         body: finalBody,
-        auth_token: Buffer.from(`iknowhowyouare${  Date.now()}`).toString('base64'),
+        auth_token: gatewayToken,
     });
     // clientSeq++;
     return types.GateMessage.encode(msg).finish();
@@ -186,21 +251,24 @@ function sendMsgAsync(serviceName, methodName, bodyBytes, timeout = 20000) {
             reject(new Error(`请求超时: ${methodName} (seq=${seq}, pending=${pending})`));
         });
 
-        const sent = sendMsg(serviceName, methodName, bodyBytes, (err, body, meta) => {
+        sendMsg(serviceName, methodName, bodyBytes, (err, body, meta) => {
             networkScheduler.clear(timeoutKey);
             if (settled) return;
             settled = true;
             if (err) reject(err);
             else resolve({ body, meta });
-        });
-
-        if (!sent) {
+        }).then((sent) => {
+            if (sent || settled) return;
             networkScheduler.clear(timeoutKey);
-            if (!settled) {
-                settled = true;
-                reject(new Error(`发送失败: ${methodName}`));
-            }
-        }
+            settled = true;
+            reject(new Error(`发送失败: ${methodName}`));
+        }).catch((error) => {
+            if (settled) return;
+            networkScheduler.clear(timeoutKey);
+            pendingCallbacks.delete(seq);
+            settled = true;
+            reject(error);
+        });
     });
 }
 
@@ -480,6 +548,11 @@ async function sendLogin(onLoginSuccess) {
                 userState.exp = toNum(reply.basic.exp);
                 userState.openId = String(reply.basic.open_id || '').trim();
                 userState.avatar = String(reply.basic.avatar_url || '').trim();
+                if (tsdkRuntime && userState.openId) {
+                    tsdkRuntime.bindUser(userState.openId);
+                    initialGamePackInfo = tsdkRuntime.getEncryptedInitInfo();
+                    logAce('info', `ACE 用户身份已绑定：初始化凭据长度 ${initialGamePackInfo.length}`);
+                }
 
                 // 更新状态栏
                 updateStatusFromLogin({
@@ -508,6 +581,7 @@ async function sendLogin(onLoginSuccess) {
             }
 
             startHeartbeat();
+            startAceService();
             if (onLoginSuccess) onLoginSuccess();
         } catch (e) {
             log('登录', `解码失败: ${e.message}`);
@@ -665,9 +739,17 @@ function connect(code, onLoginSuccess) {
 
     socket.binaryType = 'arraybuffer';
 
-    socket.on('open', () => {
+    socket.on('open', async () => {
         reconnectAttempts = 0;
-        sendLogin(onLoginSuccess);
+        try {
+            await startSecurityRuntime(deviceProtocol);
+            await sendLogin(onLoginSuccess);
+        } catch (error) {
+            logWarn('ACE', `安全运行时启动失败，已中止登录：${error.message}`);
+            networkEvents.emit('security_error', { message: error.message });
+            stopSecurityRuntime('初始化失败');
+            closeCurrentWs({ terminate: true });
+        }
     });
 
     socket.on('message', (data) => {
@@ -697,6 +779,7 @@ function connect(code, onLoginSuccess) {
 }
 
 function cleanup(reason = '网络清理') {
+    stopSecurityRuntime(reason);
     rejectAllPendingRequests(`请求已中断: ${reason}`);
     networkScheduler.clearAll();
     // pendingCallbacks.clear();
@@ -715,6 +798,7 @@ function stopNetwork(reason = '停止网络') {
     networkStopped = true;
     savedLoginCallback = null;
     reconnectAttempts = 0;
+    stopSecurityRuntime(reason);
     rejectAllPendingRequests(`请求已中断: ${reason}`);
     networkScheduler.clearAll();
     closeCurrentWs({ terminate: true });
@@ -723,11 +807,16 @@ function stopNetwork(reason = '停止网络') {
 
 function getWs() { return ws; }
 function isConnected() { return !!(ws && ws.readyState === WebSocket.OPEN); }
+function getAceStatus() {
+    if (aceService) return aceService.getStatus();
+    return tsdkRuntime ? { running: false, runtime: tsdkRuntime.getStatus() } : null;
+}
 
 module.exports = {
     connect, reconnect, cleanup, stopNetwork, getWs, isConnected,
     sendMsg, sendMsgAsync,
     getUserState,
     getWsErrorState,
+    getAceStatus,
     networkEvents,
 };

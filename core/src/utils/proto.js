@@ -45,6 +45,7 @@ async function loadProto() {
         getResourcePath('proto', 'dogpb.proto'),
         getResourcePath('proto', 'activitypb.proto'),
         getResourcePath('proto', 'mysteryshoppb.proto'),
+        getResourcePath('proto', 'acepb.proto'),
     ], { keepCase: true });
 
     // 网关
@@ -59,6 +60,8 @@ async function loadProto() {
     types.HeartbeatReply = root.lookupType('gamepb.userpb.HeartbeatReply');
     types.ReportArkClickRequest = root.lookupType('gamepb.userpb.ReportArkClickRequest');
     types.ReportArkClickReply = root.lookupType('gamepb.userpb.ReportArkClickReply');
+    types.AntiDataRequest = root.lookupType('gamepb.acepb.AntiDataRequest');
+    types.AntiDataReply = root.lookupType('gamepb.acepb.AntiDataReply');
 
     // 农场
     types.AllLandsRequest = root.lookupType('gamepb.plantpb.AllLandsRequest');

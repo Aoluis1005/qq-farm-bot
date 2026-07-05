@@ -8,6 +8,7 @@
 
 # 当前状态
 
+- TSDK/ACE 安全链路已按 `任务.md` 落地到 `codex/tsdk-ace-runtime`：保留旧 WASM 为 `tsdk-legacy.wasm`，新增官方 `v3.8.2.1783066265` 版本化 WASM、Node 宿主运行时、ACE Proto/上报服务、动态网关 Token、账号级启停与重连清理。运行时会校验 SHA-256 和导出表，处理官方 mergewasm 数据段解密；失败时显式中止，不再回退伪 Token。调用映射和内存所有权见 `core/docs/tsdk-ace-runtime.md`。离线测试 4/4、触碰文件 ESLint、Proto 加载及后端 require 均通过；受控在线 5/30 分钟好友操作仍需测试账号实测。
 - 技术栈：后端 `core` 是 Node.js/CommonJS + Express + Socket.IO；前端 `web` 是 Vue 3 + Vite + TypeScript + Pinia + UnoCSS。
 - 最新快速体检结果：`web/src` 全量 ESLint 通过，`web` 生产构建通过；`core/src/**/*.js` 全量 `node --check` 通过。源码扫描未发现真实替换字符类乱码、孤立 `undefined` 行或 `_v###` 反编译变量残留；`core` ESLint 因本地 `core/node_modules` 缺少 `@antfu/eslint-config` 未作为源码失败处理。
 - UTF-8 源码扫描未发现 `core/src`、`web/src` 存在真实替换字符类乱码；PowerShell 仍可能把中文显示成乱码，不能据此改源码。
@@ -83,3 +84,17 @@
 - 遇到中文显示异常，先用 `node -e "const fs=require('fs'); console.log(fs.readFileSync('path','utf8'))"` 确认真实内容。
 - 不把全站 lint、全站格式化、全站类型改造作为默认目标；只有用户明确要求或分阶段收敛到位后再做。
 - 要记得及时更新本文件
+
+## 2026-07-06 TSDK / ACE 修复
+
+- 已对官方 `game.js` 完成关键静态去混淆：官方调用为
+  `SdkInitEx(3167, 0)`；`AnoUserLogin(0, openId)` 仅维护账号身份。
+- 官方网关 Token 来自 `AceManager.randomStr()`，格式为 64～127 个字母数字字符
+  加 `=`，不是 `_generate_token` 返回的 24 字符 hash；登录后还会优先消费一次
+  `_get_encrypted_init_info`，对应抓包里首条 `AllLands` 的特殊长 Token。
+- ACE 生命周期已按官方封装拆分：5 秒处理接收队列和轮询上报、25 秒 TSDK
+  heartbeat、30 秒速度检测、150 秒状态上报、180 秒函数检查。
+- 官方 20260706 抓包确认：登录和好友操作 Token 均符合随机格式；4 分钟后仍能
+  Enter、PutWeeds、PutInsects、Farming，说明持续有效依赖 ACE 状态而非固定 Token。
+- `core` 定向 ESLint 通过，6 个离线测试通过；仍需使用测试账号完成至少 5 分钟
+  在线好友操作验证后才能确认服务端链路完全恢复。

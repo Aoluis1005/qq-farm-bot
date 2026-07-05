@@ -15,7 +15,7 @@
     "build:linux": "pkg . --no-bytecode --targets node18-linux-x64 --out-path dist",
     "build:mac": "pkg . --no-bytecode --targets node18-macos-x64,node18-macos-arm64 --out-path dist",
     "lint": "eslint . --fix",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test test/*.test.js"
   },
   "dependencies": {
     "axios": "^1.6.0",
@@ -41,6 +41,7 @@
       "../web/dist/**/*",
       "src/gameConfig/**/*",
       "src/proto/**/*",
+      "src/utils/*.wasm",
       "src/__bolt_manifest.json",
       "share.txt"
     ]
