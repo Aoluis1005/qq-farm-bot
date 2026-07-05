@@ -3,6 +3,7 @@ core/node_modules/
 web/node_modules/
 
 web/dist/
+web/stats.html
 dist/
 build/
 coverage/
