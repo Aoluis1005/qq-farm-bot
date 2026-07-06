@@ -21,8 +21,6 @@ const {
   helpWeed,
   helpInsecticide,
   stealHarvest,
-  putInsects,
-  putWeeds,
   putInsectsDetailed,
   putWeedsDetailed,
 } = require('./friend-operation-limits');
@@ -414,6 +412,11 @@ async function visitFriend(friend, tally, myGid, accountId) {
 
   // ---- Bad (put weeds & insects) ----
   const badEnabled = isAutomationOn('friend_bad');
+  let badCount = 0;
+  let putBugCount = 0;
+  let putWeedCount = 0;
+  const badFailedMsgs = [];
+
   if (badEnabled) {
     const canPutBug = await checkCanOperateRemote(gid, 0x271A); // 10010?
     const canPutWeed = await checkCanOperateRemote(gid, 0x2719); // 10009?
@@ -422,10 +425,14 @@ async function visitFriend(friend, tally, myGid, accountId) {
     if (analysis.canPutBug.length > 0 && canPutBug.canOperate) {
       const remainingBug = getRemainingTimes(0x271A);
       const targets = analysis.canPutBug.slice(0, remainingBug);
-      const okCount = await putInsects(gid, targets);
+      const result = await putInsectsDetailed(gid, targets);
+      const okCount = result.ok;
+      badFailedMsgs.push(...(result.failed || []).map(f => `放虫#${f.landId}:${f.reason}`));
       if (okCount > 0) {
         actionLogs.push(`放虫${okCount}`);
         tally.putBug += okCount;
+        putBugCount += okCount;
+        badCount += okCount;
       }
       await randomDelay(500, 1500);
     }
@@ -434,10 +441,14 @@ async function visitFriend(friend, tally, myGid, accountId) {
     if (analysis.canPutWeed.length > 0 && canPutWeed.canOperate) {
       const remainingWeed = getRemainingTimes(0x2719);
       const targets = analysis.canPutWeed.slice(0, remainingWeed);
-      const okCount = await putWeeds(gid, targets);
+      const result = await putWeedsDetailed(gid, targets);
+      const okCount = result.ok;
+      badFailedMsgs.push(...(result.failed || []).map(f => `放草#${f.landId}:${f.reason}`));
       if (okCount > 0) {
         actionLogs.push(`放草${okCount}`);
         tally.putWeed += okCount;
+        putWeedCount += okCount;
+        badCount += okCount;
       }
       await randomDelay(500, 1500);
     }
@@ -455,7 +466,16 @@ async function visitFriend(friend, tally, myGid, accountId) {
   }
 
   await leaveFriendFarm(gid);
-  return { acted: actionLogs.length > 0, entered: true };
+  return {
+    acted: actionLogs.length > 0,
+    entered: true,
+    count: badCount,
+    bugCount: putBugCount,
+    weedCount: putWeedCount,
+    message: badCount > 0
+      ? `捣乱完成 虫${putBugCount}/草${putWeedCount}`
+      : badFailedMsgs.slice(-3).join(' | '),
+  };
 }
 
 // ===== Visit friend for steal only =====

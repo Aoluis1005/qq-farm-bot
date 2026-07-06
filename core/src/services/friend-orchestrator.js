@@ -150,11 +150,22 @@ function isIgnorableBadFailureMessage(message) {
     '1001046',
     'used up',
     'no target',
+    '没有可捣乱土地',
+    '捣乱失败或今日次数已用完',
+    '今日次数已用完',
+    '次数已用完',
+    '已经放过',
+    '来晚一步',
   ].some(kw => text.includes(kw));
 }
 
 function trackBadVisitResult(result, target, context = {}) {
-  const count = Number(result && result.count || 0);
+  const count = Number(
+    result && (
+      result.count
+      || (Number(result.bugCount || 0) + Number(result.weedCount || 0))
+    ) || 0
+  );
   if (count > 0) {
     resetBadFailureCount();
     return false;

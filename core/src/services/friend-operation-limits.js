@@ -12,14 +12,14 @@ let helpAutoDisabledByLimit = false;
 
 // ===== Operation type names =====
 const OP_NAMES = {
-  '10001': 'friend water',
-  '10002': 'friend weed out',
-  '10003': 'friend insecticide',
-  '10004': 'friend steal',
-  '10005': 'put weeds',
-  '10006': 'put insects',
-  '10007': 'friend revive',
-  '10008': 'friend help water',
+  '10001': '帮好友浇水',
+  '10002': '帮好友除草',
+  '10003': '帮好友除虫',
+  '10004': '偷取好友作物',
+  '10005': '给好友放草',
+  '10006': '给好友放虫',
+  '10007': '帮好友复活',
+  '10008': '好友帮忙浇水',
 };
 
 // ===== Daily reset =====
@@ -44,16 +44,16 @@ function checkDailyReset() {
 
   if (lastResetDate !== today) {
     if (lastResetDate !== '') {
-      log('??', '?????????????');
+      log('系统', '跨日重置，清空操作限制缓存');
     }
     operationLimits.clear();
     canGetHelpExp = true;
 
     if (helpAutoDisabledByLimit) {
       helpAutoDisabledByLimit = false;
-      log('濂藉弸', '鏂扮殑涓€澶╁凡寮€濮嬶紝鑷姩鎭㈠甯繖鎿嶄綔鍔熻兘', {
+      log('好友', '新的一天已开始，自动恢复帮忙操作功能', {
         module: 'friend',
-        event: '濂藉弸宸℃煡寰幆',
+        event: '好友巡查循环',
         result: 'ok',
       });
     }
@@ -64,15 +64,15 @@ function checkDailyReset() {
 
 /**
  * Disable help when daily experience limit is reached.
- * After this, only guard-dog (鎶や富鐘? friends will still be helped.
+ * After this, only guard-dog (护主犬) friends will still be helped.
  */
 function autoDisableHelpByExpLimit() {
   if (!canGetHelpExp) return;
   canGetHelpExp = false;
   helpAutoDisabledByLimit = true;
-  log('??', '??????????????????????????????', {
+  log('好友', '今日帮助经验已达上限，自动停止普通帮忙，开启仅帮助护主犬好友模式', {
     module: 'friend',
-    event: '濂藉弸宸℃煡寰幆',
+    event: '好友巡查循环',
     result: 'ok',
   });
 }
@@ -103,8 +103,8 @@ function updateOperationLimits(limits) {
  */
 function canGetExp(operationId) {
   const limit = operationLimits.get(operationId);
-  if (!limit) return false;
-  // No experience limit set 鈫?can get exp
+  if (!limit) return true;
+  // No experience limit set -> can get exp
   if (limit.dayExpTimesLimit <= 0) return true;
   return limit.dayExpTimes < limit.dayExpTimesLimit;
 }
@@ -125,7 +125,7 @@ function canGetExpByCandidates(expIds = []) {
  */
 function canOperate(operationId) {
   const limit = operationLimits.get(operationId);
-  if (!limit) return true; // No limit known 鈫?assume allowed
+  if (!limit) return true; // No limit known -> assume allowed
   if (limit.dayTimesLimit <= 0) return true; // No limit set
   return limit.dayTimes < limit.dayTimesLimit;
 }
@@ -175,7 +175,7 @@ function getHelpAutoDisabledByLimit() {
 // ===== Friend operation RPC calls =====
 
 /**
-      const msg = (err && err.message) ? err.message : '????';
+ * Help water a friend's lands.
  * If `checkExpLimit` is true, sleeps 200ms after the call and checks if exp increased
  * to determine if the help exp limit is reached.
  */
@@ -205,7 +205,7 @@ async function helpWater(gid, landIds, checkExpLimit = false) {
 }
 
 /**
-      const msg = (err && err.message) ? err.message : '????';
+ * Help weed a friend's lands.
  */
 async function helpWeed(gid, landIds, checkExpLimit = false) {
   const expBefore = toNum((getUserState() || {}).exp);
@@ -233,7 +233,7 @@ async function helpWeed(gid, landIds, checkExpLimit = false) {
 }
 
 /**
-      const msg = (err && err.message) ? err.message : '????';
+ * Help insecticide a friend's lands.
  */
 async function helpInsecticide(gid, landIds, checkExpLimit = false) {
   const expBefore = toNum((getUserState() || {}).exp);
@@ -261,7 +261,7 @@ async function helpInsecticide(gid, landIds, checkExpLimit = false) {
 }
 
 /**
-      const msg = (err && err.message) ? err.message : '????';
+ * Steal harvest from a friend's lands (bulk or single).
  */
 async function stealHarvest(gid, landIds) {
   const payload = types.HarvestRequest.encode(
@@ -282,7 +282,7 @@ async function stealHarvest(gid, landIds) {
 }
 
 /**
-      const msg = (err && err.message) ? err.message : '????';
+ * Generic helper to put items (weeds/insects) on friend's lands one by one.
  * Returns the number of successful operations.
  */
 async function putPlantItems(gid, landIds, RequestType, ReplyType, rpcMethod) {
@@ -306,13 +306,13 @@ async function putPlantItems(gid, landIds, RequestType, ReplyType, rpcMethod) {
       updateOperationLimits(reply.operation_limits);
       ok++;
     } catch (err) {
-      const msg = (err && err.message) ? err.message : '鏈煡閿欒';
+      const msg = (err && err.message) ? err.message : '未知错误';
       if (msg.includes('1001046')) {
-        // Already done 鈥?silently skip
+        // Already done - silently skip
       } else {
-        log('濂藉弸', `鏀捐櫕/鏀捐崏澶辫触: landId=${landId}, 閿欒: ${msg}`, {
+        log('好友', `放虫/放草失败: landId=${landId}, 错误: ${msg}`, {
           module: 'friend',
-          event: '鏀捐櫕鏀捐崏澶辫触',
+          event: '放虫放草失败',
           landId,
           error: msg,
         });
@@ -354,15 +354,15 @@ async function putPlantItemsDetailed(gid, landIds, RequestType, ReplyType, rpcMe
       updateOperationLimits(reply.operation_limits);
       ok++;
     } catch (err) {
-      const msg = (err && err.message) ? err.message : 'unknown error';
+      const msg = (err && err.message) ? err.message : '未知错误';
       failed.push({
         landId,
         reason: msg,
       });
       if (!msg.includes('1001046')) {
-        log('friend', `put weeds/insects failed: landId=${landId}, error: ${msg}`, {
+        log('好友', `放虫/放草失败: landId=${landId}, 错误: ${msg}`, {
           module: 'friend',
-          event: 'put_weeds_insects_failed',
+          event: '放虫放草失败',
           landId,
           error: msg,
           detailed: true,

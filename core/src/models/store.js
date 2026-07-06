@@ -1046,7 +1046,11 @@ function applyConfigSnapshot(patch = {}, opts = {}) {
 }
 
 function setAutomation(key, value, accountId) {
-    return applyConfigSnapshot({ automation: { [key]: value } }, { accountId });
+    const patch = { automation: { [key]: value } };
+    if (key === 'friend_bad' && value === true) {
+        patch.friendBadRetryDate = '';
+    }
+    return applyConfigSnapshot(patch, { accountId });
 }
 
 function getAutoCodeRefresh(accountId) {
