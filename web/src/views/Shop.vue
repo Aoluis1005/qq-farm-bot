@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import DecorationGoodsCard from '@/components/shop/DecorationGoodsCard.vue'
 import MallGoodsCard from '@/components/shop/MallGoodsCard.vue'
@@ -22,6 +23,7 @@ const accountStore = useAccountStore()
 const shopStore = useShopStore()
 const statusStore = useStatusStore()
 const toast = useToastStore()
+const route = useRoute()
 
 const { currentAccountId, currentAccount } = storeToRefs(accountStore)
 const { status } = storeToRefs(statusStore)
@@ -47,6 +49,7 @@ const {
 const tab = ref<'seed' | 'pet' | 'decoration' | 'mall' | 'mystery'>('seed')
 const ascending = ref(true)
 const FERTILIZER_MALL_GOODS_IDS = new Set([1002, 1003])
+const SHOP_TABS = new Set(['seed', 'pet', 'decoration', 'mall', 'mystery'])
 
 const showConfirm = ref(false)
 const confirmTitle = ref('确认购买')
@@ -173,6 +176,12 @@ async function refreshAll() {
   if (!currentAccountId.value)
     return
   await shopStore.refreshAll(currentAccountId.value)
+}
+
+function syncTabFromRouteQuery() {
+  const queryTab = String(route.query.tab || '')
+  if (SHOP_TABS.has(queryTab))
+    tab.value = queryTab as typeof tab.value
 }
 
 async function buyGoods(item: any, quantity = 1) {
@@ -316,7 +325,13 @@ watch(currentAccountId, () => {
   refreshAll()
 })
 
+watch(
+  () => route.query.tab,
+  () => syncTabFromRouteQuery(),
+)
+
 onMounted(() => {
+  syncTabFromRouteQuery()
   refreshAll()
 })
 </script>

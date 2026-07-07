@@ -423,7 +423,7 @@ function parsePayload(rawPayload) {
   if (!text) return null;
   try {
     return JSON.parse(text);
-  } catch (_) {
+  } catch {
     return null;
   }
 }
@@ -432,7 +432,7 @@ function decodeItemHex(raw) {
   if (typeof raw !== 'string' || !/^[0-9a-f]+$/i.test(raw) || raw.length < 4) return null;
   try {
     return types.CoreItem ? types.CoreItem.decode(Buffer.from(raw, 'hex')) : null;
-  } catch (_) {
+  } catch {
     return null;
   }
 }
@@ -446,7 +446,7 @@ function readProtoFields(rawBytes) {
     let tag = 0;
     try {
       tag = reader.uint32();
-    } catch (_) {
+    } catch {
       break;
     }
 
@@ -464,7 +464,7 @@ function readProtoFields(rawBytes) {
       } else {
         reader.skipType(wire);
       }
-    } catch (_) {
+    } catch {
       break;
     }
   }
@@ -493,7 +493,7 @@ function getProtoString(entries, field, fallback = '') {
   if (!bytes || bytes.length === 0) return fallback;
   try {
     return bytes.toString('utf8');
-  } catch (_) {
+  } catch {
     return fallback;
   }
 }
@@ -776,14 +776,19 @@ function normalizeExchangeShopItem(raw) {
   const cost = normalizeActivityItem(raw?.cost);
   if (!item) return null;
 
-  const itemType = toNum(getItemById(item.itemId)?.type);
+  const itemInfo = getItemById(item.itemId) || {};
+  const itemType = toNum(itemInfo.type);
+  const interactionType = String(itemInfo.interaction_type || itemInfo.interactionType || '');
   const name = String(raw?.name || item.name || '').trim() || item.name;
   const status = toNum(raw?.status);
   const owned = raw?.owned === true;
+  const isRepeatable = itemType === 7 || interactionType === 'fertilizer' || interactionType === 'fertilizerpro';
+  const exchangeLimit = isRepeatable && status > 1 ? status : 0;
+  const ownedBlocksExchange = owned && !isRepeatable;
   const isDecoration = itemType === 18
-    || /装扮/.test(String(getItemById(item.itemId)?.desc || ''))
-    || /装扮/.test(String(getItemById(item.itemId)?.effectDesc || ''))
-    || /(小屋|街道|狗屋|木牌|仓库|栅栏|围栏|头像框)$/.test(name)
+    || /装扮/.test(String(itemInfo.desc || ''))
+    || /装扮/.test(String(itemInfo.effectDesc || ''))
+    || /(?:小屋|街道|狗屋|木牌|仓库|栅栏|围栏|头像框)$/.test(name)
     || name.startsWith('枕水听荷');
 
   return {
@@ -791,14 +796,17 @@ function normalizeExchangeShopItem(raw) {
     sort: toNum(raw?.sort),
     status,
     owned,
-    statusLabel: owned
+    isRepeatable,
+    exchangeLimit,
+    ownedBlocksExchange,
+    statusLabel: ownedBlocksExchange
       ? '已拥有'
-      : status === 1
+      : status === 1 || exchangeLimit > 0
         ? '可兑换'
         : status === 5
           ? '特殊商品'
           : status === 120 || status === 130
-            ? '条件未满足'
+            ? '可兑换'
             : `状态${status}`,
     name,
     itemId: item.itemId,
@@ -843,7 +851,7 @@ function flattenActivityChildren(reply) {
 function skipUnknown(reader, wireType) {
   try {
     reader.skipType(wireType);
-  } catch (_) {
+  } catch {
     reader.pos = reader.len;
   }
 }
@@ -860,7 +868,7 @@ function scanLengthDelimitedFields(rawBytes, targetFieldNum, maxDepth = 3, resul
     let tag = 0;
     try {
       tag = reader.uint32();
-    } catch (_) {
+    } catch {
       break;
     }
     const fieldNum = tag >>> 3;
@@ -870,7 +878,7 @@ function scanLengthDelimitedFields(rawBytes, targetFieldNum, maxDepth = 3, resul
       let bytes = null;
       try {
         bytes = reader.bytes();
-      } catch (_) {
+      } catch {
         break;
       }
       if (fieldNum === targetFieldNum) results.push(Buffer.from(bytes));
@@ -915,7 +923,7 @@ function scanRandomShopInfoFromRawBody(rawBody) {
       if (!best || normalized.items.length > best.items.length) {
         best = normalized;
       }
-    } catch (_) {
+    } catch {
       // 跳过解码失败的块
     }
   }
@@ -959,7 +967,7 @@ function scanExchangeShopInfoFromRawBody(rawBody) {
       };
 
       if (!best || normalized.items.length > best.items.length) best = normalized;
-    } catch (_) {
+    } catch {
       // skip
     }
   }
@@ -980,7 +988,7 @@ function scanDrawInfoFromRawBody(rawBody) {
       const normalized = normalizeDrawInfo(decoded);
       if (!normalized || normalized.rewardPool.length === 0) continue;
       if (!best || normalized.rewardPool.length > best.rewardPool.length) best = normalized;
-    } catch (_) {
+    } catch {
       // skip
     }
   }
@@ -1022,7 +1030,7 @@ async function getHeluBalance() {
         return Math.max(0, toNum(item?.count));
       }
     }
-  } catch (_) {
+  } catch {
     // ignore
   }
   return 0;
@@ -1034,7 +1042,7 @@ async function getBagItemCount(itemId) {
     return (getBagItems(bag) || [])
       .filter(entry => toNum(entry?.id) === toNum(itemId))
       .reduce((sum, item) => sum + Math.max(0, toNum(item?.count)), 0);
-  } catch (_) {
+  } catch {
     return 0;
   }
 }
@@ -1796,9 +1804,10 @@ async function exchangeHeluShopItem(slotId) {
   const price = Math.max(0, toNum(slot?.price));
   const balance = Math.max(0, toNum(before?.heluBalance));
   const isHeluCurrency = toNum(slot?.currencyId) === HELU_CURRENCY_ITEM_ID;
+  const ownedBlocksExchange = slot?.ownedBlocksExchange !== false && slot?.owned && !slot?.isRepeatable;
 
   if (!isHeluCurrency) throw new Error(`暂不支持非荷露货币兑换: slotId=${slotIdNum}`);
-  if (slot?.owned) throw new Error(`该商品已拥有，不能重复兑换: slotId=${slotIdNum}`);
+  if (ownedBlocksExchange) throw new Error(`该商品已拥有，不能重复兑换: slotId=${slotIdNum}`);
   if (price > balance) throw new Error(`荷露不足: 需要 ${price}, 当前 ${balance}`);
 
   activityLogger.info('荷露商店兑换开始', {

@@ -1,3 +1,5 @@
+const DOG_INFO_HTTP_TIMEOUT_MS = 11 * 60 * 1000;
+
 function getAccountOrRespond(req, res, { getAccountIdFromRequest, canAccessAccount, includeMissingMessage = true }) {
   const accountId = getAccountIdFromRequest(req);
   if (!accountId) {
@@ -98,6 +100,9 @@ function registerAdminFriendRoutes({
   });
 
   app.post("/api/friends/fetch-dog-info", async (req, res) => {
+    req.setTimeout(DOG_INFO_HTTP_TIMEOUT_MS);
+    res.setTimeout(DOG_INFO_HTTP_TIMEOUT_MS);
+
     const accountId = getAccountOrRespond(req, res, access);
     if (!accountId) return;
 

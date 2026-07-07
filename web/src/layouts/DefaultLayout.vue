@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { onMounted, onUnmounted } from 'vue'
+import MysteryMerchantBanner from '@/components/shop/MysteryMerchantBanner.vue'
 import Sidebar from '@/components/Sidebar.vue'
 import TopAccountMenu from '@/components/TopAccountMenu.vue'
 import { useAppStore } from '@/stores/app'
@@ -37,7 +38,7 @@ onUnmounted(() => {
           >
             <div class="i-carbon-menu text-xl" />
           </button>
-          <div class="truncate text-base text-gray-900 font-semibold dark:text-gray-100 md:text-lg">
+          <div class="truncate text-base text-gray-900 font-semibold md:text-lg dark:text-gray-100">
             QQ农场智能助手
           </div>
         </div>
@@ -47,7 +48,8 @@ onUnmounted(() => {
 
       <!-- Main Content Area -->
       <div class="min-h-0 flex flex-1 flex-col overflow-hidden">
-        <div class="custom-scrollbar min-h-0 flex flex-1 flex-col overflow-y-auto p-3 pb-[calc(1rem+env(safe-area-inset-bottom))] md:p-6 md:pb-6 sm:p-4 sm:pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <MysteryMerchantBanner />
+        <div class="custom-scrollbar min-h-0 flex flex-1 flex-col overflow-y-auto p-3 pb-[calc(1rem+env(safe-area-inset-bottom))] md:p-6 sm:p-4 md:pb-6 sm:pb-[calc(1rem+env(safe-area-inset-bottom))]">
           <RouterView v-slot="{ Component, route }">
             <Transition name="slide-fade" mode="out-in">
               <component :is="Component" :key="route.path" />

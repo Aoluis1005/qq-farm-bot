@@ -25,6 +25,7 @@ const { currentAccountId, currentAccount } = storeToRefs(accountStore)
 const {
   friends,
   loading,
+  dogInfoLoading,
   friendLands,
   friendLandsLoading,
   blacklist,
@@ -65,6 +66,12 @@ const interactFilters = [
   { key: 'help', label: '帮忙' },
   { key: 'bad', label: '捣乱' },
 ]
+const dogFilter = ref<'all' | 'noGuardDog' | 'guardDog'>('all')
+const dogFilters = [
+  { key: 'all', label: '全部' },
+  { key: 'noGuardDog', label: '无护主犬' },
+  { key: 'guardDog', label: '有护主犬' },
+] as const
 const expandedFriends = ref<Set<string>>(new Set())
 const currentPage = ref(1)
 const pageSize = 25
@@ -167,9 +174,22 @@ const sortedFriends = computed(() => {
   })
 })
 
+const guardDogCount = computed(() =>
+  sortedFriends.value.filter((friend: any) => Number(friend?.dogId) === 90021).length,
+)
+const noGuardDogCount = computed(() => sortedFriends.value.length - guardDogCount.value)
+
+const dogFilteredFriends = computed(() => {
+  if (dogFilter.value === 'guardDog')
+    return sortedFriends.value.filter((friend: any) => Number(friend?.dogId) === 90021)
+  if (dogFilter.value === 'noGuardDog')
+    return sortedFriends.value.filter((friend: any) => Number(friend?.dogId) !== 90021)
+  return sortedFriends.value
+})
+
 const filteredFriends = computed(() => {
   const keyword = searchKeyword.value.trim().toLowerCase()
-  const list = sortedFriends.value
+  const list = dogFilteredFriends.value
   if (!keyword)
     return list
 
@@ -177,7 +197,8 @@ const filteredFriends = computed(() => {
     const name = String(friend?.name || '').toLowerCase()
     const gid = String(friend?.gid || '')
     const uin = String(friend?.uin || '')
-    return name.includes(keyword) || gid.includes(keyword) || uin.includes(keyword)
+    const dogName = String(friend?.dogName || '').toLowerCase()
+    return name.includes(keyword) || gid.includes(keyword) || uin.includes(keyword) || dogName.includes(keyword)
   })
 })
 
@@ -190,6 +211,10 @@ const paginatedFriends = computed(() => {
 })
 
 watch(searchKeyword, () => {
+  currentPage.value = 1
+})
+
+watch(dogFilter, () => {
   currentPage.value = 1
 })
 
@@ -272,6 +297,26 @@ async function handleRefreshFriends() {
     // ignore
   }
   await friendStore.fetchFriends(currentAccountId.value, true)
+}
+
+async function handleFetchDogInfo() {
+  if (!currentAccountId.value)
+    return
+  if (friends.value.length === 0) {
+    toast.error('好友列表为空，请先刷新好友列表')
+    return
+  }
+  toast.info('开始获取好友狗信息，请耐心等待，处理中请勿频繁访问好友界面...')
+  const result = await friendStore.fetchFriendsDogInfo(currentAccountId.value)
+  if (result.ok) {
+    const guardText = Number.isFinite(result.guardDogCount)
+      ? `，护主犬 ${result.guardDogCount} 个`
+      : ''
+    toast.success(`获取完成${guardText}，无狗 ${result.failCount || 0} 个，黑名单 ${result.blacklistCount || 0} 个`)
+  }
+  else {
+    toast.error(result.error || '正在获取狗信息，好友多请耐心等待几分钟')
+  }
 }
 
 function toggleFriend(friendId: string) {
@@ -661,6 +706,27 @@ async function handleBatchAddKnownFriendGids() {
 
         <template v-else>
           <div class="flex flex-wrap items-center gap-2 rounded-lg bg-white p-3 shadow dark:bg-gray-800">
+            <button
+              v-for="filter in dogFilters"
+              :key="filter.key"
+              class="rounded-full px-3 py-1 text-xs transition"
+              :class="dogFilter === filter.key
+                ? 'text-white'
+                : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'"
+              :style="dogFilter === filter.key ? { backgroundColor: 'var(--theme-primary)' } : {}"
+              @click="dogFilter = filter.key"
+            >
+              {{ filter.label }}
+              <span class="ml-1 opacity-75">
+                ({{
+                  filter.key === 'guardDog'
+                    ? guardDogCount
+                    : filter.key === 'noGuardDog'
+                      ? noGuardDogCount
+                      : friends.length
+                }})
+              </span>
+            </button>
             <div class="flex-1" />
             <button
               class="rounded bg-gray-100 px-3 py-1.5 text-sm text-gray-600 transition dark:bg-gray-700 hover:bg-gray-200 dark:text-gray-300 disabled:opacity-50 dark:hover:bg-gray-600"
@@ -669,6 +735,14 @@ async function handleBatchAddKnownFriendGids() {
             >
               <div v-if="loading" class="i-svg-spinners-90-ring-with-bg mr-1 inline-block align-text-bottom" />
               刷新列表
+            </button>
+            <button
+              class="rounded bg-blue-100 px-3 py-1.5 text-sm text-blue-700 transition dark:bg-blue-900/30 hover:bg-blue-200 dark:text-blue-400 disabled:opacity-50 dark:hover:bg-blue-900/50"
+              :disabled="dogInfoLoading || friends.length === 0"
+              @click="handleFetchDogInfo"
+            >
+              <div v-if="dogInfoLoading" class="i-svg-spinners-90-ring-with-bg mr-1 inline-block align-text-bottom" />
+              获取狗信息
             </button>
           </div>
 

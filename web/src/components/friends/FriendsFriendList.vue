@@ -65,6 +65,7 @@ function goToPage(page: number) {
             {{ friend.name }} ({{ friend.gid }})
 
             <span v-if="blacklistGidSet.has(Number(friend.gid))" class="rounded bg-gray-200 px-1.5 py-0.5 text-xs text-gray-500 dark:bg-gray-700 dark:text-gray-400">已屏蔽</span>
+            <span v-if="Number(friend?.dogId) === 90021" class="rounded bg-red-100 px-1.5 py-0.5 text-xs text-red-600 dark:bg-red-900/30 dark:text-red-400">护主犬</span>
           </div>
           <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-400">
             <span
@@ -78,6 +79,12 @@ function goToPage(page: number) {
               class="rounded bg-amber-50 px-1.5 py-0.5 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300"
             >
               金币 {{ formatFriendGold(friend.gold) }}
+            </span>
+            <span
+              v-if="friend.dogName"
+              class="rounded bg-gray-100 px-1.5 py-0.5 text-gray-500 dark:bg-gray-700 dark:text-gray-300"
+            >
+              {{ friend.dogName }}
             </span>
           </div>
           <div class="text-sm" :class="getFriendStatusText(friend) !== '无操作' ? 'text-green-500 font-medium' : 'text-gray-400'">

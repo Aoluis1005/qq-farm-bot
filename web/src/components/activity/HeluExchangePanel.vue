@@ -50,10 +50,10 @@ function getCurrencyNameById(currencyId?: number) {
 function getExchangeState(item: ExchangeItem): ExchangeState {
   const price = Number(item.price || 0)
   const isHeluCurrency = Number(item.currencyId || 0) === 1018
-  const owned = item.owned === true
-  const canExchange = isHeluCurrency && !owned && price > 0 && props.balance >= price
+  const ownedBlocksExchange = item.ownedBlocksExchange !== false && item.owned === true && item.isRepeatable !== true
+  const canExchange = isHeluCurrency && !ownedBlocksExchange && price > 0 && props.balance >= price
 
-  if (owned)
+  if (ownedBlocksExchange)
     return { canExchange: false, label: props.labels.owned }
   if (canExchange)
     return { canExchange: true, label: props.labels.canExchange }
@@ -107,6 +107,9 @@ function getCurrencyLabel(item: ExchangeItem) {
             </div>
             <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
               {{ item.itemTypeLabel || labels.typeFallback }} / x{{ item.itemCount }}
+              <span v-if="Number(item.exchangeLimit || 0) > 0">
+                / 上限 {{ item.exchangeLimit }}
+              </span>
             </div>
           </div>
 

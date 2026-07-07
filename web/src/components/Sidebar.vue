@@ -9,6 +9,7 @@ import ConfirmModal from '@/components/ConfirmModal.vue'
 import { menuRoutes } from '@/router/menu'
 import { useAccountStore } from '@/stores/account'
 import { useAppStore } from '@/stores/app'
+import { useShopStore } from '@/stores/shop'
 import { useStatusStore } from '@/stores/status'
 import { useUserStore } from '@/stores/user'
 
@@ -16,10 +17,12 @@ const accountStore = useAccountStore()
 const statusStore = useStatusStore()
 const appStore = useAppStore()
 const userStore = useUserStore()
+const shopStore = useShopStore()
 const route = useRoute()
 const router = useRouter()
-const { currentAccount } = storeToRefs(accountStore)
+const { currentAccount, currentAccountId } = storeToRefs(accountStore)
 const { status, realtimeConnected } = storeToRefs(statusStore)
+const { mysteryOffer, mysteryOfferAccountId } = storeToRefs(shopStore)
 const { sidebarOpen } = storeToRefs(appStore)
 
 const wsErrorNotifiedAt = ref<Record<string, number>>({})
@@ -154,6 +157,17 @@ const navItems = computed(() => {
       label: item.label,
       icon: item.icon,
     }))
+})
+
+const hasActiveMysteryOffer = computed(() => {
+  const offer = mysteryOffer.value
+  if (!currentAccountId.value || mysteryOfferAccountId.value !== String(currentAccountId.value))
+    return false
+  if (!offer?.active || offer.purchased)
+    return false
+  const endTime = Number(offer.endTime || 0)
+  const endMs = endTime > 10_000_000_000 ? endTime : endTime * 1000
+  return !endMs || endMs > Date.now()
 })
 
 const version = __APP_VERSION__
@@ -389,7 +403,7 @@ async function copyToken() {
     <div class="px-1 py-4">
       <div class="group relative">
         <button
-          class="ui-card w-full flex items-center justify-between rounded-lg px-3.5 py-3 outline-none transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 dark:hover:border-gray-600"
+          class="ui-card w-full flex items-center justify-between rounded-lg px-3.5 py-3 outline-none transition-all duration-200 hover:border-gray-300 hover:-translate-y-0.5 dark:hover:border-gray-600"
           style="--focus-ring: var(--theme-primary)"
           @click="showUserDropdown = !showUserDropdown"
         >
@@ -497,7 +511,12 @@ async function copyToken() {
         }"
       >
         <div class="text-lg transition-transform duration-200 group-hover:scale-110" :class="[item.icon]" />
-        <span>{{ item.label }}</span>
+        <span class="min-w-0 flex-1 truncate">{{ item.label }}</span>
+        <span
+          v-if="item.path === '/shop' && hasActiveMysteryOffer"
+          class="h-2.5 w-2.5 shrink-0 rounded-full bg-red-500 shadow-[0_0_0_3px_rgba(239,68,68,0.15)]"
+          title="神秘商人已出现"
+        />
       </router-link>
     </nav>
 
@@ -884,7 +903,11 @@ async function copyToken() {
 /* Active router link styling */
 .router-link-active {
   background-color: var(--active-bg) !important;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--theme-primary) 15%, transparent), color-mix(in srgb, var(--theme-primary) 6%, transparent)) !important;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--theme-primary) 15%, transparent),
+    color-mix(in srgb, var(--theme-primary) 6%, transparent)
+  ) !important;
   color: var(--theme-primary) !important;
   box-shadow:
     inset 3px 0 0 var(--theme-primary),
@@ -893,7 +916,11 @@ async function copyToken() {
 }
 
 .router-link-exact-active {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--theme-primary) 15%, transparent), color-mix(in srgb, var(--theme-primary) 6%, transparent)) !important;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--theme-primary) 15%, transparent),
+    color-mix(in srgb, var(--theme-primary) 6%, transparent)
+  ) !important;
   color: var(--theme-primary) !important;
   box-shadow:
     inset 3px 0 0 var(--theme-primary),

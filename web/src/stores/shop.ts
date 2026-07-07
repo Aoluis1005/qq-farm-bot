@@ -78,6 +78,7 @@ export const useShopStore = defineStore('shop', () => {
   const decorations = ref<ShopDecorationItem[]>([])
   const mallGoods = ref<ShopMallItem[]>([])
   const mysteryOffer = ref<MysteryShopOffer | null>(null)
+  const mysteryOfferAccountId = ref('')
 
   const loading = ref(false)
   const petLoading = ref(false)
@@ -107,6 +108,7 @@ export const useShopStore = defineStore('shop', () => {
     decorations.value = []
     mallGoods.value = []
     mysteryOffer.value = null
+    mysteryOfferAccountId.value = ''
     loading.value = false
     petLoading.value = false
     decorationLoading.value = false
@@ -263,10 +265,13 @@ export const useShopStore = defineStore('shop', () => {
       })
       if (requestId !== mysteryRequestId || !isCurrentAccount(requestedId))
         return
-      if (data.ok)
+      if (data.ok) {
         mysteryOffer.value = data.data || null
-      else
+        mysteryOfferAccountId.value = requestedId
+      }
+      else {
         mysteryError.value = data.error || '获取神秘商人失败'
+      }
     }
     catch (err: any) {
       if (requestId === mysteryRequestId && isCurrentAccount(requestedId))
@@ -331,6 +336,7 @@ export const useShopStore = defineStore('shop', () => {
     decorations,
     mallGoods,
     mysteryOffer,
+    mysteryOfferAccountId,
     loading,
     petLoading,
     decorationLoading,

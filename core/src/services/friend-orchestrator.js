@@ -38,6 +38,7 @@ const {
 const { sellAllFruits } = require('./warehouse');
 const {
   getFriendsList,
+  fetchFriendsDogInfo,
   setFriendsListCache,
 } = require('./friend-land-analyzer');
 
@@ -48,6 +49,8 @@ let externalSchedulerMode = false;
 const friendScheduler = createScheduler('friend');
 let badExecutedOnStartup = false;
 let consecutiveBadFailureCount = 0;
+let dogInfoBootstrapAttempted = false;
+let dogInfoBootstrapReadyAt = 0;
 
 const BAD_FAILURE_LIMIT = 3;
 
@@ -68,6 +71,30 @@ function isTransientNetworkError(err) {
 
 function clearFriendsListCache() {
   setFriendsListCache(null);
+}
+
+async function bootstrapFriendDogInfoCacheIfNeeded() {
+  if (dogInfoBootstrapAttempted) return;
+  if (Date.now() < dogInfoBootstrapReadyAt) return;
+
+  const accountId = process.env.FARM_ACCOUNT_ID || '';
+  if (!accountId) return;
+  if (!isAutomationOn('friend') || !isConnected()) return;
+
+  const dogInfoCache = readFriendDogInfoCache(accountId);
+  if (dogInfoCache && Object.keys(dogInfoCache).length > 0) return;
+
+  dogInfoBootstrapAttempted = true;
+  try {
+    log('好友', '护主犬缓存为空，上号稳定后自动获取一次好友狗信息', {
+      module: 'friend',
+      event: '自动获取好友狗信息',
+      source: 'friend_loop_bootstrap',
+    });
+    await fetchFriendsDogInfo();
+  } catch (err) {
+    logWarn('好友', `自动获取好友狗信息失败: ${err.message}`);
+  }
 }
 
 function syncAutomationPatchToMaster(patch) {
@@ -192,6 +219,8 @@ async function checkFriends(options = {}) {
   const userState = getUserState();
   if (!isAutomationOn('friend') || !isConnected()) return false;
 
+  await bootstrapFriendDogInfoCacheIfNeeded();
+
   const accountId = process.env.FARM_ACCOUNT_ID || '';
   const helpEnabled = !!isAutomationOn('friend_help');
   const stealEnabled = !!isAutomationOn('friend_steal');
@@ -272,13 +301,15 @@ async function checkFriends(options = {}) {
 
           const name = friend.remark || friend.name || `GID:${gid}`;
           const plant = friend.plant;
+          const dryNum = plant ? toNum(plant.dry_num) : 0;
           const weedNum = plant ? toNum(plant.weed_num) : 0;
           const insectNum = plant ? toNum(plant.insect_num) : 0;
 
-          if (weedNum > 0 || insectNum > 0) {
+          if (dryNum > 0 || weedNum > 0 || insectNum > 0) {
             helpTargets.push({
               gid,
               name,
+              dryNum,
               weedNum,
               insectNum,
               dogId: 0x15FA5, // 90021
@@ -488,6 +519,8 @@ async function friendCheckLoop() {
   if (externalSchedulerMode) return;
   if (!friendLoopRunning) return;
 
+  await bootstrapFriendDogInfoCacheIfNeeded();
+
   await checkFriends();
 
   if (!friendLoopRunning) return;
@@ -501,6 +534,8 @@ function startFriendCheckLoop(opts = {}) {
 
   externalSchedulerMode = !!opts.externalScheduler;
   friendLoopRunning = true;
+  dogInfoBootstrapAttempted = false;
+  dogInfoBootstrapReadyAt = Date.now() + (2 * 60 * 1000);
 
   // Sync operation limits callback
   setOperationLimitsCallback(updateOperationLimits);
@@ -530,6 +565,8 @@ function startFriendCheckLoop(opts = {}) {
 function stopFriendCheckLoop() {
   friendLoopRunning = false;
   externalSchedulerMode = false;
+  dogInfoBootstrapAttempted = false;
+  dogInfoBootstrapReadyAt = 0;
   clearAllInvalidKnownFriendGidCooldown();
   networkEvents.off('friendApplicationReceived', onFriendApplicationReceived);
   friendScheduler.clearAll();

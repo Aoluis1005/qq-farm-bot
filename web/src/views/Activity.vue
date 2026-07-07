@@ -68,6 +68,8 @@ const L: ActivityLabels = {
   activityStatus: '\u6D3B\u52A8\u72B6\u6001',
 } as const
 
+const SHOW_QINGMEI_ACTIVITY = false
+
 const accountStore = useAccountStore()
 const activityStore = useActivityStore()
 const toast = useToastStore()
@@ -114,7 +116,9 @@ const sectionTabs = computed<ActivitySection[]>(() => [
   { key: 'shop', label: L.shopTab, icon: 'i-carbon-store', count: heluExchangeItems.value.length },
   { key: 'journey', label: L.journeyTab, icon: 'i-carbon-map', count: passport.value?.claimableLevels || 0 },
   { key: 'notes', label: L.notesTab, icon: 'i-carbon-notebook', count: solarTerms.value?.claimableCount || 0 },
-  { key: 'qingmei', label: '青梅酿万金', icon: 'i-carbon-fruit-bowl', count: qingmeiActivity.value?.claimable ? 1 : 0 },
+  ...(SHOW_QINGMEI_ACTIVITY
+    ? [{ key: 'qingmei' as const, label: '青梅酿万金', icon: 'i-carbon-fruit-bowl', count: qingmeiActivity.value?.claimable ? 1 : 0 }]
+    : []),
 ])
 const activeError = computed(() => heluError.value)
 const activeSubActivity = computed(() => {
@@ -282,7 +286,7 @@ onMounted(() => {
 
         <div class="min-w-0 flex flex-wrap items-center gap-2">
           <div class="max-w-full min-w-0 overflow-x-auto pb-1">
-            <div class="h-9 inline-flex min-w-max overflow-hidden border border-gray-200 rounded-lg bg-white p-0.5 dark:border-gray-700 dark:bg-gray-800">
+            <div class="h-9 min-w-max inline-flex overflow-hidden border border-gray-200 rounded-lg bg-white p-0.5 dark:border-gray-700 dark:bg-gray-800">
               <button
                 v-for="section in sectionTabs"
                 :key="section.key"
@@ -383,7 +387,7 @@ onMounted(() => {
         />
 
         <QingmeiActivityPanel
-          v-else-if="activeSection === 'qingmei'"
+          v-else-if="SHOW_QINGMEI_ACTIVITY && activeSection === 'qingmei'"
           :activity="qingmeiActivity"
           :loading="qingmeiClaimLoading"
           :sell-loading="qingmeiSellLoading"

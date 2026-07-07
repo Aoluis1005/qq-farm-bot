@@ -110,7 +110,8 @@ function isFastMatureFertilizerMode(mode: string) {
               />
             </div>
             <p class="text-xs text-gray-500 dark:text-gray-400">
-              到点后自动获取新 Code 并重启当前账号；手动填码账号缺少 wxid 时会跳过。
+              <span class="text-amber-700 font-semibold dark:text-amber-300">仅微信账号可用。</span>
+              到点后自动获取新 Code 并重启当前账号；QQ 账号和缺少 wxid 的手动填码账号会跳过。
             </p>
           </div>
 

@@ -18,6 +18,7 @@ export interface KnownFriendSettings {
 export const useFriendStore = defineStore('friend', () => {
   const friends = ref<any[]>([])
   const loading = ref(false)
+  const dogInfoLoading = ref(false)
   const friendLands = ref<Record<string, any[]>>({})
   const friendLandsLoading = ref<Record<string, boolean>>({})
   const blacklist = ref<BlacklistItem[]>([])
@@ -117,6 +118,54 @@ export const useFriendStore = defineStore('friend', () => {
     finally {
       loading.value = false
     }
+  }
+
+  async function fetchFriendsDogInfo(accountId: string) {
+    if (!accountId)
+      return { ok: false, error: '账号ID无效' }
+    const requestedId = String(accountId)
+    dogInfoLoading.value = true
+    try {
+      const res = await api.post('/api/friends/fetch-dog-info', {}, {
+        headers: { 'x-account-id': accountId },
+        timeout: 600000,
+      })
+      if (res.data.ok && Array.isArray(res.data.friends) && isCurrentAccount(requestedId)) {
+        friends.value = res.data.friends
+      }
+      return {
+        ok: !!res.data.ok,
+        failCount: res.data.failCount || 0,
+        blacklistCount: res.data.blacklistCount || 0,
+        guardDogCount: res.data.guardDogCount || 0,
+        error: res.data.error || '',
+      }
+    }
+    catch (e: any) {
+      return {
+        ok: false,
+        error: e?.response?.data?.error || e?.message || '获取狗信息失败',
+      }
+    }
+    finally {
+      dogInfoLoading.value = false
+    }
+  }
+
+  async function fetchFriendDogInfo(accountId: string, gid: string | number) {
+    if (!accountId || !gid)
+      return null
+    try {
+      const res = await api.get(`/api/friend/${gid}/dog`, {
+        headers: { 'x-account-id': accountId },
+      })
+      if (res.data.ok)
+        return res.data.data
+    }
+    catch {
+      // ignore
+    }
+    return null
   }
   async function fetchInteractRecords(accountId: string) {
     if (!accountId)
@@ -321,6 +370,7 @@ export const useFriendStore = defineStore('friend', () => {
   return {
     friends,
     loading,
+    dogInfoLoading,
     friendLands,
     friendLandsLoading,
     blacklist,
@@ -334,6 +384,8 @@ export const useFriendStore = defineStore('friend', () => {
     knownFriendSettingsSaving,
     clearFriendData,
     fetchFriends,
+    fetchFriendsDogInfo,
+    fetchFriendDogInfo,
     fetchBlacklist,
     toggleBlacklist,
     fetchInteractRecords,

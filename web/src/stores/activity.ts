@@ -8,6 +8,9 @@ export interface ActivityExchangeShopItem {
   sort: number
   status: number
   owned: boolean
+  isRepeatable?: boolean
+  exchangeLimit?: number
+  ownedBlocksExchange?: boolean
   statusLabel: string
   name: string
   itemId: number
