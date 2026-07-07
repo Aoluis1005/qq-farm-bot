@@ -25,6 +25,7 @@ const {
 const {
   checkDailyReset,
   canOperate,
+  canOperateBad,
   getCanGetHelpExp,
   getHelpAutoDisabledByLimit,
   updateOperationLimits,
@@ -423,10 +424,7 @@ async function checkFriends(options = {}) {
 
         for (let i = 0; i < topTargets.length; i++) {
           const target = topTargets[i];
-          const canPutBug = canOperate(0x271A); // 10010?
-          const canPutWeed = canOperate(0x2719); // 10009?
-
-          if (!canPutBug && !canPutWeed) {
+          if (!canOperateBad()) {
             log('好友', '放虫放草次数已用完，停止执行', {
               module: 'friend',
               event: '放虫放草次数用完',
@@ -766,10 +764,7 @@ async function runBadOnceOnStartup(force = false) {
 
     for (let i = 0; i < topTargets.length; i++) {
       const target = topTargets[i];
-      const canPutBug = canOperate(0x271A);
-      const canPutWeed = canOperate(0x2719);
-
-      if (!canPutBug && !canPutWeed) {
+      if (!canOperateBad()) {
         log('好友', `放虫放草次数已用完，停止执行。已处理 ${processedCount} 个好友`, {
           module: 'friend',
           event: '放虫放草次数用完',

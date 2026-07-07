@@ -9,6 +9,11 @@ const operationLimits = new Map();
 let lastResetDate = '';
 let canGetHelpExp = true;
 let helpAutoDisabledByLimit = false;
+let localBadOperationCount = 0;
+
+const PUT_BUG_OPERATION_ID = 10005;
+const PUT_WEED_OPERATION_ID = 10006;
+const BAD_DAILY_LIMIT = 100;
 
 // ===== Operation type names =====
 const OP_NAMES = {
@@ -16,8 +21,8 @@ const OP_NAMES = {
   '10002': '帮好友除草',
   '10003': '帮好友除虫',
   '10004': '偷取好友作物',
-  '10005': '给好友放草',
-  '10006': '给好友放虫',
+  '10005': '给好友放虫',
+  '10006': '给好友放草',
   '10007': '帮好友复活',
   '10008': '好友帮忙浇水',
 };
@@ -47,6 +52,7 @@ function checkDailyReset() {
       log('系统', '跨日重置，清空操作限制缓存');
     }
     operationLimits.clear();
+    localBadOperationCount = 0;
     canGetHelpExp = true;
 
     if (helpAutoDisabledByLimit) {
@@ -123,20 +129,49 @@ function canGetExpByCandidates(expIds = []) {
 /**
  * Check if an operation can still be performed (by operation count limit).
  */
-function canOperate(operationId) {
+function canOperate(operationId, fallbackLimit = 0) {
   const limit = operationLimits.get(operationId);
+  const fallback = Math.max(0, Number(fallbackLimit) || 0);
   if (!limit) return true; // No limit known -> assume allowed
-  if (limit.dayTimesLimit <= 0) return true; // No limit set
-  return limit.dayTimes < limit.dayTimesLimit;
+  const dayTimesLimit = limit.dayTimesLimit > 0 ? limit.dayTimesLimit : fallback;
+  if (dayTimesLimit <= 0) return true; // No limit set
+  return limit.dayTimes < dayTimesLimit;
 }
 
 /**
  * Get remaining times for an operation. Returns 999 if unlimited.
  */
-function getRemainingTimes(operationId) {
+function getRemainingTimes(operationId, fallbackLimit = 0) {
   const limit = operationLimits.get(operationId);
-  if (!limit || limit.dayTimesLimit <= 0) return 999;
-  return Math.max(0, limit.dayTimesLimit - limit.dayTimes);
+  const fallback = Math.max(0, Number(fallbackLimit) || 0);
+  if (!limit) return fallback > 0 ? fallback : 999;
+  const dayTimesLimit = limit.dayTimesLimit > 0 ? limit.dayTimesLimit : fallback;
+  if (dayTimesLimit <= 0) return 999;
+  return Math.max(0, dayTimesLimit - limit.dayTimes);
+}
+
+function getOperationDayTimes(operationId) {
+  const limit = operationLimits.get(operationId);
+  return limit ? Math.max(0, toNum(limit.dayTimes)) : 0;
+}
+
+function getBadOperationUsedCount() {
+  const serverUsed =
+    getOperationDayTimes(PUT_BUG_OPERATION_ID) +
+    getOperationDayTimes(PUT_WEED_OPERATION_ID);
+  return Math.max(serverUsed, localBadOperationCount);
+}
+
+function getBadRemainingTimes() {
+  return Math.max(0, BAD_DAILY_LIMIT - getBadOperationUsedCount());
+}
+
+function canOperateBad() {
+  return getBadRemainingTimes() > 0;
+}
+
+function recordBadOperationSuccess(count) {
+  localBadOperationCount += Math.max(0, Number(count) || 0);
 }
 
 /**
@@ -380,31 +415,44 @@ async function putPlantItemsDetailed(gid, landIds, RequestType, ReplyType, rpcMe
 // ===== Specific put operations =====
 
 async function putInsects(gid, landIds) {
-  return putPlantItems(gid, landIds, types.PutInsectsRequest, types.PutInsectsReply, 'PutInsects');
+  const ok = await putPlantItems(gid, landIds, types.PutInsectsRequest, types.PutInsectsReply, 'PutInsects');
+  recordBadOperationSuccess(ok);
+  return ok;
 }
 
 async function putWeeds(gid, landIds) {
-  return putPlantItems(gid, landIds, types.PutWeedsRequest, types.PutWeedsReply, 'PutWeeds');
+  const ok = await putPlantItems(gid, landIds, types.PutWeedsRequest, types.PutWeedsReply, 'PutWeeds');
+  recordBadOperationSuccess(ok);
+  return ok;
 }
 
 async function putInsectsDetailed(gid, landIds) {
-  return putPlantItemsDetailed(gid, landIds, types.PutInsectsRequest, types.PutInsectsReply, 'PutInsects');
+  const result = await putPlantItemsDetailed(gid, landIds, types.PutInsectsRequest, types.PutInsectsReply, 'PutInsects');
+  recordBadOperationSuccess(result.ok);
+  return result;
 }
 
 async function putWeedsDetailed(gid, landIds) {
-  return putPlantItemsDetailed(gid, landIds, types.PutWeedsRequest, types.PutWeedsReply, 'PutWeeds');
+  const result = await putPlantItemsDetailed(gid, landIds, types.PutWeedsRequest, types.PutWeedsReply, 'PutWeeds');
+  recordBadOperationSuccess(result.ok);
+  return result;
 }
 
 // ===== Exports =====
 module.exports = {
   OP_NAMES,
+  PUT_BUG_OPERATION_ID,
+  PUT_WEED_OPERATION_ID,
+  BAD_DAILY_LIMIT,
   checkDailyReset,
   autoDisableHelpByExpLimit,
   updateOperationLimits,
   canGetExp,
   canGetExpByCandidates,
   canOperate,
+  canOperateBad,
   getRemainingTimes,
+  getBadRemainingTimes,
   getOperationLimits,
   getCanGetHelpExp,
   setCanGetHelpExp,
