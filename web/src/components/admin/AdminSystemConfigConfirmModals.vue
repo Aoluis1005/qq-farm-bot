@@ -4,17 +4,20 @@ import ConfirmModal from '@/components/ConfirmModal.vue'
 const props = defineProps<{
   systemConfigSaving: boolean
   wxConfigSaving: boolean
+  loginLinksSaving: boolean
 }>()
 
 const emit = defineEmits<{
   resetSystem: []
   saveSystem: []
+  resetLoginLinks: []
   resetWx: []
   saveWx: []
 }>()
 
 const showResetSystemConfirm = defineModel<boolean>('showResetSystemConfirm', { required: true })
 const showSaveSystemConfirm = defineModel<boolean>('showSaveSystemConfirm', { required: true })
+const showResetLoginLinksConfirm = defineModel<boolean>('showResetLoginLinksConfirm', { required: true })
 const showResetWxConfigConfirm = defineModel<boolean>('showResetWxConfigConfirm', { required: true })
 const showSaveWxConfigConfirm = defineModel<boolean>('showSaveWxConfigConfirm', { required: true })
 
@@ -26,6 +29,11 @@ function closeSystemResetConfirm() {
 function closeSystemSaveConfirm() {
   if (!props.systemConfigSaving)
     showSaveSystemConfirm.value = false
+}
+
+function closeLoginLinksResetConfirm() {
+  if (!props.loginLinksSaving)
+    showResetLoginLinksConfirm.value = false
 }
 
 function closeWxResetConfirm() {
@@ -64,6 +72,19 @@ function closeWxSaveConfirm() {
     @confirm="emit('saveSystem')"
     @close="closeSystemSaveConfirm"
     @cancel="closeSystemSaveConfirm"
+  />
+
+  <ConfirmModal
+    :show="showResetLoginLinksConfirm"
+    title="确认恢复登录页默认设置"
+    message="确定要恢复登录页默认设置吗？自定义图标、标题、提示语、购买链接和QQ群链接都会被覆盖，已上传的本地图标也会被删除。"
+    type="danger"
+    :loading="loginLinksSaving"
+    confirm-text="确认恢复"
+    cancel-text="取消"
+    @confirm="emit('resetLoginLinks')"
+    @close="closeLoginLinksResetConfirm"
+    @cancel="closeLoginLinksResetConfirm"
   />
 
   <ConfirmModal

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { SystemConfig, WxConfig } from '@/composables/useAdminSystemConfig'
+import type { LoginLinks, SystemConfig, WxConfig } from '@/composables/useAdminSystemConfig'
+import { ref, watch } from 'vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseSwitch from '@/components/ui/BaseSwitch.vue'
@@ -15,17 +16,41 @@ defineProps<{
   osOptions: OptionItem[]
   systemConfigSaving: boolean
   wxConfigSaving: boolean
+  loginLinksSaving: boolean
+  loginLogoUploading: boolean
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   resetSystem: []
   saveSystem: []
   resetWx: []
   saveWx: []
+  resetLoginLinks: []
+  saveLoginLinks: []
+  uploadLoginLogo: [file: File]
 }>()
 
 const localSystemConfig = defineModel<SystemConfig>('localSystemConfig', { required: true })
 const localWxConfig = defineModel<WxConfig>('localWxConfig', { required: true })
+const localLoginLinks = defineModel<LoginLinks>('localLoginLinks', { required: true })
+const previewLogoFailed = ref(false)
+const logoFileInput = ref<HTMLInputElement | null>(null)
+
+watch(() => localLoginLinks.value.logoUrl, () => {
+  previewLogoFailed.value = false
+})
+
+function openLogoFilePicker() {
+  logoFileInput.value?.click()
+}
+
+function handleLogoFileChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (file)
+    emit('uploadLoginLogo', file)
+  input.value = ''
+}
 </script>
 
 <template>
@@ -39,6 +64,114 @@ const localWxConfig = defineModel<WxConfig>('localWxConfig', { required: true })
     </div>
 
     <div class="space-y-4">
+      <div class="border border-gray-200 rounded-lg bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+        <h4 class="mb-3 flex items-center gap-2 text-base text-gray-900 font-bold dark:text-gray-100">
+          <div class="i-carbon-application-web" />
+          登录页设置
+        </h4>
+
+        <div class="mb-3 rounded-lg bg-gray-50 px-4 py-3 text-xs text-gray-600 dark:bg-gray-900/40 dark:text-gray-300">
+          自定义登录页图标、标题、提示语和底部链接。图标地址留空时使用默认图标，底部链接留空时隐藏对应入口。
+        </div>
+
+        <div class="grid gap-3 text-sm">
+          <div class="flex items-center gap-3 rounded-lg bg-gray-50 px-3 py-3 dark:bg-gray-900/40">
+            <div class="h-12 w-12 flex flex-none items-center justify-center overflow-hidden border border-gray-200 rounded-full bg-white dark:border-gray-700 dark:bg-gray-800">
+              <img
+                v-if="localLoginLinks.logoUrl && !previewLogoFailed"
+                :src="localLoginLinks.logoUrl"
+                alt="登录页图标预览"
+                class="h-full w-full object-cover"
+                @error="previewLogoFailed = true"
+              >
+              <div v-else class="i-carbon-home text-xl text-green-600" />
+            </div>
+            <div class="min-w-0">
+              <div class="break-words text-sm text-gray-900 font-semibold dark:text-gray-100">
+                {{ localLoginLinks.title || 'QQ农场智能助手' }}
+              </div>
+              <div class="mt-1 break-words text-xs text-gray-500 dark:text-gray-400">
+                {{ localLoginLinks.loginSubtitle || '欢迎回来，开启智慧农耕之旅' }}
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <input
+              ref="logoFileInput"
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,image/x-icon,image/vnd.microsoft.icon"
+              class="hidden"
+              @change="handleLogoFileChange"
+            >
+            <BaseButton
+              variant="secondary"
+              size="sm"
+              :loading="loginLogoUploading"
+              @click="openLogoFilePicker"
+            >
+              <span class="i-carbon-upload" />
+              上传本地图片
+            </BaseButton>
+            <span class="text-xs text-gray-500 dark:text-gray-400">PNG、JPG、WebP、GIF、SVG、ICO，最大 2MB</span>
+          </div>
+          <BaseInput
+            v-model="localLoginLinks.logoUrl"
+            label="登录图标地址（可选）"
+            type="text"
+            placeholder="https://... 或 /icon.png"
+          />
+          <BaseInput
+            v-model="localLoginLinks.title"
+            label="主标题"
+            type="text"
+            placeholder="QQ农场智能助手"
+          />
+          <BaseInput
+            v-model="localLoginLinks.loginSubtitle"
+            label="登录欢迎语"
+            type="text"
+            placeholder="欢迎回来，开启智慧农耕之旅"
+          />
+          <BaseInput
+            v-model="localLoginLinks.registerSubtitle"
+            label="注册提示语"
+            type="text"
+            placeholder="创建账号，开启智慧农耕之旅"
+          />
+          <BaseInput
+            v-model="localLoginLinks.purchaseUrl"
+            label="购买链接"
+            type="text"
+            placeholder="https://... 或 /renewal"
+          />
+          <BaseInput
+            v-model="localLoginLinks.qqGroupUrl"
+            label="QQ群链接"
+            type="text"
+            placeholder="https://qm.qq.com/..."
+          />
+        </div>
+
+        <div class="mt-3 flex justify-end gap-2">
+          <BaseButton
+            variant="secondary"
+            size="sm"
+            :loading="loginLinksSaving"
+            @click="$emit('resetLoginLinks')"
+          >
+            恢复默认
+          </BaseButton>
+          <BaseButton
+            variant="primary"
+            size="sm"
+            :loading="loginLinksSaving"
+            @click="$emit('saveLoginLinks')"
+          >
+            保存
+          </BaseButton>
+        </div>
+      </div>
+
       <div class="border border-gray-200 rounded-lg bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
         <h4 class="mb-3 flex items-center gap-2 text-base text-gray-900 font-bold dark:text-gray-100">
           <div class="i-carbon-settings" />

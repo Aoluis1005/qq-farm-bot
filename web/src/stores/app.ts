@@ -6,10 +6,30 @@ const THEME_KEY = 'ui_theme'
 
 export type Theme = 'light-blue' | 'light-green' | 'light-pink' | 'dark-blue' | 'dark-purple' | 'dark-teal' | 'dark-orange' | 'dark-red'
 
+export interface LoginPageConfig {
+  logoUrl: string
+  title: string
+  loginSubtitle: string
+  registerSubtitle: string
+  purchaseUrl: string
+  qqGroupUrl: string
+}
+
+const defaultLoginPageConfig: LoginPageConfig = {
+  logoUrl: '',
+  title: 'QQ农场智能助手',
+  loginSubtitle: '欢迎回来，开启智慧农耕之旅',
+  registerSubtitle: '创建账号，开启智慧农耕之旅',
+  purchaseUrl: '',
+  qqGroupUrl: '',
+}
+
 export const useAppStore = defineStore('app', () => {
   const sidebarOpen = ref(false)
   const currentTheme = ref<Theme>((localStorage.getItem(THEME_KEY) as Theme) || 'light-blue')
   const showThemePanel = ref(false)
+  const loginPageConfig = ref<LoginPageConfig>({ ...defaultLoginPageConfig })
+  let loginPageConfigPromise: Promise<void> | null = null
 
   const themes: Record<Theme, {
     name: string
@@ -127,6 +147,23 @@ export const useAppStore = defineStore('app', () => {
     }
   }
 
+  async function fetchLoginPageConfig() {
+    if (loginPageConfigPromise)
+      return loginPageConfigPromise
+
+    loginPageConfigPromise = api.get('/api/public/login-links').then((res) => {
+      if (res.data?.ok && res.data.data) {
+        loginPageConfig.value = { ...defaultLoginPageConfig, ...res.data.data }
+        document.title = loginPageConfig.value.title || defaultLoginPageConfig.title
+      }
+    }).catch(() => {
+      // 保留默认品牌，页面仍可正常使用。
+    }).finally(() => {
+      loginPageConfigPromise = null
+    })
+    return loginPageConfigPromise
+  }
+
   function applyTheme(theme: Theme) {
     if (!themes[theme]) {
       theme = 'light-pink'
@@ -179,6 +216,7 @@ export const useAppStore = defineStore('app', () => {
     isDark,
     currentTheme,
     showThemePanel,
+    loginPageConfig,
     themes,
     applyTheme,
     toggleThemePanel,
@@ -187,5 +225,6 @@ export const useAppStore = defineStore('app', () => {
     closeSidebar,
     openSidebar,
     fetchTheme,
+    fetchLoginPageConfig,
   }
 })

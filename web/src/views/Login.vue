@@ -4,19 +4,22 @@ import { useRoute } from 'vue-router'
 import api from '@/api'
 import LoginModals from '@/components/login/LoginModals.vue'
 import PasswordStrengthMeter from '@/components/login/PasswordStrengthMeter.vue'
+import UpdateLogModal from '@/components/login/UpdateLogModal.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import { getPasswordStrength } from '@/composables/usePasswordStrength'
+import { useAppStore } from '@/stores/app'
 import { formatTimeDuration, useUserStore } from '@/stores/user'
-
-declare const __APP_VERSION__: string
 
 const USERNAME_RE = /^\w+$/
 
 const userStore = useUserStore()
+const appStore = useAppStore()
 const route = useRoute()
-const appVersion = __APP_VERSION__
 const gameVersion = ref('')
+const loginLinks = computed(() => appStore.loginPageConfig)
+const showUpdateLog = ref(false)
+const logoLoadFailed = ref(false)
 
 const isLogin = ref(true)
 const username = ref('')
@@ -90,6 +93,10 @@ watch(routeUsername, (value) => {
     username.value = value
   }
 }, { immediate: true })
+
+watch(() => loginLinks.value.logoUrl, () => {
+  logoLoadFailed.value = false
+})
 
 function validateForm(): boolean {
   if (!username.value) {
@@ -433,6 +440,7 @@ function closeClaimModal() {
 onMounted(() => {
   checkCardClaimStatus()
   fetchGameVersion()
+  appStore.fetchLoginPageConfig()
 })
 
 async function fetchGameVersion() {
@@ -461,13 +469,22 @@ async function fetchGameVersion() {
     <main class="login-card">
       <div class="logo-area">
         <div class="logo-icon">
-          <div class="i-carbon-home text-3xl" />
+          <img
+            v-if="loginLinks.logoUrl && !logoLoadFailed"
+            :src="loginLinks.logoUrl"
+            :alt="`${loginLinks.title || 'QQ农场智能助手'}图标`"
+            class="logo-image"
+            @error="logoLoadFailed = true"
+          >
+          <div v-else class="i-carbon-home text-3xl" />
         </div>
         <h1 class="logo-title">
-          QQ农场智能助手
+          {{ loginLinks.title || 'QQ农场智能助手' }}
         </h1>
         <p class="logo-subtitle">
-          {{ isLogin ? '欢迎回来，开启智慧农耕之旅' : '创建账号，开启智慧农耕之旅' }}
+          {{ isLogin
+            ? (loginLinks.loginSubtitle || '欢迎回来，开启智慧农耕之旅')
+            : (loginLinks.registerSubtitle || '创建账号，开启智慧农耕之旅') }}
         </p>
       </div>
 
@@ -582,16 +599,29 @@ async function fetchGameVersion() {
 
       <div class="card-footer">
         <div class="footer-info">
-          <span class="version">v{{ appVersion }}</span>
-          <span class="separator">|</span>
           <a
-            href="https://github.com/XyhTender/qq-farm-automation-bot"
+            v-if="loginLinks.purchaseUrl"
+            :href="loginLinks.purchaseUrl"
+            class="footer-link purchase-link"
+          >
+            购买卡密
+          </a>
+          <a
+            v-if="loginLinks.qqGroupUrl"
+            :href="loginLinks.qqGroupUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="github-link"
+            class="footer-link qq-group-link"
           >
-            GitHub
+            加入QQ群
           </a>
+          <button
+            type="button"
+            class="footer-link update-log-link"
+            @click="showUpdateLog = true"
+          >
+            更新日志
+          </button>
         </div>
         <div v-if="gameVersion" class="game-version">
           当前游戏版本：{{ gameVersion }}
@@ -626,6 +656,8 @@ async function fetchGameVersion() {
       @submit-reset-password="submitResetPassword"
       @submit-renewal="submitRenewal"
     />
+
+    <UpdateLogModal :show="showUpdateLog" @close="showUpdateLog = false" />
   </div>
 </template>
 
@@ -786,12 +818,23 @@ async function fetchGameVersion() {
   font-weight: 700;
   line-height: 1.2;
   margin: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .logo-subtitle {
   color: #757575;
   font-size: 0.9rem;
   margin: 10px 0 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .form-area {
@@ -966,34 +1009,49 @@ async function fetchGameVersion() {
   color: #94a3b8;
 }
 
-.version {
-  color: #2e7d32;
-  background: #e8f5e9;
-  border: 1px solid #c8e6c9;
-  border-radius: 6px;
-  padding: 5px 10px;
-  font-weight: 700;
-}
-
-.separator {
-  color: #cbd5e1;
-}
-
-.github-link {
-  color: #1565c0;
-  background: #e3f2fd;
-  border: 1px solid #bbdefb;
+.footer-link {
   border-radius: 6px;
   padding: 5px 10px;
   font-weight: 700;
   text-decoration: none;
   transition: all 0.2s ease;
+  cursor: pointer;
 }
 
-.github-link:hover {
-  color: #0d47a1;
-  background: #bbdefb;
+.footer-link:hover {
   text-decoration: none;
+}
+
+.purchase-link {
+  color: #166534;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+}
+
+.purchase-link:hover {
+  background: #bbf7d0;
+}
+
+.qq-group-link {
+  color: #075985;
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+}
+
+.qq-group-link:hover {
+  background: #bae6fd;
+}
+
+.update-log-link {
+  color: #854d0e;
+  background: #fef9c3;
+  border: 1px solid #fde047;
+  font-size: inherit;
+}
+
+.update-log-link:hover {
+  color: #713f12;
+  background: #fef08a;
 }
 
 .game-version {

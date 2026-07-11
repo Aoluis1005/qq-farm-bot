@@ -18,6 +18,15 @@ export interface WxConfig {
   userIsolation: boolean
 }
 
+export interface LoginLinks {
+  logoUrl: string
+  title: string
+  loginSubtitle: string
+  registerSubtitle: string
+  purchaseUrl: string
+  qqGroupUrl: string
+}
+
 interface UseAdminSystemConfigOptions {
   showAlert: (message: string, type?: 'primary' | 'danger') => void
 }
@@ -39,19 +48,125 @@ const defaultWxConfig: WxConfig = {
   userIsolation: true,
 }
 
+const defaultLoginLinks: LoginLinks = {
+  logoUrl: '',
+  title: 'QQ农场智能助手',
+  loginSubtitle: '欢迎回来，开启智慧农耕之旅',
+  registerSubtitle: '创建账号，开启智慧农耕之旅',
+  purchaseUrl: '',
+  qqGroupUrl: '',
+}
+
 export function useAdminSystemConfig(options: UseAdminSystemConfigOptions) {
   const systemConfigSaving = ref(false)
   const systemConfigLoading = ref(false)
   const wxConfigSaving = ref(false)
+  const loginLinksSaving = ref(false)
+  const loginLogoUploading = ref(false)
 
   const showResetSystemConfirm = ref(false)
   const showSaveSystemConfirm = ref(false)
+  const showResetLoginLinksConfirm = ref(false)
   const showResetWxConfigConfirm = ref(false)
   const showSaveWxConfigConfirm = ref(false)
 
   const localSystemConfig = ref<SystemConfig>({ ...defaultSystemConfigValues })
   const defaultSystemConfig = ref<SystemConfig>({ ...defaultSystemConfigValues })
   const localWxConfig = ref<WxConfig>({ ...defaultWxConfig })
+  const localLoginLinks = ref<LoginLinks>({ ...defaultLoginLinks })
+
+  async function loadLoginLinks() {
+    try {
+      const { data } = await api.get('/api/admin/login-links')
+      if (data?.ok && data.data)
+        localLoginLinks.value = { ...data.data }
+    }
+    catch (e: any) {
+      console.error('加载登录页链接失败:', e)
+    }
+  }
+
+  async function handleSaveLoginLinks() {
+    loginLinksSaving.value = true
+    try {
+      const { data } = await api.post('/api/admin/login-links', {
+        ...localLoginLinks.value,
+        confirmed: true,
+      })
+      if (data?.ok) {
+        localLoginLinks.value = { ...data.data }
+        options.showAlert('登录页设置已保存', 'primary')
+      }
+      else {
+        options.showAlert(data?.error || '保存失败', 'danger')
+      }
+    }
+    catch (e: any) {
+      options.showAlert(`保存失败: ${e.message || '未知错误'}`, 'danger')
+    }
+    finally {
+      loginLinksSaving.value = false
+    }
+  }
+
+  async function handleResetLoginLinks() {
+    showResetLoginLinksConfirm.value = false
+    loginLinksSaving.value = true
+    try {
+      const { data } = await api.post('/api/admin/login-links/reset', {
+        confirmed: true,
+      })
+      if (data?.ok && data.data) {
+        localLoginLinks.value = { ...data.data }
+        options.showAlert('登录页设置已恢复默认', 'primary')
+      }
+      else {
+        options.showAlert(data?.error || '恢复默认失败', 'danger')
+      }
+    }
+    catch (e: any) {
+      options.showAlert(e?.response?.data?.error || `恢复默认失败: ${e.message || '未知错误'}`, 'danger')
+    }
+    finally {
+      loginLinksSaving.value = false
+    }
+  }
+
+  function openResetLoginLinksConfirm() {
+    showResetLoginLinksConfirm.value = true
+  }
+
+  async function handleUploadLoginLogo(file: File) {
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml', 'image/x-icon', 'image/vnd.microsoft.icon']
+    if (!allowedTypes.includes(file.type)) {
+      options.showAlert('仅支持 PNG、JPG、WebP、GIF、SVG 或 ICO 图片', 'danger')
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      options.showAlert('图片大小不能超过 2MB', 'danger')
+      return
+    }
+
+    loginLogoUploading.value = true
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const { data } = await api.post('/api/admin/login-logo', formData)
+      if (data?.ok && data.data) {
+        localLoginLinks.value = { ...data.data }
+        options.showAlert('登录图标已上传并保存', 'primary')
+      }
+      else {
+        options.showAlert(data?.error || '上传失败', 'danger')
+      }
+    }
+    catch (e: any) {
+      options.showAlert(e?.response?.data?.error || `上传失败: ${e.message || '未知错误'}`, 'danger')
+    }
+    finally {
+      loginLogoUploading.value = false
+    }
+  }
 
   const platformOptions = [
     { label: 'QQ', value: 'qq' },
@@ -184,16 +299,25 @@ export function useAdminSystemConfig(options: UseAdminSystemConfigOptions) {
     systemConfigSaving,
     systemConfigLoading,
     wxConfigSaving,
+    loginLinksSaving,
+    loginLogoUploading,
     showResetSystemConfirm,
     showSaveSystemConfirm,
+    showResetLoginLinksConfirm,
     showResetWxConfigConfirm,
     showSaveWxConfigConfirm,
     localSystemConfig,
     defaultSystemConfig,
     localWxConfig,
+    localLoginLinks,
     platformOptions,
     osOptions,
     loadWxConfig,
+    loadLoginLinks,
+    handleSaveLoginLinks,
+    handleResetLoginLinks,
+    openResetLoginLinksConfirm,
+    handleUploadLoginLogo,
     handleSaveWxConfig,
     handleResetWxConfig,
     openResetWxConfigConfirm,

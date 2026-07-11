@@ -22,7 +22,7 @@ const {
   getRuntimeConfig,
   getDefaultSystemConfig,
 } = require("../config/config");
-const { getResourcePath } = require("../config/runtime-paths");
+const { getDataFile, getResourcePath } = require("../config/runtime-paths");
 const store = require("../models/store");
 const { addOrUpdateAccount, deleteAccount } = store;
 const { findAccountByRef } = require("../services/account-resolver");
@@ -76,6 +76,7 @@ const PUBLIC_API_PATHS = new Set([
   "/card-claim/status",
   "/card-claim/claim",
   "/game-version",
+  "/public/login-links",
   "/user-count",
   "/super-admin-announcement",
   "/super-admin-announcement/verify",
@@ -344,6 +345,24 @@ function startAdminServer(dataProvider) {
   configureCorsMiddleware(app);
   configureStaticAssets(app, webDist);
   app.use("/game-config", express.static(getResourcePath("gameConfig")));
+  const loginAssetsDir = getDataFile("login-assets");
+  fs.mkdirSync(loginAssetsDir, { recursive: true });
+  app.use(
+    "/login-assets",
+    express.static(loginAssetsDir, {
+      dotfiles: "deny",
+      setHeaders(res, filePath) {
+        res.setHeader("X-Content-Type-Options", "nosniff");
+        if (path.extname(filePath).toLowerCase() === ".svg") {
+          res.setHeader(
+            "Content-Security-Policy",
+            "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:",
+          );
+        }
+      },
+    }),
+  );
+  app.use("/login-assets", (req, res) => res.sendStatus(404));
   setInterval(cleanupInvalidAdminSessions, FIVE_MINUTES_MS);
   setInterval(checkAccountLimitInterval, ONE_MINUTE_MS);
 

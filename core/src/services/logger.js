@@ -5,10 +5,59 @@ const { ensureDataDir } = require('../config/runtime-paths');
 
 // 尝试加载 winston，失败则使用 fallback
 let winston = null;
+let DailyRotateFile = null;
 try {
   winston = require('winston');
+  DailyRotateFile = require('winston-daily-rotate-file');
 } catch {
   winston = null;
+  DailyRotateFile = null;
+}
+
+const LOG_RETENTION_MS = 3 * 24 * 60 * 60 * 1000;
+const LOG_CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
+const ROTATED_LOG_RE = /^(?:combined|error)(?:-\d{4}-\d{2}-\d{2}-\d{2})?\.log$/;
+
+let logCleanupTimer = null;
+
+function padDatePart(value) {
+  return String(value).padStart(2, '0');
+}
+
+function buildHourlyLogFilename(prefix, date = new Date()) {
+  const hour = [
+    date.getFullYear(),
+    padDatePart(date.getMonth() + 1),
+    padDatePart(date.getDate()),
+    padDatePart(date.getHours())
+  ].join('-');
+  return `${prefix}-${hour}.log`;
+}
+
+function cleanupExpiredLogFiles(logDir, now = Date.now()) {
+  if (!fs.existsSync(logDir)) return 0;
+  const cutoff = now - LOG_RETENTION_MS;
+  let removed = 0;
+  for (const entry of fs.readdirSync(logDir, { withFileTypes: true })) {
+    if (!entry.isFile() || !ROTATED_LOG_RE.test(entry.name)) continue;
+    const filePath = path.join(logDir, entry.name);
+    try {
+      if (fs.statSync(filePath).mtimeMs < cutoff) {
+        fs.unlinkSync(filePath);
+        removed += 1;
+      }
+    } catch {}
+  }
+  return removed;
+}
+
+function startLogCleanup(logDir) {
+  cleanupExpiredLogFiles(logDir);
+  if (logCleanupTimer) return;
+  logCleanupTimer = setInterval(() => {
+    cleanupExpiredLogFiles(logDir);
+  }, LOG_CLEANUP_INTERVAL_MS);
+  logCleanupTimer.unref?.();
 }
 
 // 敏感字段正则：包含 code/token/password 等关键字的键名
@@ -60,6 +109,7 @@ function ensureFallbackLogDir() {
   if (!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir, { recursive: true });
   }
+  startLogCleanup(logDir);
   fallbackLogDir = logDir;
   return fallbackLogDir;
 }
@@ -76,9 +126,9 @@ function appendFallbackLog(level, moduleName, message, meta) {
       meta: sanitizeMeta(meta || {})
     };
     const line = `${JSON.stringify(entry)  }\n`;
-    fs.appendFileSync(path.join(logDir, 'combined.log'), line, 'utf8');
+    fs.appendFileSync(path.join(logDir, buildHourlyLogFilename('combined')), line, 'utf8');
     if (level === 'error') {
-      fs.appendFileSync(path.join(logDir, 'error.log'), line, 'utf8');
+      fs.appendFileSync(path.join(logDir, buildHourlyLogFilename('error')), line, 'utf8');
     }
   } catch {}
 }
@@ -119,6 +169,7 @@ function getRootLogger() {
   if (!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir, { recursive: true });
   }
+  startLogCleanup(logDir);
 
   const level = String(process.env.LOG_LEVEL || 'info').toLowerCase();
   const { combine, timestamp, errors, json, colorize, printf } = winston.format;
@@ -149,13 +200,19 @@ function getRootLogger() {
         )
       }),
       // 合并日志文件
-      new winston.transports.File({
-        filename: path.join(logDir, 'combined.log'),
+      new DailyRotateFile({
+        filename: path.join(logDir, 'combined-%DATE%.log'),
+        datePattern: 'YYYY-MM-DD-HH',
+        maxFiles: '3d',
+        auditFile: path.join(logDir, '.combined-log-audit.json'),
         format: combine(timestamp(), errors({ stack: true }), json())
       }),
       // 错误日志文件
-      new winston.transports.File({
-        filename: path.join(logDir, 'error.log'),
+      new DailyRotateFile({
+        filename: path.join(logDir, 'error-%DATE%.log'),
+        datePattern: 'YYYY-MM-DD-HH',
+        maxFiles: '3d',
+        auditFile: path.join(logDir, '.error-log-audit.json'),
         level: 'error',
         format: combine(timestamp(), errors({ stack: true }), json())
       })
@@ -196,5 +253,8 @@ function createModuleLogger(name = 'app') {
 module.exports = {
   createModuleLogger,
   sanitizeMeta,
-  redactString
+  redactString,
+  buildHourlyLogFilename,
+  cleanupExpiredLogFiles,
+  LOG_RETENTION_MS
 };

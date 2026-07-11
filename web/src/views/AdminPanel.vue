@@ -120,6 +120,8 @@ const {
   showEditUserConfirm,
   users,
   usersLoading,
+  userSearchQuery,
+  filteredUsers,
   showEditModal,
   selectedUser,
   editForm,
@@ -174,16 +176,25 @@ async function confirmClearLogs() {
 const {
   systemConfigSaving,
   wxConfigSaving,
+  loginLinksSaving,
+  loginLogoUploading,
   showResetSystemConfirm,
   showSaveSystemConfirm,
+  showResetLoginLinksConfirm,
   showResetWxConfigConfirm,
   showSaveWxConfigConfirm,
   localSystemConfig,
   defaultSystemConfig,
   localWxConfig,
+  localLoginLinks,
   platformOptions,
   osOptions,
   loadWxConfig,
+  loadLoginLinks,
+  handleSaveLoginLinks,
+  handleResetLoginLinks,
+  openResetLoginLinksConfirm,
+  handleUploadLoginLogo,
   handleSaveWxConfig,
   handleResetWxConfig,
   openResetWxConfigConfirm,
@@ -201,6 +212,7 @@ onMounted(() => {
   fetchLoginLogs()
   loadSystemConfig()
   loadWxConfig()
+  loadLoginLinks()
   fetchCardClaimStatus()
 })
 </script>
@@ -257,7 +269,9 @@ onMounted(() => {
         v-model:renew-user-card-code="renewUserCardCode"
         v-model:show-edit-modal="showEditModal"
         v-model:edit-form="editForm"
+        v-model:user-search-query="userSearchQuery"
         :users="users"
+        :filtered-users="filteredUsers"
         :users-loading="usersLoading"
         :current-username="currentUsername"
         :active-users-count="activeUsersCount"
@@ -292,15 +306,21 @@ onMounted(() => {
         v-else-if="activeTab === 'system'"
         v-model:local-system-config="localSystemConfig"
         v-model:local-wx-config="localWxConfig"
+        v-model:local-login-links="localLoginLinks"
         :default-system-config="defaultSystemConfig"
         :platform-options="platformOptions"
         :os-options="osOptions"
         :system-config-saving="systemConfigSaving"
         :wx-config-saving="wxConfigSaving"
+        :login-links-saving="loginLinksSaving"
+        :login-logo-uploading="loginLogoUploading"
         @reset-system="openResetSystemConfirm"
         @save-system="openSaveSystemConfirm"
+        @reset-login-links="openResetLoginLinksConfirm"
         @reset-wx="openResetWxConfigConfirm"
         @save-wx="openSaveWxConfigConfirm"
+        @save-login-links="handleSaveLoginLinks"
+        @upload-login-logo="handleUploadLoginLogo"
       />
     </AdminPanelTabs>
 
@@ -363,10 +383,13 @@ onMounted(() => {
     <AdminSystemConfigConfirmModals
       v-model:show-reset-system-confirm="showResetSystemConfirm"
       v-model:show-save-system-confirm="showSaveSystemConfirm"
+      v-model:show-reset-login-links-confirm="showResetLoginLinksConfirm"
       v-model:show-reset-wx-config-confirm="showResetWxConfigConfirm"
       v-model:show-save-wx-config-confirm="showSaveWxConfigConfirm"
       :system-config-saving="systemConfigSaving"
       :wx-config-saving="wxConfigSaving"
+      :login-links-saving="loginLinksSaving"
+      @reset-login-links="handleResetLoginLinks"
       @reset-system="handleResetSystemConfig"
       @save-system="handleSaveSystemConfig"
       @reset-wx="handleResetWxConfig"

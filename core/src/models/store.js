@@ -476,6 +476,15 @@ function resolveAccountId(accountId) {
 
 // ==================== 全局配置 ====================
 
+const DEFAULT_LOGIN_LINKS = {
+    logoUrl: '',
+    title: 'QQ农场智能助手',
+    loginSubtitle: '欢迎回来，开启智慧农耕之旅',
+    registerSubtitle: '创建账号，开启智慧农耕之旅',
+    purchaseUrl: '',
+    qqGroupUrl: ''
+};
+
 let accountFallbackConfig = (() => {
     const cfg = { ...DEFAULT_ACCOUNT_CONFIG };
     cfg.automation = { ...DEFAULT_ACCOUNT_CONFIG.automation };
@@ -497,6 +506,7 @@ const globalConfig = {
     announcementReadRecords: {},
     superAdminAnnouncement: { content: '', password: '', updatedAt: 0 },
     systemConfig: null,
+    loginLinks: null,
     globalWxConfig: null,
     deviceProtocol: null,
     userDeviceProtocols: {},
@@ -758,6 +768,18 @@ function loadGlobalConfig() {
                 clientVersion: String(data.systemConfig.clientVersion || '').trim(),
                 platform: String(data.systemConfig.platform || 'qq').trim(),
                 os: String(data.systemConfig.os || 'iOS').trim()
+            };
+        }
+
+        // 登录页链接
+        if (data.loginLinks && typeof data.loginLinks === 'object') {
+            globalConfig.loginLinks = {
+                logoUrl: String(data.loginLinks.logoUrl ?? '').trim(),
+                title: String(data.loginLinks.title || DEFAULT_LOGIN_LINKS.title).trim(),
+                loginSubtitle: String(data.loginLinks.loginSubtitle || DEFAULT_LOGIN_LINKS.loginSubtitle).trim(),
+                registerSubtitle: String(data.loginLinks.registerSubtitle || DEFAULT_LOGIN_LINKS.registerSubtitle).trim(),
+                purchaseUrl: String(data.loginLinks.purchaseUrl ?? '').trim(),
+                qqGroupUrl: String(data.loginLinks.qqGroupUrl ?? '').trim()
             };
         }
 
@@ -1451,6 +1473,26 @@ function setSystemConfig(config) {
     return { ...globalConfig.systemConfig };
 }
 
+// ==================== 登录页链接 ====================
+
+function getLoginLinks() {
+    return { ...DEFAULT_LOGIN_LINKS, ...globalConfig.loginLinks || {} };
+}
+
+function setLoginLinks(config) {
+    const current = getLoginLinks();
+    globalConfig.loginLinks = {
+        logoUrl: String(config?.logoUrl ?? current.logoUrl).trim(),
+        title: String(config?.title || DEFAULT_LOGIN_LINKS.title).trim(),
+        loginSubtitle: String(config?.loginSubtitle || DEFAULT_LOGIN_LINKS.loginSubtitle).trim(),
+        registerSubtitle: String(config?.registerSubtitle || DEFAULT_LOGIN_LINKS.registerSubtitle).trim(),
+        purchaseUrl: String(config?.purchaseUrl ?? current.purchaseUrl).trim(),
+        qqGroupUrl: String(config?.qqGroupUrl ?? current.qqGroupUrl).trim()
+    };
+    saveGlobalConfig();
+    return { ...globalConfig.loginLinks };
+}
+
 // ==================== 微信配置 ====================
 
 const DEFAULT_WX_CONFIG = {
@@ -1652,6 +1694,9 @@ module.exports = {
     verifySuperAdminAnnouncementPassword,
     getSystemConfig,
     setSystemConfig,
+    getLoginLinks,
+    setLoginLinks,
+    DEFAULT_LOGIN_LINKS,
     getGlobalWxConfig,
     setGlobalWxConfig,
     DEFAULT_WX_CONFIG,

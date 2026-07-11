@@ -50,11 +50,11 @@ const affordableMax = computed(() => {
   return Math.floor(normalizedBalance.value / normalizedUnitPrice.value)
 })
 const maxBuyCount = computed(() => Math.max(1, Math.min(99, configuredMax.value, affordableMax.value)))
-const totalCost = computed(() => normalizedUnitPrice.value * normalizedQuantity.value)
 const normalizedQuantity = computed(() => {
   const value = Math.floor(Number(quantity.value) || 1)
   return Math.max(1, Math.min(maxBuyCount.value, value))
 })
+const totalCost = computed(() => normalizedUnitPrice.value * normalizedQuantity.value)
 const confirmDisabled = computed(() => props.loading || normalizedQuantity.value < 1 || normalizedQuantity.value > maxBuyCount.value)
 
 watch(() => props.show, (show) => {

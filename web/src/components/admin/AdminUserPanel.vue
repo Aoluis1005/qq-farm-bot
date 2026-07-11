@@ -21,6 +21,7 @@ interface EditForm {
 
 defineProps<{
   users: UserInfo[]
+  filteredUsers: UserInfo[]
   usersLoading: boolean
   currentUsername: string
   activeUsersCount: number
@@ -43,6 +44,7 @@ defineEmits<{
 }>()
 
 const showRenewUserModal = defineModel<boolean>('showRenewUserModal', { required: true })
+const userSearchQuery = defineModel<string>('userSearchQuery', { required: true })
 const pendingRenewUser = defineModel<UserInfo | null>('pendingRenewUser', { required: true })
 const renewUserCardCode = defineModel<string>('renewUserCardCode', { required: true })
 const showEditModal = defineModel<boolean>('showEditModal', { required: true })
@@ -139,6 +141,21 @@ function formatUserCardDate(timestamp: number | null) {
       </div>
     </div>
 
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div class="w-full sm:max-w-sm">
+        <BaseInput
+          v-model="userSearchQuery"
+          label="搜索用户"
+          type="search"
+          placeholder="输入用户名"
+          clearable
+        />
+      </div>
+      <div class="text-xs text-gray-500 dark:text-gray-400">
+        {{ userSearchQuery.trim() ? `找到 ${filteredUsers.length} 个用户` : `共 ${users.length} 个用户` }}
+      </div>
+    </div>
+
     <div v-if="usersLoading" class="py-8 text-center text-gray-500">
       <div i-svg-spinners-90-ring-with-bg class="mb-2 inline-block text-2xl" />
       <div>加载中...</div>
@@ -173,7 +190,7 @@ function formatUserCardDate(timestamp: number | null) {
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-            <tr v-for="user in users" :key="user.username">
+            <tr v-for="user in filteredUsers" :key="user.username">
               <td class="whitespace-nowrap px-3 py-2 text-sm text-gray-900 font-medium dark:text-white">
                 {{ user.username }}
               </td>
@@ -239,11 +256,11 @@ function formatUserCardDate(timestamp: number | null) {
                 </button>
               </td>
             </tr>
-            <tr v-if="users.length === 0">
-              <td colspan="8" class="px-3 py-8 text-center text-gray-500 dark:text-gray-400">
+            <tr v-if="filteredUsers.length === 0">
+              <td colspan="7" class="px-3 py-8 text-center text-gray-500 dark:text-gray-400">
                 <div class="i-carbon-user-multiple mx-auto mb-2 text-3xl text-gray-300" />
                 <div class="text-sm">
-                  暂无用户
+                  {{ userSearchQuery.trim() ? '没有找到匹配的用户' : '暂无用户' }}
                 </div>
               </td>
             </tr>
@@ -257,7 +274,7 @@ function formatUserCardDate(timestamp: number | null) {
       class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black bg-opacity-50 p-3 sm:items-center sm:p-4"
       @click.self="!renewUserLoading && closeRenewUserModal()"
     >
-      <div class="my-auto max-h-[calc(100dvh-1.5rem)] max-w-md w-full overflow-y-auto rounded-2xl bg-white p-4 shadow-xl dark:bg-gray-800 sm:max-h-[calc(100dvh-2rem)] sm:p-5" @click.stop>
+      <div class="my-auto max-h-[calc(100dvh-1.5rem)] max-w-md w-full overflow-y-auto rounded-2xl bg-white p-4 shadow-xl sm:max-h-[calc(100dvh-2rem)] dark:bg-gray-800 sm:p-5" @click.stop>
         <h2 class="mb-4 text-lg text-gray-900 font-bold dark:text-white">
           用户续费：{{ pendingRenewUser?.username }}
         </h2>
@@ -301,7 +318,7 @@ function formatUserCardDate(timestamp: number | null) {
       class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black bg-opacity-50 p-3 sm:items-center sm:p-4"
       @click.self="showEditModal = false"
     >
-      <div class="my-auto max-h-[calc(100dvh-1.5rem)] max-w-lg w-full overflow-y-auto rounded-2xl bg-white p-4 shadow-xl dark:bg-gray-800 sm:max-h-[calc(100dvh-2rem)] sm:p-5" @click.stop>
+      <div class="my-auto max-h-[calc(100dvh-1.5rem)] max-w-lg w-full overflow-y-auto rounded-2xl bg-white p-4 shadow-xl sm:max-h-[calc(100dvh-2rem)] dark:bg-gray-800 sm:p-5" @click.stop>
         <h2 class="mb-4 text-lg text-gray-900 font-bold dark:text-white">
           编辑用户
         </h2>

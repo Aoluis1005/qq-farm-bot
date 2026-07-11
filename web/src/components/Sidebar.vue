@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Card } from '@/stores/user'
 import { useDateFormat, useIntervalFn, useNow } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
@@ -12,7 +13,6 @@ import { useAppStore } from '@/stores/app'
 import { useShopStore } from '@/stores/shop'
 import { useStatusStore } from '@/stores/status'
 import { formatTimeDuration, getCardQuotaValue, useUserStore } from '@/stores/user'
-import type { Card } from '@/stores/user'
 
 const accountStore = useAccountStore()
 const statusStore = useStatusStore()
@@ -24,9 +24,10 @@ const router = useRouter()
 const { currentAccount, currentAccountId } = storeToRefs(accountStore)
 const { status, realtimeConnected } = storeToRefs(statusStore)
 const { mysteryOffer, mysteryOfferAccountId } = storeToRefs(shopStore)
-const { sidebarOpen } = storeToRefs(appStore)
+const { loginPageConfig, sidebarOpen } = storeToRefs(appStore)
 
 const wsErrorNotifiedAt = ref<Record<string, number>>({})
+const brandLogoFailed = ref(false)
 
 const systemConnected = ref(true)
 const serverUptimeBase = ref(0)
@@ -69,12 +70,17 @@ async function refreshStatusFallback() {
 }
 
 onMounted(() => {
+  appStore.fetchLoginPageConfig()
   accountStore.fetchAccounts()
   checkConnection()
   // 获取当前用户信息
   userStore.fetchUserInfo()
   // 获取公告（普通用户）
   fetchAnnouncement()
+})
+
+watch(() => loginPageConfig.value.logoUrl, () => {
+  brandLogoFailed.value = false
 })
 
 onBeforeUnmount(() => {
@@ -381,12 +387,19 @@ async function copyToken() {
   >
     <!-- Brand -->
     <div class="glass-panel h-16 flex items-center justify-between rounded-lg px-4">
-      <div class="flex items-center gap-3">
-        <div class="h-10 w-10 flex items-center justify-center rounded-lg shadow-sm" :style="{ background: 'var(--theme-gradient)' }">
-          <div class="i-carbon-sprout text-xl text-white" />
+      <div class="min-w-0 flex items-center gap-3">
+        <div class="h-10 w-10 flex flex-none items-center justify-center overflow-hidden rounded-lg shadow-sm" :style="{ background: 'var(--theme-gradient)' }">
+          <img
+            v-if="loginPageConfig.logoUrl && !brandLogoFailed"
+            :src="loginPageConfig.logoUrl"
+            :alt="`${loginPageConfig.title || 'QQ农场智能助手'}图标`"
+            class="h-full w-full object-cover"
+            @error="brandLogoFailed = true"
+          >
+          <div v-else class="i-carbon-sprout text-xl text-white" />
         </div>
-        <span class="bg-clip-text text-base text-transparent font-bold" :style="{ backgroundImage: 'var(--theme-gradient)' }">
-          QQ农场智能助手
+        <span class="min-w-0 truncate bg-clip-text text-base text-transparent font-bold" :style="{ backgroundImage: 'var(--theme-gradient)' }">
+          {{ loginPageConfig.title || 'QQ农场智能助手' }}
         </span>
       </div>
       <!-- Mobile Close Button -->

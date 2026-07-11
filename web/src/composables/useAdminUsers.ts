@@ -56,6 +56,7 @@ export function useAdminUsers() {
 
   const users = ref<UserInfo[]>([])
   const usersLoading = ref(false)
+  const userSearchQuery = ref('')
   const showEditModal = ref(false)
   const selectedUser = ref<UserInfo | null>(null)
   const editForm = ref<EditForm>({
@@ -77,6 +78,13 @@ export function useAdminUsers() {
   const adminUsersCount = computed(() =>
     users.value.filter(user => user.role === 'admin').length,
   )
+  const filteredUsers = computed(() => {
+    const query = userSearchQuery.value.trim().toLowerCase()
+    if (!query)
+      return users.value
+
+    return users.value.filter(user => user.username.toLowerCase().includes(query))
+  })
   const userManagementSummary = computed(() => {
     if (expiredUsersCount.value > 0)
       return `当前检测到 ${expiredUsersCount.value} 个到期账号，清理前建议先确认这些用户是否仍需保留。`
@@ -335,6 +343,8 @@ export function useAdminUsers() {
     showEditUserConfirm,
     users,
     usersLoading,
+    userSearchQuery,
+    filteredUsers,
     showEditModal,
     selectedUser,
     editForm,
