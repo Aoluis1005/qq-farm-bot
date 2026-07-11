@@ -117,7 +117,11 @@ function registerAdminHeluActivityRoutes({
         return;
 
       const slotId = Number(req.body?.slotId) || 0;
-      const result = await provider.exchangeHeluShopItem(accountId, slotId);
+      const count = Math.floor(Number(req.body?.count) || 0);
+      if (count <= 0) {
+        return res.status(400).json({ ok: false, error: "兑换数量必须大于 0" });
+      }
+      const result = await provider.exchangeHeluShopItem(accountId, slotId, count);
       res.json({
         ok: true,
         ...result,

@@ -927,7 +927,7 @@ async function handleApiCall(msg) {
             }
             case 'exchangeHeluShopItem': {
                 const { exchangeHeluShopItem } = require('../services/activity');
-                result = await exchangeHeluShopItem(args[0]);
+                result = await exchangeHeluShopItem(args[0], args[1]);
                 break;
             }
             case 'drawHeluGiftLotus': {

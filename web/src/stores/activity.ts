@@ -279,12 +279,13 @@ export const useActivityStore = defineStore('activity', () => {
     }
   }
 
-  async function exchangeHelu(accountId: string, slotId: number) {
+  async function exchangeHelu(accountId: string, slotId: number, count: number) {
     const requestedId = String(accountId)
     exchangeLoading.value = true
     try {
       const { data } = await api.post('/api/activity/helu/exchange', {
         slotId,
+        count,
       }, {
         headers: { 'x-account-id': accountId },
       })

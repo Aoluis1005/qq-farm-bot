@@ -12,13 +12,31 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (event: 'exchange', item: ExchangeItem): void
+  (event: 'exchange', item: ExchangeItem, count: number): void
 }>()
 
 const imageErrors = ref<Record<string | number, boolean>>({})
+const exchangeCounts = ref<Record<string | number, number>>({})
+
+function getMaxExchangeCount(item: ExchangeItem) {
+  if (!item.isRepeatable)
+    return 1
+  const affordable = Math.floor(props.balance / Math.max(1, Number(item.price || 0)))
+  const exchangeLimit = Number(item.exchangeLimit || 0)
+  return Math.max(1, exchangeLimit > 0 ? Math.min(affordable, exchangeLimit) : affordable)
+}
+
+function getExchangeCount(item: ExchangeItem) {
+  return Math.min(Math.max(1, exchangeCounts.value[item.id] || 1), getMaxExchangeCount(item))
+}
+
+function setExchangeCount(item: ExchangeItem, value: number | string) {
+  const count = Math.floor(Number(value) || 1)
+  exchangeCounts.value[item.id] = Math.min(Math.max(1, count), getMaxExchangeCount(item))
+}
 
 function formatPrice(item: ExchangeItem) {
-  return formatCurrencyAmountByLabel(item.price, getCurrencyLabel(item))
+  return formatCurrencyAmountByLabel(item.price * getExchangeCount(item), getCurrencyLabel(item))
 }
 
 function itemImage(item: { image?: string }) {
@@ -117,15 +135,57 @@ function getCurrencyLabel(item: ExchangeItem) {
             {{ formatPrice(item) }} {{ getCurrencyLabel(item) }}
           </div>
 
+          <div v-if="item.isRepeatable && getExchangeState(item).canExchange" class="grid grid-cols-[32px_minmax(0,1fr)_32px_44px] mt-2 gap-1">
+            <button
+              type="button"
+              class="grid h-8 place-items-center border border-gray-200 rounded text-gray-600 transition disabled:cursor-not-allowed dark:border-gray-600 hover:bg-gray-50 dark:text-gray-300 disabled:opacity-40 dark:hover:bg-gray-700"
+              title="减少兑换数量"
+              :disabled="getExchangeCount(item) <= 1 || exchangeLoading"
+              @click="setExchangeCount(item, getExchangeCount(item) - 1)"
+            >
+              <span class="i-carbon-subtract" />
+            </button>
+            <input
+              type="number"
+              inputmode="numeric"
+              class="h-8 min-w-0 border border-gray-200 rounded bg-white px-1 text-center text-sm text-gray-900 outline-none dark:border-gray-600 focus:border-[var(--theme-primary)] dark:bg-gray-800 dark:text-gray-100"
+              min="1"
+              :max="getMaxExchangeCount(item)"
+              :value="getExchangeCount(item)"
+              :disabled="exchangeLoading"
+              aria-label="兑换数量"
+              @change="setExchangeCount(item, ($event.target as HTMLInputElement).value)"
+            >
+            <button
+              type="button"
+              class="grid h-8 place-items-center border border-gray-200 rounded text-gray-600 transition disabled:cursor-not-allowed dark:border-gray-600 hover:bg-gray-50 dark:text-gray-300 disabled:opacity-40 dark:hover:bg-gray-700"
+              title="增加兑换数量"
+              :disabled="getExchangeCount(item) >= getMaxExchangeCount(item) || exchangeLoading"
+              @click="setExchangeCount(item, getExchangeCount(item) + 1)"
+            >
+              <span class="i-carbon-add" />
+            </button>
+            <button
+              type="button"
+              class="h-8 border border-gray-200 rounded text-xs text-gray-600 transition disabled:cursor-not-allowed dark:border-gray-600 hover:bg-gray-50 dark:text-gray-300 disabled:opacity-40 dark:hover:bg-gray-700"
+              :disabled="getExchangeCount(item) >= getMaxExchangeCount(item) || exchangeLoading"
+              @click="setExchangeCount(item, getMaxExchangeCount(item))"
+            >
+              最大
+            </button>
+          </div>
+
           <div class="mt-auto pt-3">
             <BaseButton
               class="w-full"
               :variant="getExchangeState(item).canExchange ? 'primary' : 'secondary'"
               :loading="exchangeLoading"
               :disabled="!getExchangeState(item).canExchange"
-              @click="emit('exchange', item)"
+              @click="emit('exchange', item, getExchangeCount(item))"
             >
-              {{ getExchangeState(item).label }}
+              {{ getExchangeState(item).label }}<template v-if="item.isRepeatable">
+                x{{ getExchangeCount(item) }}
+              </template>
             </BaseButton>
           </div>
         </div>

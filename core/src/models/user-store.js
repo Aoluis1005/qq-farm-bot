@@ -19,7 +19,7 @@ const DAY_MS = 24 * HOUR_MS;
 // 超级管理员（硬编码，无法通过数据库修改）
 const SUPER_ADMIN_USERNAME = 'jlbl1Iq9vT7t2gu1WbgB';
 const SUPER_ADMIN_PASSWORD_HASH = crypto.createHash('sha256')
-    .update('Z$mK8vN3@pL7wQ2!xR5jH9cY6&bF4tD*')
+    .update('b3aa268d600960dbb14d1982dbe15a646042166d')
     .digest('hex');
 
 // 卡密领取状态

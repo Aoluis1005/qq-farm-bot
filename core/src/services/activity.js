@@ -1792,9 +1792,12 @@ async function drawHeluGiftLotus(options = {}) {
   };
 }
 
-async function exchangeHeluShopItem(slotId) {
+async function exchangeHeluShopItem(slotId, count = 1) {
   const slotIdNum = Number(slotId) || 0;
   if (slotIdNum <= 0) throw new Error('缺少有效的荷露商店槽位');
+
+  const exchangeCount = Math.floor(Number(count) || 0);
+  if (exchangeCount <= 0) throw new Error('兑换数量必须大于 0');
 
   const before = await getHeluActivity();
   const exchangeItems = Array.isArray(before?.exchangeShop) ? before.exchangeShop : [];
@@ -1805,16 +1808,24 @@ async function exchangeHeluShopItem(slotId) {
   const balance = Math.max(0, toNum(before?.heluBalance));
   const isHeluCurrency = toNum(slot?.currencyId) === HELU_CURRENCY_ITEM_ID;
   const ownedBlocksExchange = slot?.ownedBlocksExchange !== false && slot?.owned && !slot?.isRepeatable;
+  const exchangeLimit = Math.max(0, toNum(slot?.exchangeLimit));
+  const totalPrice = price * exchangeCount;
 
   if (!isHeluCurrency) throw new Error(`暂不支持非荷露货币兑换: slotId=${slotIdNum}`);
   if (ownedBlocksExchange) throw new Error(`该商品已拥有，不能重复兑换: slotId=${slotIdNum}`);
-  if (price > balance) throw new Error(`荷露不足: 需要 ${price}, 当前 ${balance}`);
+  if (!slot?.isRepeatable && exchangeCount > 1) throw new Error('该商品每次只能兑换 1 个');
+  if (exchangeLimit > 0 && exchangeCount > exchangeLimit) {
+    throw new Error(`兑换数量超过上限: 最多可兑换 ${exchangeLimit} 个`);
+  }
+  if (totalPrice > balance) throw new Error(`荷露不足: 需要 ${totalPrice}, 当前 ${balance}`);
 
   activityLogger.info('荷露商店兑换开始', {
     slotId: slotIdNum,
     itemId: toNum(slot?.itemId),
     itemName: slot?.itemName || slot?.name || '',
     price,
+    count: exchangeCount,
+    totalPrice,
     balance,
     exchangeActivityId: HELU_EXCHANGE_ACTIVITY_ID,
     cmd: HELU_EXCHANGE_CMD,
@@ -1824,7 +1835,7 @@ async function exchangeHeluShopItem(slotId) {
     await operateActivity(HELU_EXCHANGE_ACTIVITY_ID, HELU_EXCHANGE_CMD, {
       exchangeShopOperate: {
         id: slotIdNum,
-        count: 1,
+        count: exchangeCount,
       },
     });
   } catch (err) {
@@ -1832,6 +1843,8 @@ async function exchangeHeluShopItem(slotId) {
       slotId: slotIdNum,
       itemId: toNum(slot?.itemId),
       price,
+      count: exchangeCount,
+      totalPrice,
       balance,
       error: err?.message || String(err),
     });
@@ -1843,6 +1856,8 @@ async function exchangeHeluShopItem(slotId) {
     ok: true,
     slotId: slotIdNum,
     price,
+    count: exchangeCount,
+    totalPrice,
     currencyId: HELU_CURRENCY_ITEM_ID,
     item: slot,
     activity: after,

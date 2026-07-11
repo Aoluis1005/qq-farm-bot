@@ -185,13 +185,13 @@ async function draw(mode: 'one' | 'batch') {
     toast.error(result?.error || L.drawFail)
 }
 
-async function exchange(item: ActivityExchangeShopItem) {
+async function exchange(item: ActivityExchangeShopItem, count: number) {
   if (!currentAccountId.value)
     return
 
-  const result = await activityStore.exchangeHelu(currentAccountId.value, item.id)
+  const result = await activityStore.exchangeHelu(currentAccountId.value, item.id, count)
   if (result?.ok)
-    toast.success(L.exchangeDone + item.itemName)
+    toast.success(`${L.exchangeDone}${item.itemName} x${count}`)
   else
     toast.error(result?.error || L.exchangeFail)
 }
