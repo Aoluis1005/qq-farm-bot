@@ -33,12 +33,12 @@ function getBorderColor(type: string) {
 </script>
 
 <template>
-  <div class="fixed right-4 top-4 z-[9999] flex flex-col gap-2">
+  <div class="pointer-events-none fixed right-3 top-20 z-[9997] flex max-w-[calc(100vw-1.5rem)] flex-col gap-2 md:right-4 md:top-24">
     <TransitionGroup name="toast">
       <div
         v-for="toast in toasts"
         :key="toast.id"
-        class="w-80 flex items-start gap-3 rounded p-4 shadow-lg transition-all duration-300"
+        class="pointer-events-auto w-80 max-w-full flex items-start gap-3 rounded p-4 shadow-lg transition-all duration-300"
         :class="[getBgColor(toast.type), getBorderColor(toast.type)]"
       >
         <div :class="getIcon(toast.type)" class="mt-0.5 shrink-0 text-xl" />
