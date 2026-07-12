@@ -435,7 +435,7 @@ function handleLogoFileChange(event: Event) {
           <div class="col-span-2">
             <BaseSwitch
               v-model="localCaptureConfig.enabled"
-              label="允许使用代理抓取添加账号"
+              label="允许使用抓包登录添加账号"
             />
           </div>
           <BaseInput

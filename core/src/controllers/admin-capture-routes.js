@@ -329,7 +329,7 @@ async function collectQqFriendGids({
       }
     }
     if (flow.result) flow.result.importedFriendCount = importedFriendCount;
-    logger.info("代理抓取好友 GID 后台同步完成", {
+    logger.info("抓包登录好友 GID 后台同步完成", {
       owner: flow.owner,
       accountId,
       capturedFriendCount: flow.friendGids.size,
@@ -357,7 +357,7 @@ function scheduleQqFriendCollection(options) {
   if (flow.friendCollectionScheduled) return;
   flow.friendCollectionScheduled = true;
   void collectQqFriendGids(options).catch((error) => {
-    logger.warn("代理抓取账号已添加，但好友 GID 后台同步失败", {
+    logger.warn("抓包登录账号已添加，但好友 GID 后台同步失败", {
       owner: flow.owner,
       accountId: options.accountId,
       error: error.message,
@@ -385,7 +385,7 @@ function scheduleCapturedAccountStart({
     } catch (error) {
       const startError = error.message || "账号启动失败";
       if (flow.result) flow.result.startError = startError;
-      logger.warn("代理抓取账号已添加，但延迟启动失败", {
+      logger.warn("抓包登录账号已添加，但延迟启动失败", {
         owner: flow.owner,
         accountId: account.id,
         error: startError,
@@ -539,7 +539,7 @@ function registerAdminCaptureRoutes({
       }
       const config = resolveCaptureConfig(store);
       if (!config.enabled) {
-        return res.status(403).json({ ok: false, error: "代理抓取添加账号未启用" });
+        return res.status(403).json({ ok: false, error: "抓包登录添加账号未启用" });
       }
       await removeExistingOwnerFlows(store, owner);
 
@@ -588,7 +588,7 @@ function registerAdminCaptureRoutes({
       }
       res.json({ ok: true, data: serializeFlow(flow) });
     } catch (error) {
-      logger.warn("启动代理抓取失败", { owner, platform, error: error.message });
+      logger.warn("启动抓包登录失败", { owner, platform, error: error.message });
       res.status(502).json({ ok: false, error: error.message });
     }
   });
@@ -644,7 +644,7 @@ function registerAdminCaptureRoutes({
       if (duplicate) {
         flow.cancelled = true;
         captureFlows.delete(flow.id);
-        logger.warn("代理抓取检测到重复账号，已停止本次添加", {
+        logger.warn("抓包登录检测到重复账号，已停止本次添加", {
           owner: flow.owner,
           platform: flow.platform,
           duplicateAccountId: duplicate.id,
@@ -711,7 +711,7 @@ function registerAdminCaptureRoutes({
         if (provider.addAccountLog) {
           provider.addAccountLog(
             isUpdate ? "update" : "add",
-            `代理抓取${isUpdate ? "更新" : "添加"}账号: ${created.name || created.id}`,
+            `抓包登录${isUpdate ? "更新" : "添加"}账号: ${created.name || created.id}`,
             created.id,
             created.name || "",
             { platform: flow.platform, importedFriendCount },
@@ -759,7 +759,7 @@ function registerAdminCaptureRoutes({
         });
       }
     } catch (error) {
-      logger.warn("代理抓取添加账号失败", {
+      logger.warn("抓包登录添加账号失败", {
         owner: flow.owner,
         platform: flow.platform,
         error: error.message,

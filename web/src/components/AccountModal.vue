@@ -484,7 +484,7 @@ watch(activeTab, (tab) => {
             }"
             @click="activeTab = 'capture'"
           >
-            代理抓取
+            抓包登录
           </button>
         </div>
 
@@ -756,7 +756,7 @@ watch(activeTab, (tab) => {
       <div class="max-h-[78vh] max-w-md w-full flex flex-col overflow-hidden rounded-t-lg shadow-2xl md:rounded-lg" :style="{ background: 'var(--theme-bg)' }">
         <div class="h-14 flex flex-none items-center justify-between border-b border-gray-200 px-4 dark:border-gray-700">
           <h4 class="text-base font-semibold" :style="{ color: 'var(--theme-text)' }">
-            代理抓取使用说明
+            抓包登录使用说明
           </h4>
           <BaseButton variant="ghost" class="!h-9 !w-9 !p-0" title="关闭使用说明" @click="showCaptureHelp = false">
             <span class="i-carbon-close text-lg" />
