@@ -323,46 +323,61 @@ async function stealHarvest(gid, landIds) {
  * Returns the number of successful operations.
  */
 async function putPlantItems(gid, landIds, RequestType, ReplyType, rpcMethod) {
-  let ok = 0;
-  const ids = Array.isArray(landIds) ? landIds : [];
+  const ids = Array.isArray(landIds) ? landIds.filter(Boolean) : [];
+  if (ids.length === 0) return 0;
 
-  for (const landId of ids) {
-    try {
-      const payload = RequestType.encode(
-        RequestType.create({
-          land_ids: [toLong(landId)],
-          host_gid: toLong(gid),
-        })
-      ).finish();
-      const { body } = await sendMsgAsync(
-        'gamepb.plantpb.PlantService',
-        rpcMethod,
-        payload
-      );
-      const reply = ReplyType.decode(body);
-      updateOperationLimits(reply.operation_limits);
-      ok++;
-    } catch (err) {
-      const msg = (err && err.message) ? err.message : '未知错误';
-      if (msg.includes('1001046')) {
-        // Already done - silently skip
-      } else {
-        log('好友', `放虫/放草失败: landId=${landId}, 错误: ${msg}`, {
-          module: 'friend',
-          event: '放虫放草失败',
-          landId,
-          error: msg,
-        });
+  // 优化：先一次性批量，失败再逐块（去掉 randomDelay）
+  try {
+    const payload = RequestType.encode(
+      RequestType.create({
+        land_ids: ids.map(id => toLong(id)),
+        host_gid: toLong(gid),
+      })
+    ).finish();
+    const { body } = await sendMsgAsync(
+      'gamepb.plantpb.PlantService',
+      rpcMethod,
+      payload
+    );
+    const reply = ReplyType.decode(body);
+    updateOperationLimits(reply.operation_limits);
+    return ids.length;
+  } catch (batchErr) {
+    // Fallback：逐块
+    let ok = 0;
+    const batchMsg = (batchErr && batchErr.message) ? batchErr.message : '';
+    if (batchMsg.includes('1001046') || batchMsg.includes('used up')) return 0;
+
+    for (const landId of ids) {
+      try {
+        const singlePayload = RequestType.encode(
+          RequestType.create({
+            land_ids: [toLong(landId)],
+            host_gid: toLong(gid),
+          })
+        ).finish();
+        const { body } = await sendMsgAsync(
+          'gamepb.plantpb.PlantService',
+          rpcMethod,
+          singlePayload
+        );
+        const reply = ReplyType.decode(body);
+        updateOperationLimits(reply.operation_limits);
+        ok++;
+      } catch (err) {
+        const msg = (err && err.message) ? err.message : '未知错误';
+        if (!msg.includes('1001046')) {
+          log('好友', `放虫/放草失败: landId=${landId}, 错误: ${msg}`, {
+            module: 'friend',
+            event: '放虫放草失败',
+            landId,
+            error: msg,
+          });
+        }
       }
-      await require('../utils/utils').randomDelay(500, 1500);
     }
-
-    if (ok > 0) {
-      await require('../utils/utils').randomDelay(500, 1000);
-    }
+    return ok;
   }
-
-  return ok;
 }
 
 /**
@@ -370,48 +385,75 @@ async function putPlantItems(gid, landIds, RequestType, ReplyType, rpcMethod) {
  * Returns: { ok: number, failed: [{landId, reason}] }
  */
 async function putPlantItemsDetailed(gid, landIds, RequestType, ReplyType, rpcMethod) {
-  let ok = 0;
-  const failed = [];
-  const ids = Array.isArray(landIds) ? landIds : [];
+  const ids = Array.isArray(landIds) ? landIds.filter(Boolean) : [];
+  if (ids.length === 0) return { ok: 0, failed: [] };
 
-  for (const landId of ids) {
-    try {
-      const payload = RequestType.encode(
-        RequestType.create({
-          land_ids: [toLong(landId)],
-          host_gid: toLong(gid),
-        })
-      ).finish();
-      const { body } = await sendMsgAsync(
-        'gamepb.plantpb.PlantService',
-        rpcMethod,
-        payload
-      );
-      const reply = ReplyType.decode(body);
-      updateOperationLimits(reply.operation_limits);
-      ok++;
-    } catch (err) {
-      const msg = (err && err.message) ? err.message : '未知错误';
-      failed.push({
-        landId,
-        reason: msg,
-      });
-      if (!msg.includes('1001046')) {
-        log('好友', `放虫/放草失败: landId=${landId}, 错误: ${msg}`, {
-          module: 'friend',
-          event: '放虫放草失败',
-          landId,
-          error: msg,
-          detailed: true,
-        });
+  // 优化：先一次性把所有 landIds 传给服务端（协议 land_ids 是数组，支持批量）。
+  // 成功则 1 次 RPC 完成 N 块地；失败再 fallback 到逐块。
+  try {
+    const payload = RequestType.encode(
+      RequestType.create({
+        land_ids: ids.map(id => toLong(id)),
+        host_gid: toLong(gid),
+      })
+    ).finish();
+    const { body } = await sendMsgAsync(
+      'gamepb.plantpb.PlantService',
+      rpcMethod,
+      payload
+    );
+    const reply = ReplyType.decode(body);
+    updateOperationLimits(reply.operation_limits);
+    // 批量成功：假设全部生效（服务端对越界/已达上限的 land 会返回部分成功，
+    // 但当前协议未返回逐块明细，保守按全部成功计数）
+    return { ok: ids.length, failed: [] };
+  } catch (batchErr) {
+    // 批量失败，fallback 到逐块（去掉 randomDelay）
+    let ok = 0;
+    const failed = [];
+    const batchMsg = (batchErr && batchErr.message) ? batchErr.message : '未知错误';
+
+    // 如果是"次数用完"类错误，整批跳过即可，不必逐块重试
+    if (batchMsg.includes('1001046') || batchMsg.includes('used up')) {
+      for (const landId of ids) {
+        failed.push({ landId, reason: batchMsg });
+      }
+      return { ok: 0, failed };
+    }
+
+    for (const landId of ids) {
+      try {
+        const singlePayload = RequestType.encode(
+          RequestType.create({
+            land_ids: [toLong(landId)],
+            host_gid: toLong(gid),
+          })
+        ).finish();
+        const { body } = await sendMsgAsync(
+          'gamepb.plantpb.PlantService',
+          rpcMethod,
+          singlePayload
+        );
+        const reply = ReplyType.decode(body);
+        updateOperationLimits(reply.operation_limits);
+        ok++;
+      } catch (err) {
+        const msg = (err && err.message) ? err.message : '未知错误';
+        failed.push({ landId, reason: msg });
+        if (!msg.includes('1001046')) {
+          log('好友', `放虫/放草失败: landId=${landId}, 错误: ${msg}`, {
+            module: 'friend',
+            event: '放虫放草失败',
+            landId,
+            error: msg,
+            detailed: true,
+          });
+        }
       }
     }
-    if (ok > 0) {
-      await require('../utils/utils').randomDelay(500, 1000);
-    }
-  }
 
-  return { ok, failed };
+    return { ok, failed };
+  }
 }
 
 // ===== Specific put operations =====

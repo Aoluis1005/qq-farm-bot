@@ -534,7 +534,7 @@ async function fetchQqFriendsByKnownGids() {
     }
 
     if (i + QQ_FRIEND_LIST_BATCH_SIZE < gids.length) {
-      await randomDelay(500, 1500);
+      await randomDelay(100, 200);
     }
   }
 

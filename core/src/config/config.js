@@ -20,11 +20,16 @@ const CONFIG = {
     tsdkAppKey: String(process.env.FARM_TSDK_APP_KEY || '0'),
     heartbeatInterval: 25000,         // 心跳间隔 25秒
     farmCheckInterval: 3000,           // 农场检查间隔 3秒
-    friendCheckInterval: 12000,        // 好友检查间隔 12秒
+    friendCheckInterval: 8000,         // 好友检查间隔 8秒（原12秒，自用提速）
     farmCheckIntervalMin: 3000,        // 农场检查最小间隔 3秒
     farmCheckIntervalMax: 5000,        // 农场检查最大间隔 5秒
-    friendCheckIntervalMin: 12000,     // 好友检查最小间隔 12秒
-    friendCheckIntervalMax: 15000,     // 好友检查最大间隔 15秒
+    friendCheckIntervalMin: 8000,      // 好友检查最小间隔 8秒（原12秒）
+    friendCheckIntervalMax: 10000,     // 好友检查最大间隔 10秒（原15秒）
+    // 好友交互子任务间隔（自用提速：原 help 30~35s / steal 25~30s）
+    helpCheckIntervalMin: 15000,       // 帮忙巡查最小间隔 15秒
+    helpCheckIntervalMax: 20000,       // 帮忙巡查最大间隔 20秒
+    stealCheckIntervalMin: 10000,      // 偷菜巡查最小间隔 10秒
+    stealCheckIntervalMax: 15000,      // 偷菜巡查最大间隔 15秒
     adminPort: Number(process.env.ADMIN_PORT),
     adminPassword: process.env.ADMIN_PASSWORD
 };

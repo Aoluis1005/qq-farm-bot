@@ -234,7 +234,7 @@ function sendMsgAsync(serviceName, methodName, bodyBytes, timeout = 20000) {
             return;
         }
 
-        if (pendingCallbacks.size >= 10) {
+        if (pendingCallbacks.size >= 50) {
             reject(new Error(`请求队列已满: ${methodName} (pending=${pendingCallbacks.size})`));
             return;
         }

@@ -1,5 +1,10 @@
 const { PlantPhase } = require('../config/config');
-const { getPlantBlacklist, isAutomationOn } = require('../models/store');
+const {
+  getPlantBlacklist,
+  isAutomationOn,
+  readFriendDogInfoCache,
+  writeFriendDogInfoCache,
+} = require('../models/store');
 const { getUserState } = require('../utils/network');
 const { toNum, log, logWarn, randomDelay, sleep } = require('../utils/utils');
 const { recordOperation } = require('./stats');
@@ -7,8 +12,8 @@ const { sellAllFruits } = require('./warehouse');
 const {
   enterFriendFarm,
   leaveFriendFarm,
-  checkCanOperateRemote,
   handleFriendEnterError,
+  getDogName,
 } = require('./friend-api');
 const { analyzeFriendLands } = require('./friend-land-analyzer');
 const { getCurrentPhase } = require('./farm-land-analyzer');
@@ -58,6 +63,32 @@ async function runBatchWithFallback(landIds, batchFn, singleFn) {
   }
 }
 
+// ===== 狗信息随巡查收集 =====
+// 正常偷菜/帮忙/捣乱都要 enterFriendFarm，reply 里已带 __briefDogInfo。
+// 顺手把护主犬(id=90021)信息写回本地缓存，避免单独跑 fetchFriendsDogInfo 全量拉取。
+function cacheDogInfoFromEnterReply(gid, enterReply) {
+  try {
+    const dogInfo = enterReply && enterReply.__briefDogInfo;
+    if (!dogInfo || toNum(dogInfo.dogId) === 0) return;
+    const dogId = toNum(dogInfo.dogId);
+    const dogName = getDogName(dogId) || '无狗';
+
+    const accountId = process.env.FARM_ACCOUNT_ID || '';
+    if (!accountId) return;
+
+    // 只缓存护主犬（与 friend-land-analyzer.fetchFriendsDogInfo 的持久化策略一致）
+    if (dogId !== 90021) return;
+
+    const existing = readFriendDogInfoCache(accountId) || {};
+    if (existing[gid] && existing[gid].dogId === dogId) return;  // 已缓存，跳过写盘
+
+    existing[gid] = { dogId, dogName };
+    writeFriendDogInfoCache(accountId, existing);
+  } catch {
+    // 缓存失败不影响主流程
+  }
+}
+
 // ===== Single friend operation =====
 
 /**
@@ -87,6 +118,7 @@ async function doFriendOperation(gid, opType) {
 
   try {
     const lands = enterReply.lands || [];
+    cacheDogInfoFromEnterReply(numericGid, enterReply);
     const userState = getUserState();
     const plantBlacklist = getPlantBlacklist(userState.accountId);
     const analysis = analyzeFriendLands(lands, userState.gid, '', { plantBlacklist });
@@ -99,21 +131,17 @@ async function doFriendOperation(gid, opType) {
         return { ok: true, opType, count: 0, message: '没有可偷取土地' };
       }
 
-      const canOp = await checkCanOperateRemote(numericGid, 0x2714); // 10004
-      if (!canOp.canOperate) {
+      // 直接发起偷取请求，服务端会自行截断可偷数量（is_all=true）。
+      // 去掉 checkCanOperateRemote 预检查：被偷光时服务端返回错误码，catch 即可。
+      try {
+        okCount = await runBatchWithFallback(
+          analysis.stealable,
+          ids => stealHarvest(numericGid, ids),
+          id => stealHarvest(numericGid, id)
+        );
+      } catch (_) {
         return { ok: true, opType, count: 0, message: 'Ta已经被偷的精光了QAQ' };
       }
-
-      const stealCount = canOp.canStealNum > 0
-        ? canOp.canStealNum
-        : analysis.stealable.length;
-      const targetLands = analysis.stealable.slice(0, stealCount);
-
-      okCount = await runBatchWithFallback(
-        targetLands,
-        ids => stealHarvest(numericGid, ids),
-        id => stealHarvest(numericGid, id)
-      );
 
       if (okCount > 0) {
         recordOperation('steal', okCount);
@@ -138,16 +166,15 @@ async function doFriendOperation(gid, opType) {
         return { ok: true, opType, count: 0, message: '没有可浇水土地' };
       }
 
-      const canOp = await checkCanOperateRemote(numericGid, 0x2717); // 10007
-      if (!canOp.canOperate) {
+      try {
+        okCount = await runBatchWithFallback(
+          analysis.needWater,
+          ids => helpWater(numericGid, ids),
+          id => helpWater(numericGid, id)
+        );
+      } catch (_) {
         return { ok: true, opType, count: 0, message: '浇水失败，来晚一步，可惜' };
       }
-
-      okCount = await runBatchWithFallback(
-        analysis.needWater,
-        ids => helpWater(numericGid, ids),
-        id => helpWater(numericGid, id)
-      );
 
       if (okCount > 0) recordOperation('helpWater', okCount);
       return { ok: true, opType, count: okCount, message: `浇水完成 ${okCount} 块` };
@@ -159,16 +186,15 @@ async function doFriendOperation(gid, opType) {
         return { ok: true, opType, count: 0, message: '没有可除草土地' };
       }
 
-      const canOp = await checkCanOperateRemote(numericGid, 0x2715); // 10005
-      if (!canOp.canOperate) {
+      try {
+        okCount = await runBatchWithFallback(
+          analysis.needWeed,
+          ids => helpWeed(numericGid, ids),
+          id => helpWeed(numericGid, id)
+        );
+      } catch (_) {
         return { ok: true, opType, count: 0, message: '除草失败，来晚一步，可惜' };
       }
-
-      okCount = await runBatchWithFallback(
-        analysis.needWeed,
-        ids => helpWeed(numericGid, ids),
-        id => helpWeed(numericGid, id)
-      );
 
       if (okCount > 0) recordOperation('helpWeed', okCount);
       return { ok: true, opType, count: okCount, message: `除草完成 ${okCount} 块` };
@@ -180,16 +206,15 @@ async function doFriendOperation(gid, opType) {
         return { ok: true, opType, count: 0, message: '没有可除虫土地' };
       }
 
-      const canOp = await checkCanOperateRemote(numericGid, 0x2716); // 10006
-      if (!canOp.canOperate) {
+      try {
+        okCount = await runBatchWithFallback(
+          analysis.needBug,
+          ids => helpInsecticide(numericGid, ids),
+          id => helpInsecticide(numericGid, id)
+        );
+      } catch (_) {
         return { ok: true, opType, count: 0, message: '除虫失败，来晚一步，可惜' };
       }
-
-      okCount = await runBatchWithFallback(
-        analysis.needBug,
-        ids => helpInsecticide(numericGid, ids),
-        id => helpInsecticide(numericGid, id)
-      );
 
       if (okCount > 0) recordOperation('helpBug', okCount);
       return { ok: true, opType, count: okCount, message: `除虫完成 ${okCount} 块` };
@@ -213,14 +238,13 @@ async function doFriendOperation(gid, opType) {
 
       let failedMsgs = [];
 
-      // Put insects
+      // Put insects（去掉 checkCanOperateRemote 预检查，直接尝试）
       if (analysis.canPutBug.length && getBadRemainingTimes() > 0) {
-        const canPutBug = await checkCanOperateRemote(numericGid, PUT_BUG_OPERATION_ID);
         const remainingBug = Math.min(
           getRemainingTimes(PUT_BUG_OPERATION_ID, BAD_DAILY_LIMIT),
           getBadRemainingTimes()
         );
-        const targets = canPutBug.canOperate ? analysis.canPutBug.slice(0, remainingBug) : [];
+        const targets = analysis.canPutBug.slice(0, remainingBug);
         const result = targets.length > 0
           ? await putInsectsDetailed(numericGid, targets)
           : { ok: 0, failed: [] };
@@ -231,14 +255,13 @@ async function doFriendOperation(gid, opType) {
         if (bugCount > 0) recordOperation('bug', bugCount);
       }
 
-      // Put weeds
+      // Put weeds（去掉 checkCanOperateRemote 预检查，直接尝试）
       if (analysis.canPutWeed.length && getBadRemainingTimes() > 0) {
-        const canPutWeed = await checkCanOperateRemote(numericGid, PUT_WEED_OPERATION_ID);
         const remainingWeed = Math.min(
           getRemainingTimes(PUT_WEED_OPERATION_ID, BAD_DAILY_LIMIT),
           getBadRemainingTimes()
         );
-        const targets = canPutWeed.canOperate ? analysis.canPutWeed.slice(0, remainingWeed) : [];
+        const targets = analysis.canPutWeed.slice(0, remainingWeed);
         const result = targets.length > 0
           ? await putWeedsDetailed(numericGid, targets)
           : { ok: 0, failed: [] };
@@ -320,6 +343,8 @@ async function visitFriend(friend, tally, myGid, accountId) {
     return { acted: false, entered: true };
   }
 
+  cacheDogInfoFromEnterReply(gid, enterReply);
+
   const plantBlacklist = getPlantBlacklist(accountId);
   const analysis = analyzeFriendLands(lands, myGid, name, { plantBlacklist });
   const actionLogs = [];
@@ -368,8 +393,8 @@ async function visitFriend(friend, tally, myGid, accountId) {
           (canGetExpByCandidates(opt.expIds) && getCanGetHelpExp());
 
         if (opt.list.length > 0 && canGetExp) {
-          const canOp = await checkCanOperateRemote(gid, opt.id);
-          if (canOp.canOperate) {
+          // 去掉 checkCanOperateRemote 预检查，直接发起帮忙操作
+          try {
             const okCount = await runBatchWithFallback(
               opt.list,
               ids => opt.fn(gid, ids, expLimitEnabled),
@@ -379,8 +404,10 @@ async function visitFriend(friend, tally, myGid, accountId) {
               actionLogs.push(`${opt.name}${okCount}`);
               tally[opt.key] += okCount;
               recordOperation(opt.record, okCount);
-              await randomDelay(500, 1000);
+              await randomDelay(50, 100);
             }
+          } catch (_) {
+            // 帮忙操作整体失败，跳过该类操作
           }
         }
       }
@@ -389,44 +416,39 @@ async function visitFriend(friend, tally, myGid, accountId) {
 
   // ---- Steal ----
   if (isAutomationOn('friend_steal') && analysis.stealable.length > 0) {
-    const canOp = await checkCanOperateRemote(gid, 0x2714); // 10004
-    if (canOp.canOperate) {
-      const stealCount = canOp.canStealNum > 0
-        ? canOp.canStealNum
-        : analysis.stealable.length;
-      const targetLands = analysis.stealable.slice(0, stealCount);
-      let stolen = 0;
-      const stolenNames = [];
+    // 去掉 checkCanOperateRemote 预检查，直接偷取全部可偷地块
+    // 服务端 Harvest(is_all=true) 会自行截断可偷数量
+    let stolen = 0;
+    const stolenNames = [];
 
-      try {
-        await stealHarvest(gid, targetLands);
-        stolen = targetLands.length;
-        targetLands.forEach(landId => {
+    try {
+      await stealHarvest(gid, analysis.stealable);
+      stolen = analysis.stealable.length;
+      analysis.stealable.forEach(landId => {
+        const info = analysis.stealableInfo.find(s => s.landId === landId);
+        if (info) stolenNames.push(info.name);
+      });
+    } catch (_) {
+      // Fallback: steal one by one
+      for (const landId of analysis.stealable) {
+        try {
+          await stealHarvest(gid, [landId]);
+          stolen++;
           const info = analysis.stealableInfo.find(s => s.landId === landId);
           if (info) stolenNames.push(info.name);
-        });
-      } catch (_) {
-        // Fallback: steal one by one
-        for (const landId of targetLands) {
-          try {
-            await stealHarvest(gid, [landId]);
-            stolen++;
-            const info = analysis.stealableInfo.find(s => s.landId === landId);
-            if (info) stolenNames.push(info.name);
-          } catch (_) {
-            // Skip individual failures
-          }
-          await randomDelay(500, 1000);
+        } catch (_) {
+          // Skip individual failures
         }
+        await randomDelay(50, 100);
       }
+    }
 
-      if (stolen > 0) {
-        const namesStr = [...new Set(stolenNames)].join('/');
-        actionLogs.push(`偷${stolen}${namesStr ? `(${namesStr})` : ''}`);
-        tally.steal += stolen;
-        recordOperation('steal', stolen);
-        await randomDelay(500, 1500);
-      }
+    if (stolen > 0) {
+      const namesStr = [...new Set(stolenNames)].join('/');
+      actionLogs.push(`偷${stolen}${namesStr ? `(${namesStr})` : ''}`);
+      tally.steal += stolen;
+      recordOperation('steal', stolen);
+      await randomDelay(50, 100);
     }
   }
 
@@ -438,11 +460,8 @@ async function visitFriend(friend, tally, myGid, accountId) {
   const badFailedMsgs = [];
 
   if (badEnabled) {
-    const canPutBug = await checkCanOperateRemote(gid, PUT_BUG_OPERATION_ID);
-    const canPutWeed = await checkCanOperateRemote(gid, PUT_WEED_OPERATION_ID);
-
-    // Put insects
-    if (analysis.canPutBug.length > 0 && canPutBug.canOperate && getBadRemainingTimes() > 0) {
+    // Put insects（去掉 checkCanOperateRemote 预检查）
+    if (analysis.canPutBug.length > 0 && getBadRemainingTimes() > 0) {
       const remainingBug = Math.min(
         getRemainingTimes(PUT_BUG_OPERATION_ID, BAD_DAILY_LIMIT),
         getBadRemainingTimes()
@@ -457,11 +476,11 @@ async function visitFriend(friend, tally, myGid, accountId) {
         putBugCount += okCount;
         badCount += okCount;
       }
-      await randomDelay(500, 1500);
+      await randomDelay(50, 100);
     }
 
-    // Put weeds
-    if (analysis.canPutWeed.length > 0 && canPutWeed.canOperate && getBadRemainingTimes() > 0) {
+    // Put weeds（去掉 checkCanOperateRemote 预检查）
+    if (analysis.canPutWeed.length > 0 && getBadRemainingTimes() > 0) {
       const remainingWeed = Math.min(
         getRemainingTimes(PUT_WEED_OPERATION_ID, BAD_DAILY_LIMIT),
         getBadRemainingTimes()
@@ -476,7 +495,7 @@ async function visitFriend(friend, tally, myGid, accountId) {
         putWeedCount += okCount;
         badCount += okCount;
       }
-      await randomDelay(500, 1500);
+      await randomDelay(50, 100);
     }
   }
 
@@ -536,6 +555,8 @@ async function visitFriendForSteal(friend, tally, myGid, accountId) {
     return { acted: false, entered: true };
   }
 
+  cacheDogInfoFromEnterReply(gid, enterReply);
+
   const plantBlacklist = getPlantBlacklist(accountId);
   const analysis = analyzeFriendLands(lands, myGid, name, { plantBlacklist });
   const actionLogs = [];
@@ -562,45 +583,38 @@ async function visitFriendForSteal(friend, tally, myGid, accountId) {
     return { acted: false, entered: true };
   }
 
-  // Steal
+  // Steal（去掉 checkCanOperateRemote 预检查，直接偷取全部可偷地块）
   if (analysis.stealable.length > 0) {
-    const canOp = await checkCanOperateRemote(gid, 0x2714); // 10004
-    if (canOp.canOperate) {
-      const stealCount = canOp.canStealNum > 0
-        ? canOp.canStealNum
-        : analysis.stealable.length;
-      const targetLands = analysis.stealable.slice(0, stealCount);
-      let stolen = 0;
-      const stolenNames = [];
+    let stolen = 0;
+    const stolenNames = [];
 
-      try {
-        await stealHarvest(gid, targetLands);
-        stolen = targetLands.length;
-        targetLands.forEach(landId => {
+    try {
+      await stealHarvest(gid, analysis.stealable);
+      stolen = analysis.stealable.length;
+      analysis.stealable.forEach(landId => {
+        const info = analysis.stealableInfo.find(s => s.landId === landId);
+        if (info) stolenNames.push(info.name);
+      });
+    } catch (_) {
+      for (const landId of analysis.stealable) {
+        try {
+          await stealHarvest(gid, [landId]);
+          stolen++;
           const info = analysis.stealableInfo.find(s => s.landId === landId);
           if (info) stolenNames.push(info.name);
-        });
-      } catch (_) {
-        for (const landId of targetLands) {
-          try {
-            await stealHarvest(gid, [landId]);
-            stolen++;
-            const info = analysis.stealableInfo.find(s => s.landId === landId);
-            if (info) stolenNames.push(info.name);
-          } catch (_) {
-            // Skip individual failures
-          }
-          await randomDelay(200, 600);
+        } catch (_) {
+          // Skip individual failures
         }
+        await randomDelay(50, 100);
       }
+    }
 
-      if (stolen > 0) {
-        const namesStr = [...new Set(stolenNames)].join('/');
-        actionLogs.push(`偷${stolen}${namesStr ? `(${namesStr})` : ''}`);
-        tally.steal += stolen;
-        recordOperation('steal', stolen);
-        await randomDelay(500, 1000);
-      }
+    if (stolen > 0) {
+      const namesStr = [...new Set(stolenNames)].join('/');
+      actionLogs.push(`偷${stolen}${namesStr ? `(${namesStr})` : ''}`);
+      tally.steal += stolen;
+      recordOperation('steal', stolen);
+      await randomDelay(50, 100);
     }
   }
 
@@ -662,6 +676,8 @@ async function visitFriendForHelp(friend, tally, myGid, accountId, ignoreExpLimi
     return { acted: false, entered: true };
   }
 
+  cacheDogInfoFromEnterReply(gid, enterReply);
+
   const analysis = analyzeFriendLands(lands, myGid, name, {});
   const actionLogs = [];
 
@@ -701,8 +717,8 @@ async function visitFriendForHelp(friend, tally, myGid, accountId, ignoreExpLimi
       (canGetExpByCandidates(opt.expIds) && getCanGetHelpExp());
 
     if (opt.list.length > 0 && canGetExp) {
-      const canOp = await checkCanOperateRemote(gid, opt.id);
-      if (canOp.canOperate) {
+      // 去掉 checkCanOperateRemote 预检查，直接发起帮忙操作
+      try {
         const useExpCheck = hasGuardDog ? false : checkExpLimit;
         const okCount = await runBatchWithFallback(
           opt.list,
@@ -723,8 +739,10 @@ async function visitFriendForHelp(friend, tally, myGid, accountId, ignoreExpLimi
               count: okCount,
             });
           }
-          await randomDelay(300, 900);
+          await randomDelay(50, 100);
         }
+      } catch (_) {
+        // 帮忙操作整体失败，跳过该类操作
       }
     }
   }

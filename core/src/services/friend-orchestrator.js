@@ -54,6 +54,24 @@ let dogInfoBootstrapReadyAt = 0;
 
 const BAD_FAILURE_LIMIT = 3;
 
+// ===== 好友列表 TTL 缓存（一轮巡查内复用，避免 help tick + steal tick 重复拉取）=====
+const FRIENDS_LIST_CACHE_TTL_MS = 30000;
+let friendsListCacheState = { reply: null, expireAt: 0 };
+
+function clearCachedFriendsList() {
+  friendsListCacheState = { reply: null, expireAt: 0 };
+}
+
+async function getCachedFriendsList(forceRefresh = false) {
+  const now = Date.now();
+  if (!forceRefresh && friendsListCacheState.reply && now < friendsListCacheState.expireAt) {
+    return friendsListCacheState.reply;
+  }
+  const reply = await getAllFriends();
+  friendsListCacheState = { reply, expireAt: now + FRIENDS_LIST_CACHE_TTL_MS };
+  return reply;
+}
+
 // ===== Helpers =====
 
 function isTransientNetworkError(err) {
@@ -71,6 +89,7 @@ function isTransientNetworkError(err) {
 
 function clearFriendsListCache() {
   setFriendsListCache(null);
+  clearCachedFriendsList();
 }
 
 async function bootstrapFriendDogInfoCacheIfNeeded() {
@@ -244,7 +263,7 @@ async function checkFriends(options = {}) {
   checkDailyReset();
 
   try {
-    const allFriendsReply = await getAllFriends();
+    const allFriendsReply = await getCachedFriendsList();
     const rawFriends = extractReplyFriends(allFriendsReply);
 
     if (rawFriends.length === 0) {
@@ -375,7 +394,7 @@ async function checkFriends(options = {}) {
         } catch {
           // Skip individual failures
         }
-        await randomDelay(500, 1500);
+        await randomDelay(50, 100);
       }
     }
 
@@ -399,10 +418,7 @@ async function checkFriends(options = {}) {
         } catch {
           // Skip individual failures
         }
-        await randomDelay(
-          helpExpReached ? 300 : 500,
-          helpExpReached ? 700 : 1000
-        );
+        await randomDelay(50, 100);
       }
     }
 
@@ -477,7 +493,7 @@ async function checkFriends(options = {}) {
               break;
             }
           }
-          await randomDelay(500, 1500);
+          await randomDelay(50, 100);
         }
       }
     }
@@ -746,7 +762,7 @@ async function runBadOnceOnStartup(force = false) {
   });
 
   try {
-    const allFriendsReply = await getAllFriends();
+    const allFriendsReply = await getCachedFriendsList();
     const rawFriends = extractReplyFriends(allFriendsReply);
 
     if (rawFriends.length === 0) {
@@ -843,7 +859,7 @@ async function runBadOnceOnStartup(force = false) {
           break;
         }
       }
-      await randomDelay(500, 1500);
+      await randomDelay(50, 100);
     }
 
     badExecutedOnStartup = true;

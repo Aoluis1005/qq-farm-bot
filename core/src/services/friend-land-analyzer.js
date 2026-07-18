@@ -220,12 +220,12 @@ async function batchGetFriendDogInfo(friends) {
     dogMap.set(gid, dogInfo);
 
     if (i < entries.length - 1) {
-      await randomDelay(500, 1500);
+      await randomDelay(100, 200);
     }
 
-    // Periodic sleep to avoid rate limiting
+    // Periodic sleep to avoid rate limiting（自用：从 1000ms 降到 300ms）
     if ((i + 1) % BATCH_LOG_INTERVAL === 0 && i < entries.length - 1) {
-      await sleep(BATCH_SLEEP_MS);
+      await sleep(300);
     }
   }
 
