@@ -26,7 +26,9 @@ const {
   checkDailyReset,
   canOperate,
   canOperateBad,
+  canGetExpByCandidates,
   getCanGetHelpExp,
+  setCanGetHelpExp,
   getHelpAutoDisabledByLimit,
   updateOperationLimits,
 } = require('./friend-operation-limits');
@@ -285,6 +287,21 @@ async function checkFriends(options = {}) {
       ? new Set(Object.keys(dogInfoCache).map(Number))
       : new Set();
     const expLimitEnabled = !!isAutomationOn('friend_help_exp_limit');
+
+    // 修复：canGetHelpExp 一旦被 autoDisableHelpByExpLimit 设为 false 就锁死，
+    // 导致每轮都走"只帮护主犬"分支。这里先检查服务端 operation_limits，
+    // 如果经验其实没满，重置 canGetHelpExp = true。
+    if (expLimitEnabled && !getCanGetHelpExp()) {
+      const allExpIds = [0x2715, 0x2713, 0x2716, 0x2712, 0x2717, 0x2711];
+      if (canGetExpByCandidates(allExpIds)) {
+        setCanGetHelpExp(true);
+        log('好友', '经验上限已重置（服务端显示仍有经验额度）', {
+          module: 'friend',
+          event: '经验上限重置',
+        });
+      }
+    }
+
     const helpExpReached = expLimitEnabled && !getCanGetHelpExp();
 
     // ---- Build target lists ----
