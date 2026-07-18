@@ -8,24 +8,17 @@ const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 
-// 一级导航：概览 / 个人 / 好友 / 活动
 const primaryNames = ['dashboard', 'personal', 'friends', 'activity']
-const primaryItems = computed(() => {
-  return menuRoutes.filter(item => primaryNames.includes(item.name))
-})
+const primaryItems = computed(() => menuRoutes.filter(item => primaryNames.includes(item.name)))
 
-// 二级导航（更多面板）：显式声明的 + 兜底（不在一级里的全部自动归入二级）
 const secondaryItems = computed(() => {
   return menuRoutes.filter(item => {
-    // 一级已显示的不再重复
     if (primaryNames.includes(item.name)) return false
-    // adminOnly 对非管理员隐藏
     if (item.adminOnly && !userStore.isAdmin) return false
     return true
   })
 })
 
-// 当前激活的菜单项是否在"更多"面板里
 const activeInSecondary = computed(() => {
   return secondaryItems.value.some(item =>
     item.path === '' ? route.path === '/' : route.path.startsWith(`/${item.path}`),
@@ -35,8 +28,7 @@ const activeInSecondary = computed(() => {
 const showMorePanel = ref(false)
 
 function isActive(path: string): boolean {
-  if (path === '')
-    return route.path === '/' || route.path === ''
+  if (path === '') return route.path === '/' || route.path === ''
   return route.path.startsWith(`/${path}`)
 }
 
@@ -45,22 +37,13 @@ function goTo(path: string) {
   showMorePanel.value = false
 }
 
-function toggleMorePanel() {
-  showMorePanel.value = !showMorePanel.value
-}
-
-function closeMorePanel() {
-  showMorePanel.value = false
-}
+function toggleMorePanel() { showMorePanel.value = !showMorePanel.value }
+function closeMorePanel() { showMorePanel.value = false }
 </script>
 
 <template>
-  <!-- 底部悬浮导航 Dock（鸿蒙式沉浸光感） -->
-  <div class="floating-dock-wrapper">
-    <!-- 背景光晕层（沉浸光感） -->
-    <div class="dock-glow" />
-
-    <!-- "更多"二级面板 -->
+  <div class="ambient-glow" />
+  <div class="floating-nav-wrapper">
     <Transition name="more-panel">
       <div v-if="showMorePanel" class="more-panel">
         <div class="more-panel-header">
@@ -83,418 +66,237 @@ function closeMorePanel() {
         </div>
       </div>
     </Transition>
-
-    <!-- 点击遮罩关闭更多面板 -->
     <Transition name="more-overlay">
       <div v-if="showMorePanel" class="more-overlay" @click="closeMorePanel" />
     </Transition>
-
-    <!-- 主 Dock 容器 -->
-    <nav class="floating-dock" role="navigation" aria-label="主导航">
+    <nav class="floating-nav" role="navigation" aria-label="主导航">
       <router-link
         v-for="item in primaryItems"
         :key="item.path"
         :to="item.path === '' ? '/' : `/${item.path}`"
-        class="dock-item"
-        :class="{ 'dock-item--active': isActive(item.path) }"
-        :title="item.label"
+        class="nav-item"
+        :class="{ 'nav-item--active': isActive(item.path) }"
         @click="closeMorePanel"
       >
-        <span class="dock-item-glow" />
-        <span class="dock-item-icon" :class="item.icon" />
-        <span class="dock-item-label">{{ item.label }}</span>
+        <span class="nav-item-icon" :class="item.icon" />
+        <span class="nav-item-label">{{ item.label }}</span>
       </router-link>
-
-      <!-- 更多按钮 -->
       <button
-        class="dock-item"
-        :class="{ 'dock-item--active': showMorePanel || activeInSecondary }"
-        title="更多"
+        class="nav-item"
+        :class="{ 'nav-item--active': showMorePanel || activeInSecondary }"
         @click="toggleMorePanel"
       >
-        <span class="dock-item-glow" />
-        <span class="dock-item-icon i-carbon-overflow-menu-horizontal" />
-        <span class="dock-item-label">更多</span>
+        <span class="nav-item-icon i-carbon-overflow-menu-horizontal" />
+        <span class="nav-item-label">更多</span>
       </button>
     </nav>
   </div>
 </template>
 
 <style scoped>
-.floating-dock-wrapper {
+.floating-nav-wrapper {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 40;
+  z-index: 1000;
   display: flex;
   justify-content: center;
-  padding: 0 env(safe-area-inset-bottom, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   pointer-events: none;
 }
 
-/* 背景光晕：鸿蒙式柔和发光 */
-.dock-glow {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+.ambient-glow {
+  position: fixed;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 360px;
   height: 140px;
-  background: linear-gradient(
-    to top,
-    color-mix(in srgb, var(--theme-primary) 12%, transparent) 0%,
-    color-mix(in srgb, var(--theme-primary) 4%, transparent) 40%,
-    transparent 100%
-  );
+  background: radial-gradient(ellipse, color-mix(in srgb, var(--theme-primary) 22%, transparent), transparent 70%);
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(to top, black 0%, transparent 100%);
-  mask-image: linear-gradient(to top, black 0%, transparent 100%);
+  z-index: 999;
+  filter: blur(36px);
 }
 
-/* 主 Dock：毛玻璃 pill 形，扁长 */
-.floating-dock {
+.floating-nav {
   pointer-events: auto;
   display: flex;
   align-items: center;
-  gap: 2px;
-  margin: 0 12px 14px 12px;
-  padding: 5px 10px;
-  max-width: calc(100vw - 24px);
-  border-radius: 20px;
-  /* 鸿蒙式强毛玻璃：更通透 */
-  background: color-mix(in srgb, var(--surface-1, #fff) 55%, transparent);
-  backdrop-filter: blur(40px) saturate(200%) brightness(1.05);
-  -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.05);
-  border: 1px solid color-mix(in srgb, rgba(255, 255, 255, 0.4) 60%, transparent);
+  gap: 8px;
+  padding: 8px 12px;
+  margin-bottom: 24px;
+  border-radius: 28px;
+  width: max-content;
+  max-width: calc(100% - 48px);
+  overflow-x: auto;
+  scrollbar-width: none;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(30, 30, 40, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--theme-primary) 8%, transparent),
-    0 12px 40px -6px color-mix(in srgb, var(--theme-primary) 22%, transparent),
-    0 6px 20px -4px rgba(0, 0, 0, 0.1),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.5),
-    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.03);
-  animation: dock-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 0.5px rgba(255, 255, 255, 0.05) inset;
+  animation: nav-slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.floating-nav::-webkit-scrollbar { display: none; }
+
+@keyframes nav-slide-up {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-@keyframes dock-rise {
-  from { opacity: 0; transform: translateY(40px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* 单个导航项：横向排列（图标+标签水平） */
-.dock-item {
+.nav-item {
   position: relative;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 8px 16px;
-  min-width: 72px;
-  border-radius: 14px;
-  color: var(--theme-text);
-  opacity: 0.6;
+  width: 64px;
+  height: 56px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
   text-decoration: none;
+  color: rgba(255, 255, 255, 0.5);
   background: transparent;
   border: none;
-  cursor: pointer;
-  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-tap-highlight-color: transparent;
   flex-shrink: 0;
 }
+.nav-item-icon { font-size: 24px; line-height: 1; transition: all 0.3s ease; }
+.nav-item-label { font-size: 10px; margin-top: 2px; transition: all 0.3s ease; }
 
-.dock-item:hover {
-  opacity: 1;
-  transform: translateY(-3px);
+@media (hover: hover) {
+  .nav-item:hover:not(.nav-item--active) {
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.05);
+  }
 }
+.nav-item:active { transform: scale(0.94); }
 
-.dock-item:active {
-  transform: translateY(-1px) scale(0.96);
-  transition-duration: 0.1s;
+.nav-item--active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--theme-primary) 18%, transparent);
 }
-
-.dock-item--active {
-  opacity: 1;
+.nav-item--active .nav-item-icon {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--theme-primary) 60%, transparent));
 }
-
-.dock-item-glow {
-  position: absolute;
-  inset: 0;
-  border-radius: 16px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--theme-primary) 22%, transparent),
-    color-mix(in srgb, var(--theme-primary) 8%, transparent)
-  );
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.dock-item--active .dock-item-glow {
-  opacity: 1;
-  box-shadow:
-    inset 0 0 12px color-mix(in srgb, var(--theme-primary) 20%, transparent),
-    0 0 10px color-mix(in srgb, var(--theme-primary) 25%, transparent);
-}
-
-.dock-item--active::after {
+.nav-item--active::before {
   content: '';
   position: absolute;
-  bottom: 3px;
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--theme-primary);
-  box-shadow: 0 0 6px var(--theme-primary);
+  width: 20px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--theme-primary) 80%, #fff), transparent);
+  animation: glow-pulse 2s ease-in-out infinite alternate;
+}
+@keyframes glow-pulse {
+  from { opacity: 0.5; width: 16px; }
+  to { opacity: 1; width: 24px; }
 }
 
-.dock-item-icon {
-  font-size: 20px;
-  line-height: 1;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-  z-index: 1;
-}
-
-.dock-item--active .dock-item-icon {
-  transform: scale(1.1);
-  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--theme-primary) 50%, transparent));
-}
-
-.dock-item:hover .dock-item-icon {
-  transform: scale(1.15);
-}
-
-.dock-item-label {
-  font-size: 12px;
-  line-height: 1;
-  font-weight: 500;
-  white-space: nowrap;
-  position: relative;
-  z-index: 1;
-}
-
-/* ===== "更多"二级面板 ===== */
 .more-overlay {
   position: fixed;
   inset: 0;
-  z-index: 39;
-  background: rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  z-index: 998;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   pointer-events: auto;
 }
-
 .more-panel {
   pointer-events: auto;
   position: absolute;
-  bottom: calc(100% + 12px);
+  bottom: calc(100% + 16px);
   left: 50%;
   transform: translateX(-50%);
   width: min(360px, calc(100vw - 32px));
   padding: 16px;
   border-radius: 24px;
-  /* 鸿蒙式强毛玻璃 */
-  background: color-mix(in srgb, var(--surface-1, #fff) 60%, transparent);
-  backdrop-filter: blur(40px) saturate(200%) brightness(1.05);
-  -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.05);
-  border: 1px solid color-mix(in srgb, rgba(255, 255, 255, 0.4) 60%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(30, 30, 40, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow:
-    0 16px 48px -8px color-mix(in srgb, var(--theme-primary) 24%, transparent),
-    0 6px 20px -4px rgba(0, 0, 0, 0.12),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.5),
-    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.03);
-  z-index: 41;
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 0 0.5px rgba(255, 255, 255, 0.05) inset;
+  z-index: 1001;
 }
-
-.more-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-}
-
-.more-panel-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--theme-text);
-  opacity: 0.8;
-}
-
+.more-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.more-panel-title { font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.8); }
 .more-panel-close {
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  border: none;
-  background: transparent;
-  color: var(--theme-text);
-  opacity: 0.5;
-  cursor: pointer;
-  font-size: 16px;
-  transition: opacity 0.2s, background 0.2s;
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; border: none; background: transparent;
+  color: rgba(255, 255, 255, 0.5); cursor: pointer; font-size: 16px; transition: all 0.2s;
 }
-
-.more-panel-close:hover {
-  opacity: 1;
-  background: color-mix(in srgb, var(--theme-text) 8%, transparent);
-}
-
-.more-panel-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
+.more-panel-close:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+.more-panel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .more-panel-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 14px 8px;
-  border-radius: 14px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--theme-text);
-  cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 14px 8px; border-radius: 16px; border: 1px solid transparent;
+  background: transparent; color: rgba(255, 255, 255, 0.6);
+  cursor: pointer; transition: all 0.3s ease;
+}
+.more-panel-item:hover { color: #fff; background: rgba(255, 255, 255, 0.06); transform: translateY(-2px); }
+.more-panel-item--active { color: #fff; background: rgba(255, 255, 255, 0.1); box-shadow: 0 0 16px color-mix(in srgb, var(--theme-primary) 15%, transparent); }
+.more-panel-item-icon { font-size: 26px; line-height: 1; transition: transform 0.3s ease; }
+.more-panel-item:hover .more-panel-item-icon { transform: scale(1.1); }
+.more-panel-item--active .more-panel-item-icon { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--theme-primary) 50%, transparent)); }
+.more-panel-item-label { font-size: 12px; font-weight: 500; white-space: nowrap; }
+
+.more-panel-enter-active, .more-panel-leave-active { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.more-panel-enter-from, .more-panel-leave-to { opacity: 0; transform: translateX(-50%) translateY(20px) scale(0.95); }
+.more-overlay-enter-active, .more-overlay-leave-active { transition: opacity 0.3s ease; }
+.more-overlay-enter-from, .more-overlay-leave-to { opacity: 0; }
+
+@media (prefers-color-scheme: light) {
+  .floating-nav {
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.03) inset;
+  }
+  .nav-item { color: rgba(0, 0, 0, 0.5); }
+  .nav-item--active {
+    color: #000;
+    background: rgba(0, 0, 0, 0.05);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--theme-primary) 15%, transparent);
+  }
+  .nav-item--active::before {
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--theme-primary) 70%, #000), transparent);
+  }
+  @media (hover: hover) {
+    .nav-item:hover:not(.nav-item--active) { color: rgba(0, 0, 0, 0.8); background: rgba(0, 0, 0, 0.03); }
+  }
+  .more-panel {
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 0 0 0.5px rgba(0, 0, 0, 0.03) inset;
+  }
+  .more-panel-title { color: rgba(0, 0, 0, 0.7); }
+  .more-panel-close { color: rgba(0, 0, 0, 0.4); }
+  .more-panel-close:hover { color: #000; background: rgba(0, 0, 0, 0.05); }
+  .more-panel-item { color: rgba(0, 0, 0, 0.5); }
+  .more-panel-item:hover { color: #000; background: rgba(0, 0, 0, 0.03); }
+  .more-panel-item--active { color: #000; background: rgba(0, 0, 0, 0.05); }
 }
 
-.more-panel-item:hover {
-  background: color-mix(in srgb, var(--theme-primary) 10%, transparent);
-  border-color: color-mix(in srgb, var(--theme-primary) 20%, transparent);
-  transform: translateY(-2px);
-}
-
-.more-panel-item--active {
-  background: color-mix(in srgb, var(--theme-primary) 15%, transparent);
-  border-color: color-mix(in srgb, var(--theme-primary) 30%, transparent);
-  box-shadow: inset 0 0 12px color-mix(in srgb, var(--theme-primary) 12%, transparent);
-}
-
-.more-panel-item-icon {
-  font-size: 26px;
-  line-height: 1;
-  transition: transform 0.25s ease;
-}
-
-.more-panel-item:hover .more-panel-item-icon {
-  transform: scale(1.1);
-}
-
-.more-panel-item--active .more-panel-item-icon {
-  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--theme-primary) 50%, transparent));
-}
-
-.more-panel-item-label {
-  font-size: 12px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-/* ===== 动画 ===== */
-.more-panel-enter-active,
-.more-panel-leave-active {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.more-panel-enter-from,
-.more-panel-leave-to {
-  opacity: 0;
-  transform: translateX(-50%) translateY(20px) scale(0.95);
-}
-
-.more-overlay-enter-active,
-.more-overlay-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.more-overlay-enter-from,
-.more-overlay-leave-to {
-  opacity: 0;
-}
-
-/* ===== 移动端 ===== */
 @media (max-width: 640px) {
-  .floating-dock {
-    gap: 0;
-    padding: 4px 6px;
-    margin: 0 8px 10px 8px;
-    border-radius: 18px;
-  }
-
-  .dock-item {
-    min-width: 48px;
-    padding: 6px 10px;
-    gap: 0;
-  }
-
-  /* 移动端隐藏标签，只显图标，更扁更长 */
-  .dock-item-label {
-    display: none;
-  }
-
-  .dock-item-icon {
-    font-size: 22px;
-  }
-
-  .more-panel {
-    width: calc(100vw - 24px);
-    padding: 14px;
-  }
-
-  .more-panel-grid {
-    gap: 6px;
-  }
-
-  .more-panel-item {
-    padding: 12px 6px;
-  }
-}
-
-/* ===== 暗色模式 ===== */
-@media (prefers-color-scheme: dark) {
-  .floating-dock {
-    background: color-mix(in srgb, var(--surface-1, #1f2937) 60%, transparent);
-    border-color: color-mix(in srgb, rgba(255, 255, 255, 0.12) 50%, transparent);
-    box-shadow:
-      0 0 0 1px color-mix(in srgb, var(--theme-primary) 10%, transparent),
-      0 12px 40px -6px color-mix(in srgb, var(--theme-primary) 25%, transparent),
-      0 6px 20px -4px rgba(0, 0, 0, 0.4),
-      inset 0 1px 1px 0 rgba(255, 255, 255, 0.1),
-      inset 0 -1px 1px 0 rgba(0, 0, 0, 0.2);
-  }
-
-  .dock-item-glow,
-  .more-panel-item--active {
-    background: linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--theme-primary) 28%, transparent),
-      color-mix(in srgb, var(--theme-primary) 10%, transparent)
-    );
-  }
-
-  .more-panel {
-    background: color-mix(in srgb, var(--surface-1, #1f2937) 65%, transparent);
-    border-color: color-mix(in srgb, rgba(255, 255, 255, 0.12) 50%, transparent);
-    box-shadow:
-      0 16px 48px -8px color-mix(in srgb, var(--theme-primary) 25%, transparent),
-      0 6px 20px -4px rgba(0, 0, 0, 0.5),
-      inset 0 1px 1px 0 rgba(255, 255, 255, 0.1),
-      inset 0 -1px 1px 0 rgba(0, 0, 0, 0.2);
-  }
+  .floating-nav { gap: 4px; padding: 6px 8px; margin-bottom: 16px; border-radius: 24px; }
+  .nav-item { width: 56px; height: 50px; border-radius: 18px; }
+  .nav-item-icon { font-size: 22px; }
+  .more-panel { width: calc(100vw - 24px); padding: 14px; }
+  .more-panel-grid { gap: 6px; }
+  .more-panel-item { padding: 12px 6px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .floating-dock,
-  .dock-item,
-  .dock-item-icon,
-  .dock-item-glow,
-  .more-panel,
-  .more-panel-item {
+  .floating-nav, .nav-item, .nav-item-icon, .nav-item--active::before, .more-panel, .more-panel-item {
     animation: none !important;
     transition: opacity 0.15s ease !important;
   }
