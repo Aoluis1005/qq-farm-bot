@@ -1,3 +1,4 @@
+const path = require('node:path');
 const { createScheduler } = require('../services/scheduler');
 
 /**
@@ -110,11 +111,16 @@ function createWorkerManager(deps) {
      * 创建 Fork Worker
      */
     function createForkWorker(account) {
+        // 显式指定 cwd：用 mainEntryPath 所在目录（core/）的绝对路径，
+        // 避免父进程 cwd 失效（ENOENT: uv_cwd）导致子进程启动失败。
+        const workerCwd = path.dirname(mainEntryPath);
+
         if (processRef.pkg) {
             // pkg 打包模式：fork 主入口而不是 worker 脚本
             return fork(mainEntryPath, [], {
                 execPath: processRef.execPath,
                 stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
+                cwd: workerCwd,
                 env: {
                     ...processRef.env,
                     FARM_WORKER: '1',
@@ -124,6 +130,7 @@ function createWorkerManager(deps) {
         }
         return fork(workerScriptPath, [], {
             stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
+            cwd: workerCwd,
             env: {
                 ...processRef.env,
                 FARM_ACCOUNT_ID: String(account.id || '')
@@ -140,9 +147,55 @@ function createWorkerManager(deps) {
     }
 
     /**
+     * 应用宝账号启动前自动刷新 code
+     * 调应用宝接口用 openid 换新的 code，覆盖 account.code。
+     * 失败则沿用旧 code（可能已过期，但让 worker 自己报错更直观）。
+     */
+    async function refreshYybCodeIfNeeded(account) {
+        if (!account || account.loginType !== 'yyb' || !account.yybOpenid) return;
+        try {
+            const store = require('../models/store');
+            const wxConfig = store.getGlobalWxConfig ? store.getGlobalWxConfig() : null;
+            if (!wxConfig || !wxConfig.apiBase || !wxConfig.apiKey) {
+                log('系统', `账号 ${account.name} 应用宝接口未配置，使用旧 code 启动`, {
+                    accountId: String(account.id),
+                });
+                return;
+            }
+            const base = String(wxConfig.apiBase).replace(/\/+$/, '');
+            const appId = wxConfig.appId || 'wx5306c5978fdb76e4';
+            const resp = await fetch(`${base}/wxapp/getCode`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${wxConfig.apiKey}`,
+                },
+                body: JSON.stringify({ ref: account.yybOpenid, app_id: appId }),
+            });
+            const data = await resp.json();
+            if (data && data.code === 0 && data.data && data.data.result && data.data.result.code) {
+                account.code = data.data.result.code;
+                log('系统', `账号 ${account.name} 应用宝 code 已自动刷新`, {
+                    accountId: String(account.id),
+                });
+            } else {
+                const msg = (data && data.msg) || '未知错误';
+                log('系统', `账号 ${account.name} 应用宝 code 刷新失败: ${msg}`, {
+                    accountId: String(account.id),
+                    yybCode: data && data.code,
+                });
+            }
+        } catch (e) {
+            log('系统', `账号 ${account.name} 应用宝 code 刷新异常: ${e.message}`, {
+                accountId: String(account.id),
+            });
+        }
+    }
+
+    /**
      * 启动账号 Worker
      */
-    function startWorker(account) {
+    async function startWorker(account) {
         if (!account || !account.id) return false;
         if (workers[account.id]) return false;
 
@@ -150,6 +203,9 @@ function createWorkerManager(deps) {
             accountId: String(account.id),
             accountName: account.name
         });
+
+        // 应用宝账号：启动前自动刷新 code
+        await refreshYybCodeIfNeeded(account);
 
         let proc = null;
         try {
@@ -271,7 +327,7 @@ function createWorkerManager(deps) {
     /**
      * 重启账号 Worker
      */
-    function restartWorker(account) {
+    async function restartWorker(account) {
         if (!account) return;
         const accountId = account.id;
         const wrk = workers[accountId];
@@ -282,7 +338,7 @@ function createWorkerManager(deps) {
         const targetProc = wrk.process;
         let restarted = false;
 
-        const doRestart = () => {
+        const doRestart = async () => {
             if (restarted) return;
             restarted = true;
             scheduler.clear(`restart_fallback_${  accountId}`);
@@ -292,7 +348,7 @@ function createWorkerManager(deps) {
             if (current.process !== targetProc) return;
 
             delete workers[accountId];
-            startWorker(account);
+            await startWorker(account);
         };
 
         const forceKill = () => {

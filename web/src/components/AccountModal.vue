@@ -40,7 +40,7 @@ interface CaptureFlowState {
   }
 }
 
-const activeTab = ref<'wx' | 'capture' | 'manual'>('manual')
+const activeTab = ref<'wx' | 'capture' | 'manual' | 'yyb'>('manual')
 const loading = ref(false)
 const wxChecking = ref(false)
 const errorMessage = ref('')
@@ -430,7 +430,125 @@ watch(activeTab, (tab) => {
     loadWxQRCode()
   if (tab !== 'capture')
     void cancelCaptureSession()
+  if (tab === 'yyb')
+    loadYybConfig()
 })
+
+// ==================== 应用宝登录 ====================
+const yybApiBase = ref('')
+const yybApiKey = ref('')
+const yybConfigLoaded = ref(false)
+const yybConfigSaving = ref(false)
+const yybAccounts = ref<any[]>([])
+const yybAccountsLoading = ref(false)
+const yybSelectedOpenid = ref('')
+const yybAccountName = ref('')
+const yybLoginLoading = ref(false)
+const yybError = ref('')
+
+const yybConfigured = computed(() => !!yybApiBase.value && !!yybApiKey.value)
+
+async function loadYybConfig() {
+  if (yybConfigLoaded.value) return
+  try {
+    const { data } = await api.get('/api/admin/wx-config')
+    if (data?.ok && data.config) {
+      yybApiBase.value = data.config.apiBase || ''
+      yybApiKey.value = data.config.apiKey || ''
+    }
+  } catch (e: any) {
+    console.error('加载应用宝配置失败', e)
+  } finally {
+    yybConfigLoaded.value = true
+  }
+}
+
+async function saveYybConfig() {
+  if (!yybApiBase.value || !yybApiKey.value) {
+    yybError.value = '请填写接口地址和 API Token'
+    return
+  }
+  yybConfigSaving.value = true
+  yybError.value = ''
+  try {
+    // 复用 globalWxConfig 保存（需先读取现有完整配置再合并，避免覆盖其他字段）
+    const { data: existing } = await api.get('/api/admin/wx-config')
+    const merged = {
+      ...(existing?.config || {}),
+      apiBase: yybApiBase.value.trim(),
+      apiKey: yybApiKey.value.trim(),
+      appId: 'wx5306c5978fdb76e4',
+      enabled: true,
+      confirmed: true,
+    }
+    await api.post('/api/admin/wx-config', merged)
+    yybConfigLoaded.value = true
+    // 配置保存后自动拉账号列表
+    await fetchYybAccounts()
+  } catch (e: any) {
+    yybError.value = e?.response?.data?.error || e?.message || '保存配置失败'
+  } finally {
+    yybConfigSaving.value = false
+  }
+}
+
+async function fetchYybAccounts() {
+  if (!yybConfigured.value) return
+  yybAccountsLoading.value = true
+  yybError.value = ''
+  try {
+    const { data } = await api.post('/api/yyb/accounts', {
+      apiBase: yybApiBase.value.trim(),
+      apiKey: yybApiKey.value.trim(),
+    })
+    if (data?.ok) {
+      yybAccounts.value = data.data || []
+      if (yybAccounts.value.length === 0) {
+        yybError.value = '应用宝接口没有可用账号'
+      }
+    } else {
+      yybError.value = data?.error || '获取账号列表失败'
+    }
+  } catch (e: any) {
+    yybError.value = e?.response?.data?.error || e?.message || '获取账号列表失败'
+    yybAccounts.value = []
+  } finally {
+    yybAccountsLoading.value = false
+  }
+}
+
+async function submitYybLogin() {
+  if (!yybSelectedOpenid.value) {
+    yybError.value = '请选择一个账号'
+    return
+  }
+  yybLoginLoading.value = true
+  yybError.value = ''
+  try {
+    const { data } = await api.post('/api/yyb/getcode', {
+      apiBase: yybApiBase.value.trim(),
+      apiKey: yybApiKey.value.trim(),
+      openid: yybSelectedOpenid.value,
+    })
+    if (!data?.ok || !data?.data?.code) {
+      yybError.value = data?.error || '获取登录 code 失败'
+      return
+    }
+    const selected = yybAccounts.value.find(a => a.openid === yybSelectedOpenid.value)
+    const name = yybAccountName.value.trim() || selected?.nickname || selected?.alias || `应用宝账号${Date.now()}`
+    await addAccount({
+      name,
+      code: data.data.code,
+      platform: 'wx',
+      loginType: 'yyb',
+      yybOpenid: yybSelectedOpenid.value,
+    })
+  } catch (e: any) {
+    yybError.value = e?.response?.data?.error || e?.message || '应用宝登录失败'
+  } finally {
+    yybLoginLoading.value = false
+  }
+}
 </script>
 
 <template>
@@ -485,6 +603,17 @@ watch(activeTab, (tab) => {
             @click="activeTab = 'capture'"
           >
             抓包登录
+          </button>
+          <button
+            class="flex-1 py-2 text-center text-sm font-medium transition-colors"
+            :class="activeTab === 'yyb' ? 'border-b-2' : 'opacity-60'"
+            :style="{
+              color: activeTab === 'yyb' ? 'var(--theme-primary)' : 'var(--theme-text)',
+              borderColor: 'var(--theme-primary)',
+            }"
+            @click="activeTab = 'yyb'"
+          >
+            应用宝
           </button>
         </div>
 
@@ -743,6 +872,111 @@ watch(activeTab, (tab) => {
             <BaseButton variant="primary" :loading="loading" @click="submitManual">
               {{ editData ? '保存' : '添加' }}
             </BaseButton>
+          </div>
+        </div>
+
+        <!-- 应用宝登录 -->
+        <div v-if="activeTab === 'yyb'" class="space-y-4">
+          <!-- 配置区：首次未配置时显示 -->
+          <div v-if="!yybConfigured" class="space-y-3">
+            <div class="text-sm opacity-70" :style="{ color: 'var(--theme-text)' }">
+              请先配置应用宝接口地址和 API Token
+            </div>
+            <BaseInput
+              v-model="yybApiBase"
+              label="接口地址"
+              placeholder="http://111.229.128.163:8000"
+            />
+            <BaseInput
+              v-model="yybApiKey"
+              label="API Token"
+              placeholder="yybgo_fixed_api_token_2026"
+            />
+            <div v-if="yybError" class="text-sm text-red-500">
+              {{ yybError }}
+            </div>
+            <BaseButton variant="primary" :loading="yybConfigSaving" @click="saveYybConfig">
+              保存并获取账号列表
+            </BaseButton>
+          </div>
+
+          <!-- 账号选择区：配置好后显示 -->
+          <div v-else class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-sm opacity-70" :style="{ color: 'var(--theme-text)' }">
+                接口：{{ yybApiBase }}
+              </span>
+              <BaseButton variant="ghost" size="sm" :loading="yybAccountsLoading" @click="fetchYybAccounts">
+                刷新列表
+              </BaseButton>
+            </div>
+
+            <BaseInput
+              v-model="yybAccountName"
+              label="账号备注（可选）"
+              placeholder="留空则使用应用宝昵称"
+            />
+
+            <!-- 账号列表 -->
+            <div v-if="yybAccounts.length > 0" class="space-y-2 max-h-60 overflow-y-auto">
+              <label
+                v-for="acc in yybAccounts"
+                :key="acc.openid"
+                class="flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors"
+                :style="{
+                  borderColor: yybSelectedOpenid === acc.openid ? 'var(--theme-primary)' : 'color-mix(in srgb, var(--theme-text) 15%, transparent)',
+                  background: yybSelectedOpenid === acc.openid ? 'color-mix(in srgb, var(--theme-primary) 8%, transparent)' : 'transparent',
+                }"
+              >
+                <input
+                  v-model="yybSelectedOpenid"
+                  type="radio"
+                  :value="acc.openid"
+                  class="h-4 w-4"
+                  :style="{ accentColor: 'var(--theme-primary)' }"
+                >
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium truncate" :style="{ color: 'var(--theme-text)' }">
+                    {{ acc.nickname || acc.alias || acc.openid }}
+                  </div>
+                  <div class="text-xs opacity-60 truncate" :style="{ color: 'var(--theme-text)' }">
+                    openid: {{ acc.openid }}
+                  </div>
+                </div>
+                <span
+                  v-if="acc.status"
+                  class="text-xs px-2 py-0.5 rounded"
+                  :style="{
+                    background: acc.status === 'alive' ? 'color-mix(in srgb, #22c55e 15%, transparent)' : 'color-mix(in srgb, #ef4444 15%, transparent)',
+                    color: acc.status === 'alive' ? '#22c55e' : '#ef4444',
+                  }"
+                >
+                  {{ acc.status === 'alive' ? '在线' : acc.status }}
+                </span>
+              </label>
+            </div>
+
+            <div v-else-if="!yybAccountsLoading && yybConfigured" class="text-sm opacity-60 text-center py-4" :style="{ color: 'var(--theme-text)' }">
+              暂无账号，点击"刷新列表"获取
+            </div>
+
+            <div v-if="yybError" class="text-sm text-red-500">
+              {{ yybError }}
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+              <BaseButton variant="outline" @click="close">
+                取消
+              </BaseButton>
+              <BaseButton
+                variant="primary"
+                :loading="yybLoginLoading"
+                :disabled="!yybSelectedOpenid"
+                @click="submitYybLogin"
+              >
+                应用宝登录
+              </BaseButton>
+            </div>
           </div>
         </div>
       </div>

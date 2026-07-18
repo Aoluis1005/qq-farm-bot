@@ -39,6 +39,7 @@ const { registerAdminBagRoutes } = require("./admin-bag-routes");
 const { registerAdminCardRoutes } = require("./admin-card-routes");
 const { registerAdminCaptureRoutes } = require("./admin-capture-routes");
 const { registerAdminCurrentUserRoutes } = require("./admin-current-user-routes");
+const { registerAdminYybRoutes } = require("./admin-yyb-routes");
 const {
   registerAdminFarmOperationRoutes,
 } = require("./admin-farm-operation-routes");
@@ -529,6 +530,11 @@ function startAdminServer(dataProvider) {
     requireAdminRole,
     userStore,
     store,
+  });
+  registerAdminYybRoutes({
+    app,
+    requireAdminToken,
+    sendProviderError,
   });
   registerAdminAccountRoutes({
     app,

@@ -174,11 +174,13 @@ function createRuntimeEngine(options = {}) {
     }
 
     /** 启动所有账号 */
-    function startAllAccounts() {
+    async function startAllAccounts() {
         const accounts = store.getAccounts().accounts || [];
         if (accounts.length > 0) {
             log('系统', `发现 ${  accounts.length  } 个账号，正在启动...`);
-            accounts.forEach(acc => startWorker(acc));
+            for (const acc of accounts) {
+                await startWorker(acc);
+            }
         } else {
             log('系统', '未发现账号，请访问管理面板添加账号');
         }

@@ -1421,6 +1421,7 @@ function addOrUpdateAccount(account) {
             openId: nextOpenId ? String(nextOpenId) : '',
             avatar: nextAvatar || '',
             username: account.username || '',
+            yybOpenid: account.yybOpenid ? String(account.yybOpenid) : '',
             createdAt: Date.now(),
             updatedAt: Date.now()
         });
