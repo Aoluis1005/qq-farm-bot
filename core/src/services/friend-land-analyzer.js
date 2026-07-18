@@ -107,9 +107,15 @@ function analyzeFriendLands(lands, myGid, friendName = '', options = {}) {
     if (phase === PlantPhase.DEAD) continue;
 
     // Dry / weeds / insects
+    // 注意：用 weed_num/insect_num 判定（和 checkFriends 好友列表快照一致），
+    // 不能只用 weed_owners/insect_owners（进入农场后 owners 可能为空导致漏判）
     if (toNum(plant.dry_num) > 0) result.needWater.push(landId);
-    if (plant.weed_owners && plant.weed_owners.length > 0) result.needWeed.push(landId);
-    if (plant.insect_owners && plant.insect_owners.length > 0) result.needBug.push(landId);
+    const weedNum = toNum(plant.weed_num);
+    const hasWeedOwners = plant.weed_owners && plant.weed_owners.length > 0;
+    if (weedNum > 0 || hasWeedOwners) result.needWeed.push(landId);
+    const insectNum = toNum(plant.insect_num);
+    const hasInsectOwners = plant.insect_owners && plant.insect_owners.length > 0;
+    if (insectNum > 0 || hasInsectOwners) result.needBug.push(landId);
 
     // Can put weed / bug (limit: max 2 owners, and we haven't put one yet)
     if (phase !== PlantPhase.MATURE) {
