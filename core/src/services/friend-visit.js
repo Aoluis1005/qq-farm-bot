@@ -760,13 +760,38 @@ async function visitFriendForHelp(friend, tally, myGid, accountId, ignoreExpLimi
       return null;
     });
 
-  const helpResults = await Promise.all(helpPromises);
-  for (const r of helpResults) {
-    if (r) {
-      actionLogs.push(`${r.name}${r.count}`);
-      tally[r.key] += r.count;
-      recordOperation(r.record, r.count);
+  // 改为串行执行（原并行会在单好友内瞬间并发除草/除虫/浇水多个请求，
+  // 易触发游戏服务端对单账号的短时限流/风控，进而拖垮心跳导致断连）。
+  for (const opt of helpOptions) {
+    const canGetExp = !checkExpLimit ||
+      hasGuardDog ||
+      (canGetExpByCandidates(opt.expIds) && getCanGetHelpExp());
+    if (!(opt.list.length > 0 && canGetExp))
+      continue;
+    try {
+      const okCount = await runBatchWithFallback(
+        opt.list,
+        ids => opt.fn(gid, ids, useExpCheck),
+        id => opt.fn(gid, id, useExpCheck),
+      );
+      if (okCount > 0) {
+        if (expLimitMode && hasGuardDog) {
+          log('好友', `[护主犬好友] ✅ ${name}: 除${opt.name}${okCount}`, {
+            module: 'friend',
+            event: '护主犬好友帮助成功',
+            friendName: name,
+            operation: opt.name,
+            count: okCount,
+          });
+        }
+        actionLogs.push(`${opt.name}${okCount}`);
+        tally[opt.key] += okCount;
+        recordOperation(opt.record, okCount);
+      }
+    } catch (_) {
+      // 单个帮助操作整体失败，跳过
     }
+    await sleep(200);
   }
 
   if (actionLogs.length > 0) {

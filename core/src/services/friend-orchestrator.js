@@ -435,7 +435,8 @@ async function checkFriends(options = {}) {
         } catch {
           // Skip individual failures
         }
-        await randomDelay(50, 100);
+        // 放慢访问节奏，降低单账号短时请求密度，避免触发游戏风控导致断连
+        await randomDelay(1000, 2000);
       }
     }
 
@@ -463,7 +464,8 @@ async function checkFriends(options = {}) {
         } catch {
           // Skip individual failures
         }
-        await randomDelay(50, 100);
+        // 放慢访问节奏，降低单账号短时请求密度，避免触发游戏风控导致断连
+        await randomDelay(1000, 2000);
       }
     }
 
@@ -538,7 +540,8 @@ async function checkFriends(options = {}) {
               break;
             }
           }
-          await randomDelay(50, 100);
+          // 放慢访问节奏，降低单账号短时请求密度，避免触发游戏风控导致断连
+          await randomDelay(1000, 2000);
         }
       }
     }
