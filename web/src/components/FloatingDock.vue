@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { menuRoutes } from '@/router/menu'
 import { useUserStore } from '@/stores/user'
@@ -30,42 +30,6 @@ const showMorePanel = ref(false)
 // 用户手动收起/展开：收起后 dock 整体让出底部，避免遮挡页面二级菜单/底部按钮
 const collapsed = ref(false)
 
-// 弹窗/确认页/抽屉打开时，dock 自动让位，避免遮挡其底部按钮
-// （覆盖全屏遮罩、居中确认页、底部抽屉等非全屏弹窗的确认页）
-const modalOpen = ref(false)
-const dockEl = ref<HTMLElement | null>(null)
-let modalObserver: MutationObserver | null = null
-let modalScanTimer: number | null = null
-
-// 检测是否存在"浮层"：只要有一个固定定位节点（排除 dock 自身与纯提示）
-// ① 覆盖接近全屏（全屏遮罩）或 ② 底部贴近视口底部（bottom-sheet/底部确认页）即认为有弹层
-function scanOverlayOpen(): boolean {
-  const els = document.querySelectorAll('*')
-  const vw = window.innerWidth
-  const vh = window.innerHeight
-  for (const el of Array.from(els)) {
-    const node = el as HTMLElement
-    if (node === dockEl.value) continue
-    const cs = getComputedStyle(node)
-    if (cs.position !== 'fixed') continue
-    const rect = node.getBoundingClientRect()
-    // 全屏遮罩
-    const coversScreen = rect.width >= vw - 4 && rect.height >= vh - 4 && rect.top <= 2 && rect.left <= 2
-    // 底部弹层：底部落在视口底部 140px 内（含非全屏确认页/抽屉）
-    const bottomNear = rect.bottom >= vh - 140 && rect.top < vh - 10 && rect.width >= 120
-    if (coversScreen || bottomNear) return true
-  }
-  return false
-}
-
-function scheduleModalScan() {
-  if (modalScanTimer !== null) return
-  modalScanTimer = window.setTimeout(() => {
-    modalScanTimer = null
-    modalOpen.value = scanOverlayOpen()
-  }, 120)
-}
-
 function isActive(path: string): boolean {
   if (path === '') return route.path === '/' || route.path === ''
   return route.path.startsWith(`/${path}`)
@@ -86,28 +50,13 @@ function toggleCollapse() { collapsed.value = !collapsed.value }
 watch(showMorePanel, (open) => {
   if (open) collapsed.value = true
 })
-
-onMounted(() => {
-  // 监听全局 DOM 变动，检测弹窗/确认页/抽屉的打开与关闭
-  if (typeof MutationObserver !== 'undefined') {
-    modalObserver = new MutationObserver(scheduleModalScan)
-    modalObserver.observe(document.body, { childList: true, subtree: true })
-    modalOpen.value = scanOverlayOpen()
-  }
-})
-
-onUnmounted(() => {
-  if (modalObserver) modalObserver.disconnect()
-  if (modalScanTimer !== null) clearTimeout(modalScanTimer)
-})
 </script>
 
 <template>
   <div class="ambient-glow" :class="{ 'ambient-glow--hidden': collapsed }" />
   <div
-    ref="dockEl"
     class="floating-nav-wrapper"
-    :class="{ 'dock-collapsed': collapsed, 'dock-modal-open': modalOpen }"
+    :class="{ 'dock-collapsed': collapsed }"
   >
     <Transition name="more-panel">
       <div v-if="showMorePanel" class="more-panel">
@@ -159,7 +108,7 @@ onUnmounted(() => {
     </Transition>
     <!-- 收起态：仅保留一个可点击的小药丸，不遮挡页面；展开态在 nav 上沿显示把手 -->
     <button
-      v-if="collapsed && !modalOpen"
+      v-if="collapsed"
       class="dock-collapsed-pill"
       aria-label="展开导航栏"
       @click="toggleCollapse"
@@ -167,7 +116,7 @@ onUnmounted(() => {
       <span class="i-carbon-chevron-up" />
     </button>
     <button
-      v-else-if="!collapsed && !modalOpen"
+      v-else
       class="dock-handle"
       aria-label="收起导航栏"
       @click="toggleCollapse"
@@ -193,13 +142,6 @@ onUnmounted(() => {
 
 /* 用户收起：整体下移并禁用交互，完全让出底部给页面内容 */
 .floating-nav-wrapper.dock-collapsed {
-  transform: translateY(calc(100% + 60px));
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* 弹窗/确认页/抽屉打开时：dock 完全让位（不挡弹层内底部按钮），连把手/药丸也不显示 */
-.floating-nav-wrapper.dock-modal-open {
   transform: translateY(calc(100% + 60px));
   opacity: 0;
   pointer-events: none;
