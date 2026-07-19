@@ -29,6 +29,9 @@ function createWorkerManager(deps) {
 
     const scheduler = createScheduler('worker_manager');
 
+    // 应用宝离线重连的独立计数（不受 startWorker 成功清零影响，否则 maxAttempts 会失效导致无限重连）
+    const reconnectAttemptsMap = new Map();
+
     /** 是否支持 Thread 模式（非 pkg 打包 + Worker 可用） */
     const threadMode = runtimeMode === 'thread' && !processRef.pkg && typeof WorkerThread === 'function';
 
@@ -245,11 +248,10 @@ function createWorkerManager(deps) {
             wsError: null
         };
 
-        // Worker 成功启动，清理自动重连计数
-        if (scheduler._reconnectAttempts && scheduler._reconnectAttempts[account.id]) {
-            delete scheduler._reconnectAttempts[account.id];
-            log('系统', `账号 ${account.name} 重连成功，��置重连计数`);
-        }
+        // 注意：这里不再清理应用宝离线重连计数（reconnectAttemptsMap）。
+        // 旧逻辑会在 startWorker 成功时清零，导致重连计数永远从 0 起算、
+        // maxAttempts 失效、账号被无限重连。计数只在"达到上限 /
+        // 账号被删 / 手动停止"时清零（见下方 ws_reconnect_failed 与 stopWorker）。
 
         // 发送启动配置
         proc.send({
@@ -315,6 +317,10 @@ function createWorkerManager(deps) {
     function stopWorker(accountId) {
         const wrk = workers[accountId];
         if (!wrk) return;
+
+        // 手动停止账号：取消尚未触发的离线重连计划并清零计数
+        scheduler.clear(`reconnect_attempt_${accountId}`);
+        reconnectAttemptsMap.delete(accountId);
 
         const targetProc = wrk.process;
         wrk.stopping = true;
@@ -550,14 +556,15 @@ function createWorkerManager(deps) {
             // 先停止当前 worker（清理进程）
             stopWorker(accountId);
 
-            // 检查是否启用自动重连
+            // 应用宝离线重连：仅当全局配置开启时执行。Worker 内已无自动重连，
+            // 此处是唯一的重连入口，按 reconnectDelayMin 延迟重启 Worker 并刷新 code。
             try {
                 const store = require('../models/store');
                 const wxConfig = store.getGlobalWxConfig ? store.getGlobalWxConfig() : null;
                 if (wxConfig && wxConfig.autoReconnect && wxConfig.reconnectDelayMin > 0) {
-                    // 获取当前重连次数（从 workers 的临时字段读）
                     const attemptKey = `reconnect_attempt_${accountId}`;
-                    const currentAttempt = scheduler._reconnectAttempts && scheduler._reconnectAttempts[accountId] || 0;
+                    // 从独立计数 Map 读取（不受 startWorker 清零影响，保证 maxAttempts 生效）
+                    const currentAttempt = reconnectAttemptsMap.get(accountId) || 0;
                     const maxAttempts = wxConfig.reconnectMaxAttempts || 3;
 
                     if (currentAttempt >= maxAttempts) {
@@ -565,16 +572,13 @@ function createWorkerManager(deps) {
                             accountId: String(accountId),
                             attempts: currentAttempt,
                         });
-                        // 清理重连计数
-                        if (!scheduler._reconnectAttempts) scheduler._reconnectAttempts = {};
-                        delete scheduler._reconnectAttempts[accountId];
+                        reconnectAttemptsMap.delete(accountId);
                         return;
                     }
 
-                    // 记录重连计数
-                    if (!scheduler._reconnectAttempts) scheduler._reconnectAttempts = {};
-                    scheduler._reconnectAttempts[accountId] = currentAttempt + 1;
+                    // 记录重连计数（先自增，作为下一次判断基准）
                     const nextAttempt = currentAttempt + 1;
+                    reconnectAttemptsMap.set(accountId, nextAttempt);
 
                     const delayMs = wxConfig.reconnectDelayMin * 60 * 1000;
                     log('系统', `账号 ${wrk.name} 将在 ${wxConfig.reconnectDelayMin} 分钟后自动重连 (${nextAttempt}/${maxAttempts})`, {
@@ -596,7 +600,7 @@ function createWorkerManager(deps) {
                             const account = (accountsData.accounts || []).find(a => a.id === accountId);
                             if (!account) {
                                 log('系统', `账号 ${wrk.name} 已被删除，取消自动重连`);
-                                if (scheduler._reconnectAttempts) delete scheduler._reconnectAttempts[accountId];
+                                reconnectAttemptsMap.delete(accountId);
                                 return;
                             }
                             log('系统', `账号 ${wrk.name} 开始自动重连 (${nextAttempt}/${maxAttempts})`);
@@ -607,7 +611,7 @@ function createWorkerManager(deps) {
                     });
                 } else {
                     // 未启用自动重连，保持停止状态
-                    log('系统', `账号 ${wrk.name} 未启用自动重连，已停止`);
+                    log('系统', `账号 ${wrk.name} 未启用应用宝离线重连，已停止`);
                 }
             } catch (e) {
                 log('系统', `账号 ${wrk.name} 自动重连逻辑异常: ${e.message}`);

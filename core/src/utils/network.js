@@ -616,7 +616,7 @@ function startHeartbeat() {
                 }
                 networkEvents.emit('disconnect', { code: 'heartbeat_timeout' });
                 rejectAllPendingRequests('连接超时，已清理');
-                reconnect(null);
+                reportReconnectFailed('heartbeat_timeout');
                 return;
             }
         }
@@ -645,12 +645,12 @@ let savedLoginCallback = null;
 let savedCode = null;
 let reconnectAttempts = 0;
 let networkStopped = false;
+let reconnectFailedReported = false;
 
 const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36 MicroMessenger/7.0.20.1781(0x6700143B) NetType/WIFI MiniProgramEnv/Windows WindowsWechat/WMPF WindowsWechat(0x63090a13)';
 
-const MAX_RECONNECT_ATTEMPTS = 5;
-const RECONNECT_BASE_DELAY_MS = 2000;
-const RECONNECT_MAX_DELAY_MS = 30000;
+// 注：Worker 内不再做自动重连（旧的指数退避重试是 bug 来源）。
+// 断线统一上报 reconnect_failed，由主进程的"应用宝离线重连"负责重启 Worker。
 
 function closeCurrentWs({ terminate = false } = {}) {
     const current = ws;
@@ -663,34 +663,28 @@ function closeCurrentWs({ terminate = false } = {}) {
     } catch { }
 }
 
-function getReconnectDelayMs() {
-    const delay = RECONNECT_BASE_DELAY_MS * (2 ** Math.max(0, reconnectAttempts - 1));
-    return Math.min(RECONNECT_MAX_DELAY_MS, delay);
-}
-
-function scheduleReconnect(reason) {
+/**
+ * 断线后不再在 Worker 内进行自动重连（旧逻辑的指数退避重试是"自动重连 bug"的来源）。
+ * 改为直接上报 reconnect_failed，交还给主进程的"应用宝离线重连"统一处理：
+ * 由主进程按全局配置（延迟 N 分钟、重新获取 code）重启 Worker。
+ * Worker 重启后走 connect() 建立全新连接，无需自身重试。
+ */
+function reportReconnectFailed(reason) {
     if (networkStopped || !savedLoginCallback) return;
-    if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-        const message = `自动重连失败次数过多，已停止重连${reason ? ` (${reason})` : ''}`;
-        logWarn('系统', `[WS] ${message}`);
-        networkEvents.emit('reconnect_failed', {
-            attempts: reconnectAttempts,
-            reason: reason || '',
-        });
-        return;
-    }
-
-    reconnectAttempts += 1;
-    const delayMs = getReconnectDelayMs();
-    networkScheduler.setTimeoutTask('auto_reconnect', delayMs, () => {
-        if (networkStopped || !savedLoginCallback) return;
-        log('系统', `[WS] 尝试自动重连... (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
-        reconnect(null);
+    // 防止 close 与 heartbeat_timeout 同周期重复上报，导致主进程重复排重连
+    if (reconnectFailedReported) return;
+    reconnectFailedReported = true;
+    const message = `连接已断开，交由应用宝离线重连处理${reason ? ` (${reason})` : ''}`;
+    logWarn('系统', `[WS] ${message}`);
+    networkEvents.emit('reconnect_failed', {
+        attempts: reconnectAttempts,
+        reason: reason || '',
     });
 }
 
 function connect(code, onLoginSuccess) {
     networkStopped = false;
+    reconnectFailedReported = false;
     savedLoginCallback = onLoginSuccess;
     if (code) savedCode = code;
     const url = `${CONFIG.serverUrl}?platform=${CONFIG.platform}&os=${CONFIG.os}&ver=${CONFIG.clientVersion}&code=${savedCode}&openID=`;
@@ -761,7 +755,7 @@ function connect(code, onLoginSuccess) {
         logWarn('系统', `[WS] 连接关闭 (code=${code})`);
         networkEvents.emit('disconnect', { code });
         cleanup();
-        scheduleReconnect(`close:${code}`);
+        reportReconnectFailed(`close:${code}`);
     });
 
     socket.on('error', (err) => {
