@@ -5,6 +5,7 @@ const {
   getAutoAcceptFriendMinLevel,
   getKnownFriendGids,
   applyConfigSnapshot,
+  getConfigSnapshot,
   getFriendBadRetryDate,
   readFriendDogInfoCache,
 } = require('../models/store');
@@ -31,6 +32,7 @@ const {
   getCanGetHelpExp,
   setCanGetHelpExp,
   getHelpAutoDisabledByLimit,
+  setOnExpLimitReachedCallback,
   updateOperationLimits,
 } = require('./friend-operation-limits');
 const {
@@ -56,6 +58,19 @@ let dogInfoBootstrapAttempted = false;
 let dogInfoBootstrapReadyAt = 0;
 
 const BAD_FAILURE_LIMIT = 3;
+
+// 注册经验上限持久化回调（模块加载时执行一次）
+let expLimitCallbackRegistered = false;
+function ensureExpLimitCallback() {
+  if (expLimitCallbackRegistered) return;
+  expLimitCallbackRegistered = true;
+  setOnExpLimitReachedCallback(() => {
+    const accountId = process.env.FARM_ACCOUNT_ID || '';
+    if (accountId) {
+      applyConfigSnapshot({ friendHelpExpExhausted: true }, { accountId });
+    }
+  });
+}
 
 // ===== 好友列表 TTL 缓存（一轮巡查内复用，避免 help tick + steal tick 重复拉取）=====
 const FRIENDS_LIST_CACHE_TTL_MS = 30000;
@@ -268,6 +283,20 @@ async function checkFriends(options = {}) {
 
   isCheckingFriends = true;
   checkDailyReset();
+  ensureExpLimitCallback();
+
+  // 从持久化配置恢复经验上限状态（重启后不丢失）
+  const cfgSnapshot = getConfigSnapshot(accountId);
+  if (cfgSnapshot.friendHelpExpExhausted && getCanGetHelpExp()) {
+    setCanGetHelpExp(false);
+    log('好友', '从配置恢复：经验已达上限状态，仅帮助护主犬好友', {
+      module: 'friend',
+      event: '经验上限恢复',
+    });
+  } else if (!cfgSnapshot.friendHelpExpExhausted && !getCanGetHelpExp() && getHelpAutoDisabledByLimit()) {
+    // 跨日重置后，清除持久化标志
+    applyConfigSnapshot({ friendHelpExpExhausted: false }, { accountId });
+  }
 
   try {
     const allFriendsReply = await getCachedFriendsList();
@@ -436,7 +465,7 @@ async function checkFriends(options = {}) {
           // Skip individual failures
         }
         // 放慢访问节奏，降低单账号短时请求密度，避免触发游戏风控导致断连
-        await randomDelay(1000, 2000);
+        await randomDelay(100, 200);
       }
     }
 
@@ -465,7 +494,7 @@ async function checkFriends(options = {}) {
           // Skip individual failures
         }
         // 放慢访问节奏，降低单账号短时请求密度，避免触发游戏风控导致断连
-        await randomDelay(1000, 2000);
+        await randomDelay(100, 200);
       }
     }
 
@@ -541,7 +570,7 @@ async function checkFriends(options = {}) {
             }
           }
           // 放慢访问节奏，降低单账号短时请求密度，避免触发游戏风控导致断连
-          await randomDelay(1000, 2000);
+          await randomDelay(100, 200);
         }
       }
     }

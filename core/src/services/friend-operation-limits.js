@@ -10,6 +10,7 @@ let lastResetDate = '';
 let canGetHelpExp = true;
 let helpAutoDisabledByLimit = false;
 let localBadOperationCount = 0;
+let onExpLimitReachedCallback = null;
 
 const PUT_BUG_OPERATION_ID = 10005;
 const PUT_WEED_OPERATION_ID = 10006;
@@ -83,6 +84,13 @@ function autoDisableHelpByExpLimit() {
     event: '好友巡查循环',
     result: 'ok',
   });
+  if (typeof onExpLimitReachedCallback === 'function') {
+    onExpLimitReachedCallback();
+  }
+}
+
+function setOnExpLimitReachedCallback(fn) {
+  onExpLimitReachedCallback = typeof fn === 'function' ? fn : null;
 }
 
 // ===== Operation limits =====
@@ -532,6 +540,7 @@ module.exports = {
   getCanGetHelpExp,
   setCanGetHelpExp,
   getHelpAutoDisabledByLimit,
+  setOnExpLimitReachedCallback,
   helpWater,
   helpWeed,
   helpInsecticide,

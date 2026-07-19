@@ -271,7 +271,8 @@ const DEFAULT_ACCOUNT_CONFIG = {
     bagSeedFallbackStrategy: 'level',
     autoAcceptFriendMinLevel: 0,
     goldenBugKeepCount: 0,
-    goldenBugRoundLimit: 24
+    goldenBugRoundLimit: 24,
+    friendHelpExpExhausted: false
 };
 
 const ALLOWED_AUTOMATION_KEYS = new Set(Object.keys(DEFAULT_ACCOUNT_CONFIG.automation));
@@ -1040,6 +1041,7 @@ function getConfigSnapshot(accountId) {
         fertilizerBuyCheckIntervalMinutes: Math.max(1, Math.min(1440, Number(cfg.fertilizerBuyCheckIntervalMinutes) || 60)),
         goldenBugKeepCount: Math.max(0, Math.min(9999, Number(cfg.goldenBugKeepCount) || 0)),
         goldenBugRoundLimit: Math.max(1, Math.min(100, Number(cfg.goldenBugRoundLimit) || 24)),
+        friendHelpExpExhausted: cfg.friendHelpExpExhausted === true,
         ui
     };
 }
@@ -1144,6 +1146,9 @@ function applyConfigSnapshot(patch = {}, opts = {}) {
     }
     if (patch.goldenBugRoundLimit !== undefined && patch.goldenBugRoundLimit !== null) {
         cfg.goldenBugRoundLimit = Math.max(1, Math.min(100, Number(patch.goldenBugRoundLimit) || 24));
+    }
+    if (patch.friendHelpExpExhausted !== undefined) {
+        cfg.friendHelpExpExhausted = patch.friendHelpExpExhausted === true;
     }
     if (patch.bagSeedPriority !== undefined && patch.bagSeedPriority !== null) {
         cfg.bagSeedPriority = normalizeBagSeedPriority(patch.bagSeedPriority);
