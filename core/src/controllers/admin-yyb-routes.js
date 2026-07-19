@@ -26,6 +26,18 @@ function normalizeApiBase(value) {
 }
 
 /**
+ * 解析应用宝连接凭据：优先用请求体里的 apiBase/apiKey（前端手动填写），
+ * 未传时回退到容器内环境变量 YYB_API_URL / YYB_API_KEY（单镜像部署时由
+ * docker-compose 注入，指向同容器内的 yyb-go 服务，无需前端再填外部地址）。
+ */
+function resolveYybCreds(body = {}) {
+  return {
+    apiBase: (body.apiBase || "").trim() || process.env.YYB_API_URL || "",
+    apiKey: (body.apiKey || "").trim() || process.env.YYB_API_KEY || "",
+  };
+}
+
+/**
  * 统一调用应用宝接口的 helper
  * @returns {Promise<{ok:boolean, data?:any, error?:string, yybCode?:number}>}
  */
@@ -69,7 +81,7 @@ async function callYybApi(apiBase, path, apiKey, init = {}) {
 function registerAdminYybRoutes({ app, requireAdminToken, sendProviderError }) {
   // 拉应用宝账号列表
   app.post("/api/yyb/accounts", requireAdminToken, async (req, res) => {
-    const { apiBase, apiKey } = req.body || {};
+    const { apiBase, apiKey } = resolveYybCreds(req.body);
     const result = await callYybApi(apiBase, "/accounts", apiKey, { method: "GET" });
     if (!result.ok) {
       return res.status(400).json({ ok: false, error: result.error, yybCode: result.yybCode });
@@ -80,7 +92,7 @@ function registerAdminYybRoutes({ app, requireAdminToken, sendProviderError }) {
 
   // 用 openid 换 code
   app.post("/api/yyb/getcode", requireAdminToken, async (req, res) => {
-    const { apiBase, apiKey, openid, appId } = req.body || {};
+    const { apiBase, apiKey, openid, appId } = resolveYybCreds(req.body);
     if (!openid) {
       return res.status(400).json({ ok: false, error: "缺少 openid" });
     }
@@ -107,7 +119,7 @@ function registerAdminYybRoutes({ app, requireAdminToken, sendProviderError }) {
 
   // 创建扫码会话（返回 base64 二维码）
   app.post("/api/yyb/qr/create", requireAdminToken, async (req, res) => {
-    const { apiBase, apiKey } = req.body || {};
+    const { apiBase, apiKey } = resolveYybCreds(req.body);
     const result = await callYybApi(apiBase, "/qr?as_base64=true", apiKey, { method: "POST" });
     if (!result.ok) {
       return res.status(400).json({ ok: false, error: result.error, yybCode: result.yybCode });
@@ -118,7 +130,7 @@ function registerAdminYybRoutes({ app, requireAdminToken, sendProviderError }) {
 
   // 长轮询扫码状态（前端需设较长 timeout，如 30s；后端给 65s 保护避免无限 hold）
   app.post("/api/yyb/qr/poll", requireAdminToken, async (req, res) => {
-    const { apiBase, apiKey, sessionId } = req.body || {};
+    const { apiBase, apiKey, sessionId } = resolveYybCreds(req.body);
     if (!sessionId) {
       return res.status(400).json({ ok: false, error: "缺少 sessionId" });
     }
@@ -141,7 +153,7 @@ function registerAdminYybRoutes({ app, requireAdminToken, sendProviderError }) {
 
   // 确认授权（status=authorized 后调用，把账号保存到应用宝服务端）
   app.post("/api/yyb/qr/confirm", requireAdminToken, async (req, res) => {
-    const { apiBase, apiKey, sessionId } = req.body || {};
+    const { apiBase, apiKey, sessionId } = resolveYybCreds(req.body);
     if (!sessionId) {
       return res.status(400).json({ ok: false, error: "缺少 sessionId" });
     }
