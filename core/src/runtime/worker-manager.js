@@ -538,7 +538,7 @@ function createWorkerManager(deps) {
             stopWorker(accountId);
         } else if (msg.type === 'ws_reconnect_failed') {
             const reason = msg.reason || '未知';
-            log('系统', `账号 ${  wrk.name  } 连接多次重试失败`, {
+            log('系统', `账号 ${  wrk.name  } 连接中断，交由应用宝离线重连处理`, {
                 accountId: String(accountId),
                 accountName: wrk.name
             });
@@ -550,7 +550,7 @@ function createWorkerManager(deps) {
                 offlineMs: 0
             });
             addAccountLog('ws_reconnect_failed',
-                `账号 ${  wrk.name  } 连接多次重试失败`,
+                `账号 ${  wrk.name  } 连接中断，交由应用宝离线重连处理`,
                 accountId, wrk.name, { reason });
 
             // 先停止当前 worker（清理进程）
@@ -605,6 +605,9 @@ function createWorkerManager(deps) {
                             }
                             log('系统', `账号 ${wrk.name} 开始自动重连 (${nextAttempt}/${maxAttempts})`);
                             await startWorker(account);
+                            addAccountLog('reconnect_success',
+                                `账号 ${wrk.name} 已通过应用宝离线重连恢复在线 (${nextAttempt}/${maxAttempts})`,
+                                accountId, wrk.name, { attempt: nextAttempt, maxAttempts });
                         } catch (e) {
                             log('系统', `账号 ${wrk.name} 自动重连启动失败: ${e.message}`);
                         }

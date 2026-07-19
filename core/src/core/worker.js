@@ -770,7 +770,7 @@ function onKickout(info) {
 
 function onReconnectFailed(info) {
     const reason = info && info.reason ? info.reason : '未知';
-    log('系统', `连接多次重试失败，准备停止账号。原因: ${  reason}`);
+    log('系统', `连接中断，准备交由应用宝离线重连。原因: ${  reason}`);
     sendToMaster({ type: 'ws_reconnect_failed', reason });
     stopBot().catch(() => exitWorker(0));
 }
