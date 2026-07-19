@@ -30,15 +30,16 @@ const showMorePanel = ref(false)
 // 用户手动收起/展开：收起后 dock 整体让出底部，避免遮挡页面二级菜单/底部按钮
 const collapsed = ref(false)
 
-// 全屏遮罩弹窗（fixed inset-0 的 modal/drawer）打开时，dock 自动让位，
-// 避免遮挡弹窗内的底部按钮（如 Friends / Admin / Sidebar 等页面的二级菜单弹层）
+// 弹窗/确认页/抽屉打开时，dock 自动让位，避免遮挡其底部按钮
+// （覆盖全屏遮罩、居中确认页、底部抽屉等非全屏弹窗的确认页）
 const modalOpen = ref(false)
 const dockEl = ref<HTMLElement | null>(null)
 let modalObserver: MutationObserver | null = null
 let modalScanTimer: number | null = null
 
-// 轻量全屏遮罩检测：仅判断 position:fixed 且覆盖接近整个视口的节点（排除 dock 自身）
-function scanFullscreenModal(): boolean {
+// 检测是否存在"浮层"：只要有一个固定定位节点（排除 dock 自身与纯提示）
+// ① 覆盖接近全屏（全屏遮罩）或 ② 底部贴近视口底部（bottom-sheet/底部确认页）即认为有弹层
+function scanOverlayOpen(): boolean {
   const els = document.querySelectorAll('*')
   const vw = window.innerWidth
   const vh = window.innerHeight
@@ -48,8 +49,11 @@ function scanFullscreenModal(): boolean {
     const cs = getComputedStyle(node)
     if (cs.position !== 'fixed') continue
     const rect = node.getBoundingClientRect()
-    const covers = rect.width >= vw - 4 && rect.height >= vh - 4 && rect.top <= 2 && rect.left <= 2
-    if (covers) return true
+    // 全屏遮罩
+    const coversScreen = rect.width >= vw - 4 && rect.height >= vh - 4 && rect.top <= 2 && rect.left <= 2
+    // 底部弹层：底部落在视口底部 140px 内（含非全屏确认页/抽屉）
+    const bottomNear = rect.bottom >= vh - 140 && rect.top < vh - 10 && rect.width >= 120
+    if (coversScreen || bottomNear) return true
   }
   return false
 }
@@ -58,13 +62,9 @@ function scheduleModalScan() {
   if (modalScanTimer !== null) return
   modalScanTimer = window.setTimeout(() => {
     modalScanTimer = null
-    modalOpen.value = scanFullscreenModal()
+    modalOpen.value = scanOverlayOpen()
   }, 120)
 }
-
-// 下滑隐藏、上滑/点击底部弹出
-const navHidden = ref(false)
-let lastScrollY = 0
 
 function isActive(path: string): boolean {
   if (path === '') return route.path === '/' || route.path === ''
@@ -87,54 +87,27 @@ watch(showMorePanel, (open) => {
   if (open) collapsed.value = true
 })
 
-function handleScroll() {
-  const cur = window.scrollY || document.documentElement.scrollTop
-  const delta = cur - lastScrollY
-  // 下滑超过阈值且滚出顶部区域 → 隐藏
-  if (cur > 80 && delta > 8) {
-    navHidden.value = true
-  } else if (delta < -8 || cur < 80) {
-    // 上滑或回到顶部 → 显示
-    navHidden.value = false
-  }
-  lastScrollY = cur
-}
-
-// 点击底部区域弹出导航栏
-function handleBottomClick(e: MouseEvent) {
-  if (!navHidden.value) return
-  const bottomZone = window.innerHeight - e.clientY
-  if (bottomZone < 80) {
-    navHidden.value = false
-  }
-}
-
 onMounted(() => {
-  window.addEventListener('scroll', handleScroll, { passive: true })
-  window.addEventListener('click', handleBottomClick, { passive: true })
-  // 监听全局 DOM 变动，检测全屏遮罩弹窗的打开/关闭
+  // 监听全局 DOM 变动，检测弹窗/确认页/抽屉的打开与关闭
   if (typeof MutationObserver !== 'undefined') {
     modalObserver = new MutationObserver(scheduleModalScan)
     modalObserver.observe(document.body, { childList: true, subtree: true })
-    // 初次扫描
-    modalOpen.value = scanFullscreenModal()
+    modalOpen.value = scanOverlayOpen()
   }
 })
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
-  window.removeEventListener('click', handleBottomClick)
   if (modalObserver) modalObserver.disconnect()
   if (modalScanTimer !== null) clearTimeout(modalScanTimer)
 })
 </script>
 
 <template>
-  <div class="ambient-glow" :class="{ 'ambient-glow--hidden': navHidden || collapsed }" />
+  <div class="ambient-glow" :class="{ 'ambient-glow--hidden': collapsed }" />
   <div
     ref="dockEl"
     class="floating-nav-wrapper"
-    :class="{ 'nav-hidden': navHidden, 'dock-collapsed': collapsed, 'dock-modal-open': modalOpen }"
+    :class="{ 'dock-collapsed': collapsed, 'dock-modal-open': modalOpen }"
   >
     <Transition name="more-panel">
       <div v-if="showMorePanel" class="more-panel">
@@ -194,7 +167,7 @@ onUnmounted(() => {
       <span class="i-carbon-chevron-up" />
     </button>
     <button
-      v-else-if="!navHidden && !collapsed && !modalOpen"
+      v-else-if="!collapsed && !modalOpen"
       class="dock-handle"
       aria-label="收起导航栏"
       @click="toggleCollapse"
@@ -218,12 +191,6 @@ onUnmounted(() => {
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
 }
 
-/* 下滑隐藏 */
-.floating-nav-wrapper.nav-hidden {
-  transform: translateY(calc(100% + 40px));
-  opacity: 0;
-}
-
 /* 用户收起：整体下移并禁用交互，完全让出底部给页面内容 */
 .floating-nav-wrapper.dock-collapsed {
   transform: translateY(calc(100% + 60px));
@@ -231,7 +198,7 @@ onUnmounted(() => {
   pointer-events: none;
 }
 
-/* 全屏遮罩弹窗打开时：dock 完全让位（不挡弹窗内底部按钮），连把手/药丸也不显示 */
+/* 弹窗/确认页/抽屉打开时：dock 完全让位（不挡弹层内底部按钮），连把手/药丸也不显示 */
 .floating-nav-wrapper.dock-modal-open {
   transform: translateY(calc(100% + 60px));
   opacity: 0;

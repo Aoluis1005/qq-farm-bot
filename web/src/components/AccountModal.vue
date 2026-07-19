@@ -436,8 +436,10 @@ watch(activeTab, (tab) => {
 })
 
 // ==================== 应用宝登录 ====================
+// 接口地址默认填一个方便用，但允许用户随时更改（v-model 直接绑输入框）
 const yybApiBase = ref('http://111.229.128.163:8000/wxapp/getCode')
-const yybApiKey = ref('yybgo_fixed_api_token_2026')
+// API Token 不写死：默认空，由用户自行输入
+const yybApiKey = ref('')
 const yybConfigLoaded = ref(false)
 const yybConfigSaving = ref(false)
 const yybAccounts = ref<any[]>([])
@@ -485,7 +487,8 @@ async function saveYybConfig() {
       ...(existing?.config || {}),
       apiBase: yybApiBase.value.trim(),
       apiKey: yybApiKey.value.trim(),
-      appId: 'wx5306c5978fdb76e4',
+      // appId 不写死：优先沿用已存配置，未配置则不强制写入
+      ...(existing?.config?.appId ? {} : { appId: '' }),
       enabled: true,
       autoReconnect: yybAutoReconnect.value,
       reconnectDelayMin: Number(yybReconnectDelayMin.value) || 5,
@@ -1013,12 +1016,12 @@ function resetYybQr() {
             <BaseInput
               v-model="yybApiBase"
               label="接口地址"
-              placeholder="http://111.229.128.163:8000/wxapp/getCode"
+              placeholder="http://你的服务器地址:端口/wxapp/getCode"
             />
             <BaseInput
               v-model="yybApiKey"
-              label="API Token"
-              placeholder="yybgo_fixed_api_token_2026"
+              label="API Token（请自行填写，不会预填）"
+              placeholder="请输入你的应用宝 API Token"
             />
             <div v-if="yybError" class="text-sm text-red-500">
               {{ yybError }}
