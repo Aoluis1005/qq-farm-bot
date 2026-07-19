@@ -403,6 +403,10 @@ watch(() => props.show, (newVal) => {
     capturePlatform.value = props.editData?.platform === 'wx' ? 'wx' : 'qq'
     captureHelpMode.value = localStorage.getItem(CAPTURE_SUCCESS_STORAGE_KEY) === '1' ? 'daily' : 'first'
     void loadCaptureConfig()
+    // 强制失效 YYB 配置缓存，确保无论从哪个入口（右上角/设置）打开都拉取最新持久化值
+    yybConfigLoaded.value = false
+    if (activeTab.value === 'yyb' || activeTab.value === 'yybqr')
+      void loadYybConfig()
     if (props.editData) {
       activeTab.value = 'manual'
       form.name = props.editData.name || ''
@@ -568,6 +572,7 @@ async function submitYybLogin() {
 const yybQrImage = ref('')           // base64 data URI
 const yybQrSessionId = ref('')
 const yybQrStatus = ref<'idle' | 'loading' | 'pending' | 'scanned' | 'authorizing' | 'success' | 'expired' | 'error'>('idle')
+const yybQrLoading = computed(() => yybQrStatus.value === 'loading')
 const yybQrError = ref('')
 let yybQrPollTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -1197,7 +1202,7 @@ function resetYybQr() {
               <p class="text-sm opacity-70 text-center" :style="{ color: 'var(--theme-text)' }">
                 点击下方按钮生成应用宝二维码，使用应用宝扫码授权即可添加新账号。
               </p>
-              <BaseButton variant="primary" :loading="yybQrStatus === 'loading'" @click="startYybQrLogin">
+              <BaseButton variant="primary" :loading="yybQrLoading" @click="startYybQrLogin">
                 开始扫码
               </BaseButton>
             </div>
