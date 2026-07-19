@@ -40,7 +40,7 @@ interface CaptureFlowState {
   }
 }
 
-const activeTab = ref<'wx' | 'capture' | 'manual' | 'yyb'>('manual')
+const activeTab = ref<'wx' | 'capture' | 'manual' | 'yyb' | 'yybqr'>('manual')
 const loading = ref(false)
 const wxChecking = ref(false)
 const errorMessage = ref('')
@@ -431,14 +431,14 @@ watch(activeTab, (tab) => {
     loadWxQRCode()
   if (tab !== 'capture')
     void cancelCaptureSession()
-  if (tab === 'yyb')
+  if (tab === 'yyb' || tab === 'yybqr')
     loadYybConfig()
 })
 
 // ==================== 应用宝登录 ====================
-// 接口地址默认填一个方便用，但允许用户随时更改（v-model 直接绑输入框）
-const yybApiBase = ref('http://111.229.128.163:8000/wxapp/getCode')
-// API Token 不写死：默认空，由用户自行输入
+// 接口地址与 API Token 均不写死：默认空，由用户自行填写（已配置后从后端回填）
+const yybApiBase = ref('')
+// API Token 默认空，由用户自行输入
 const yybApiKey = ref('')
 const yybConfigLoaded = ref(false)
 const yybConfigSaving = ref(false)
@@ -746,6 +746,17 @@ function resetYybQr() {
           >
             应用宝
           </button>
+          <button
+            class="flex-1 py-2 text-center text-sm font-medium transition-colors"
+            :class="activeTab === 'yybqr' ? 'border-b-2' : 'opacity-60'"
+            :style="{
+              color: activeTab === 'yybqr' ? 'var(--theme-primary)' : 'var(--theme-text)',
+              borderColor: 'var(--theme-primary)',
+            }"
+            @click="activeTab = 'yybqr'"
+          >
+            应用宝扫码
+          </button>
         </div>
 
         <div v-if="activeTab === 'wx'" class="space-y-4">
@@ -1038,9 +1049,6 @@ function resetYybQr() {
                 接口：{{ yybApiBase }}
               </span>
               <div class="flex gap-2">
-                <BaseButton variant="ghost" size="sm" @click="startYybQrLogin" :disabled="yybQrStatus === 'loading' || yybQrStatus === 'scanned' || yybQrStatus === 'authorizing'">
-                  {{ yybQrStatus === 'idle' ? '扫码添加新账号' : '重新扫码' }}
-                </BaseButton>
                 <BaseButton variant="ghost" size="sm" :loading="yybAccountsLoading" @click="fetchYybAccounts">
                   刷新列表
                 </BaseButton>
@@ -1103,38 +1111,9 @@ function resetYybQr() {
               </div>
             </div>
 
-            <!-- 应用宝扫码区 -->
-            <div v-if="yybQrStatus !== 'idle'" class="rounded-lg border p-4 space-y-3" :style="{ borderColor: 'color-mix(in srgb, var(--theme-text) 15%, transparent)' }">
-              <div class="flex items-center justify-between">
-                <span class="text-sm font-medium" :style="{ color: 'var(--theme-text)' }">
-                  应用宝扫码登录
-                </span>
-                <BaseButton v-if="yybQrStatus === 'pending' || yybQrStatus === 'scanned' || yybQrStatus === 'authorizing'" variant="ghost" size="sm" @click="resetYybQr">
-                  取消
-                </BaseButton>
-              </div>
-
-              <!-- 二维码图片 -->
-              <div v-if="yybQrImage && yybQrStatus !== 'success'" class="flex justify-center">
-                <img :src="yybQrImage" alt="应用宝二维码" class="max-w-[200px] w-full rounded">
-              </div>
-
-              <!-- 状态提示 -->
-              <div class="text-sm text-center" :style="{ color: 'var(--theme-text)' }">
-                <span v-if="yybQrStatus === 'loading'">正在生成二维码...</span>
-                <span v-else-if="yybQrStatus === 'pending'" class="opacity-70">请使用应用宝扫描二维码</span>
-                <span v-else-if="yybQrStatus === 'scanned'" class="text-green-500">已扫描，请在手机上确认授权</span>
-                <span v-else-if="yybQrStatus === 'authorizing'" class="opacity-70">正在确认授权...</span>
-                <span v-else-if="yybQrStatus === 'success'" class="text-green-500">✓ 授权成功，账号已添加到应用宝</span>
-                <span v-else-if="yybQrStatus === 'expired'" class="text-red-500">{{ yybQrError || '二维码已过期' }}</span>
-                <span v-else-if="yybQrStatus === 'error'" class="text-red-500">{{ yybQrError }}</span>
-              </div>
-
-              <div v-if="yybQrStatus === 'success'" class="text-center">
-                <BaseButton variant="primary" size="sm" @click="resetYybQr">
-                  完成
-                </BaseButton>
-              </div>
+            <!-- 引导到"应用宝扫码"tab 添加新账号 -->
+            <div class="rounded-lg border p-3 text-sm" :style="{ borderColor: 'color-mix(in srgb, var(--theme-primary) 25%, transparent)', background: 'color-mix(in srgb, var(--theme-primary) 6%, transparent)', color: 'var(--theme-text)' }">
+              需要添加新账号？请切换到「应用宝扫码」标签页，使用应用宝扫码授权登录。
             </div>
 
             <BaseInput
@@ -1204,6 +1183,61 @@ function resetYybQr() {
               </BaseButton>
             </div>
           </div>
+        </div>
+
+        <!-- 应用宝扫码（与"应用宝"tab 平级）：扫码添加新账号到应用宝 -->
+        <div v-if="activeTab === 'yybqr'" class="space-y-4">
+          <div v-if="!yybConfigured" class="rounded-lg border p-4 text-sm" :style="{ borderColor: 'color-mix(in srgb, var(--theme-text) 15%, transparent)', color: 'var(--theme-text)' }">
+            请先在「应用宝」标签页配置接口地址与 API Token，再回到此处扫码登录。
+          </div>
+
+          <template v-else>
+            <!-- 未开始扫码：显示触发按钮 -->
+            <div v-if="yybQrStatus === 'idle'" class="flex flex-col items-center gap-3 py-4">
+              <p class="text-sm opacity-70 text-center" :style="{ color: 'var(--theme-text)' }">
+                点击下方按钮生成应用宝二维码，使用应用宝扫码授权即可添加新账号。
+              </p>
+              <BaseButton variant="primary" :loading="yybQrStatus === 'loading'" @click="startYybQrLogin">
+                开始扫码
+              </BaseButton>
+            </div>
+
+            <!-- 扫码进行中/结果 -->
+            <div v-else class="rounded-lg border p-4 space-y-3" :style="{ borderColor: 'color-mix(in srgb, var(--theme-text) 15%, transparent)' }">
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-medium" :style="{ color: 'var(--theme-text)' }">
+                  应用宝扫码登录
+                </span>
+                <BaseButton v-if="yybQrStatus === 'pending' || yybQrStatus === 'scanned' || yybQrStatus === 'authorizing'" variant="ghost" size="sm" @click="resetYybQr">
+                  取消
+                </BaseButton>
+              </div>
+
+              <div v-if="yybQrImage && yybQrStatus !== 'success'" class="flex justify-center">
+                <img :src="yybQrImage" alt="应用宝二维码" class="max-w-[200px] w-full rounded">
+              </div>
+
+              <div class="text-sm text-center" :style="{ color: 'var(--theme-text)' }">
+                <span v-if="yybQrStatus === 'loading'">正在生成二维码...</span>
+                <span v-else-if="yybQrStatus === 'pending'" class="opacity-70">请使用应用宝扫描二维码</span>
+                <span v-else-if="yybQrStatus === 'scanned'" class="text-green-500">已扫描，请在手机上确认授权</span>
+                <span v-else-if="yybQrStatus === 'authorizing'" class="opacity-70">正在确认授权...</span>
+                <span v-else-if="yybQrStatus === 'success'" class="text-green-500">✓ 授权成功，账号已添加到应用宝</span>
+                <span v-else-if="yybQrStatus === 'expired'" class="text-red-500">{{ yybQrError || '二维码已过期' }}</span>
+                <span v-else-if="yybQrStatus === 'error'" class="text-red-500">{{ yybQrError }}</span>
+              </div>
+
+              <div v-if="yybQrStatus === 'success'" class="text-center">
+                <BaseButton variant="primary" size="sm" @click="resetYybQr">
+                  完成
+                </BaseButton>
+              </div>
+            </div>
+
+            <div v-if="yybError" class="text-sm text-red-500">
+              {{ yybError }}
+            </div>
+          </template>
         </div>
       </div>
     </div>
