@@ -11,6 +11,16 @@ let canGetHelpExp = true;
 let helpAutoDisabledByLimit = false;
 let localBadOperationCount = 0;
 let onExpLimitReachedCallback = null;
+let onExpLimitResetCallback = null;
+
+// ===== 经验满判定（基于经验增量，不依赖服务端 day_ex_times_lt）=====
+// 本服 day_ex_times_lt（帮好友得经验每日上限）恒为 0，无法据此判定，
+// 故改用：帮好友成功后若本号总经验未增长，计一次"无收益"；连续 N 次无收益
+// 且当天累计帮忙≥M 次，即判定经验已满，切"仅帮护主犬"。
+let consecutiveNoExpHelps = 0;
+let totalHelpsThisSession = 0;
+const EXP_FULL_CONSECUTIVE = 10; // 连续 N 次"帮忙成功但经验未增"→判定经验满
+const EXP_FULL_MIN_HELPS = 15;   // 至少先帮过 M 次才允许判定，避免个别无收益/延迟误判
 
 const PUT_BUG_OPERATION_ID = 10005;
 const PUT_WEED_OPERATION_ID = 10006;
@@ -53,18 +63,20 @@ function checkDailyReset() {
   if (lastResetDate !== today) {
     if (lastResetDate !== '') {
       log('系统', '跨日重置，清空操作限制缓存');
-    }
-    operationLimits.clear();
-    localBadOperationCount = 0;
-    canGetHelpExp = true;
-
-    if (helpAutoDisabledByLimit) {
+      operationLimits.clear();
+      localBadOperationCount = 0;
+      canGetHelpExp = true;
+      consecutiveNoExpHelps = 0;
+      totalHelpsThisSession = 0;
       helpAutoDisabledByLimit = false;
       log('好友', '新的一天已开始，自动恢复帮忙操作功能', {
         module: 'friend',
         event: '好友巡查循环',
         result: 'ok',
       });
+      if (typeof onExpLimitResetCallback === 'function') {
+        onExpLimitResetCallback();
+      }
     }
 
     lastResetDate = today;
@@ -93,6 +105,10 @@ function setOnExpLimitReachedCallback(fn) {
   onExpLimitReachedCallback = typeof fn === 'function' ? fn : null;
 }
 
+function setOnExpLimitResetCallback(fn) {
+  onExpLimitResetCallback = typeof fn === 'function' ? fn : null;
+}
+
 // ===== Operation limits =====
 
 /**
@@ -111,6 +127,32 @@ function updateOperationLimits(limits) {
         dayExpTimesLimit: toNum(limit.day_ex_times_lt),
       });
     }
+  }
+}
+
+/**
+ * 经验满判定（基于经验增量，不依赖服务端恒为 0 的 day_ex_times_lt）。
+ * 每次帮好友成功后对比本号总经验前后值：
+ *   - 经验增长 → 重置"无收益"连续计数；
+ *   - 经验未增 → 连续计数 +1；
+ * 当累计帮忙≥ MIN 次且连续无收益≥ CONSECUTIVE 次，判定经验已满，切"仅帮护主犬"。
+ * 连续阈值可过滤个别操作无收益/网络延迟造成的误判。
+ */
+function detectExpFull(expBefore) {
+  const expAfter = toNum((getUserState() || {}).exp);
+  if (expAfter > expBefore) {
+    consecutiveNoExpHelps = 0;
+  } else {
+    consecutiveNoExpHelps += 1;
+  }
+  totalHelpsThisSession += 1;
+
+  if (totalHelpsThisSession >= EXP_FULL_MIN_HELPS &&
+      consecutiveNoExpHelps >= EXP_FULL_CONSECUTIVE) {
+    autoDisableHelpByExpLimit();
+  } else if (totalHelpsThisSession >= EXP_FULL_MIN_HELPS &&
+             consecutiveNoExpHelps >= Math.floor(EXP_FULL_CONSECUTIVE / 2)) {
+    log('debug', `经验未增连续 ${consecutiveNoExpHelps} 次（累计帮忙 ${totalHelpsThisSession} 次），接近经验满`);
   }
 }
 
@@ -255,18 +297,8 @@ async function helpWater(gid, landIds, checkExpLimit = false) {
   updateOperationLimits(reply.operation_limits);
 
   if (checkExpLimit) {
-    // 修复：不再用 expAfter <= expBefore 猜测经验是否满（网络延迟/操作无收益都会误判），
-    // 改为直接检查服务端 operation_limits 里所有帮忙操作的经验次数是否都达上限。
-    // helpWater=10007, helpWeed=10005, helpBug=10006 及其配对 id
-    // 仅用真正的"帮忙"经验 id：浇水10001 / 除虫10002 / 除草10003。
-    // 不要包含放虫10005、放草10006、复活10007——它们是另一类操作，
-    // 只帮忙场景下其经验额度不会被打满，会导致 anyExpLeft 永远为 true、
-    // autoDisableHelpByExpLimit 永不被触发，"经验满仅帮助护主犬"形同虚设。
-    const allHelpExpIds = [0x2711, 0x2712, 0x2713];
-    const anyExpLeft = allHelpExpIds.some(id => canGetExp(id));
-    if (!anyExpLeft) {
-      autoDisableHelpByExpLimit();
-    }
+    // 经验满判定改为基于经验增量（detectExpFull），不再依赖服务端恒为 0 的 day_ex_times_lt
+    detectExpFull(expBefore);
   }
 
   return reply;
@@ -292,18 +324,8 @@ async function helpWeed(gid, landIds, checkExpLimit = false) {
   updateOperationLimits(reply.operation_limits);
 
   if (checkExpLimit) {
-    // 修复：不再用 expAfter <= expBefore 猜测经验是否满（网络延迟/操作无收益都会误判），
-    // 改为直接检查服务端 operation_limits 里所有帮忙操作的经验次数是否都达上限。
-    // helpWater=10007, helpWeed=10005, helpBug=10006 及其配对 id
-    // 仅用真正的"帮忙"经验 id：浇水10001 / 除虫10002 / 除草10003。
-    // 不要包含放虫10005、放草10006、复活10007——它们是另一类操作，
-    // 只帮忙场景下其经验额度不会被打满，会导致 anyExpLeft 永远为 true、
-    // autoDisableHelpByExpLimit 永不被触发，"经验满仅帮助护主犬"形同虚设。
-    const allHelpExpIds = [0x2711, 0x2712, 0x2713];
-    const anyExpLeft = allHelpExpIds.some(id => canGetExp(id));
-    if (!anyExpLeft) {
-      autoDisableHelpByExpLimit();
-    }
+    // 经验满判定改为基于经验增量（detectExpFull），不再依赖服务端恒为 0 的 day_ex_times_lt
+    detectExpFull(expBefore);
   }
 
   return reply;
@@ -329,18 +351,8 @@ async function helpInsecticide(gid, landIds, checkExpLimit = false) {
   updateOperationLimits(reply.operation_limits);
 
   if (checkExpLimit) {
-    // 修复：不再用 expAfter <= expBefore 猜测经验是否满（网络延迟/操作无收益都会误判），
-    // 改为直接检查服务端 operation_limits 里所有帮忙操作的经验次数是否都达上限。
-    // helpWater=10007, helpWeed=10005, helpBug=10006 及其配对 id
-    // 仅用真正的"帮忙"经验 id：浇水10001 / 除虫10002 / 除草10003。
-    // 不要包含放虫10005、放草10006、复活10007——它们是另一类操作，
-    // 只帮忙场景下其经验额度不会被打满，会导致 anyExpLeft 永远为 true、
-    // autoDisableHelpByExpLimit 永不被触发，"经验满仅帮助护主犬"形同虚设。
-    const allHelpExpIds = [0x2711, 0x2712, 0x2713];
-    const anyExpLeft = allHelpExpIds.some(id => canGetExp(id));
-    if (!anyExpLeft) {
-      autoDisableHelpByExpLimit();
-    }
+    // 经验满判定改为基于经验增量（detectExpFull），不再依赖服务端恒为 0 的 day_ex_times_lt
+    detectExpFull(expBefore);
   }
 
   return reply;
@@ -553,6 +565,7 @@ module.exports = {
   setCanGetHelpExp,
   getHelpAutoDisabledByLimit,
   setOnExpLimitReachedCallback,
+  setOnExpLimitResetCallback,
   helpWater,
   helpWeed,
   helpInsecticide,

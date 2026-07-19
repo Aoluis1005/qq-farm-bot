@@ -31,9 +31,13 @@ function normalizeApiBase(value) {
  * docker-compose 注入，指向同容器内的 yyb-go 服务，无需前端再填外部地址）。
  */
 function resolveYybCreds(body = {}) {
+  // 透传 body 其余字段（如 openid / sessionId / appId），否则 poll/confirm/getcode
+  // 等 handler 解构不到这些字段，会永远返回「缺少 sessionId / openid」。
+  const { apiBase, apiKey, ...rest } = body;
   return {
-    apiBase: (body.apiBase || "").trim() || process.env.YYB_API_URL || "",
-    apiKey: (body.apiKey || "").trim() || process.env.YYB_API_KEY || "",
+    apiBase: (apiBase || "").trim() || process.env.YYB_API_URL || "",
+    apiKey: (apiKey || "").trim() || process.env.YYB_API_KEY || "",
+    ...rest,
   };
 }
 

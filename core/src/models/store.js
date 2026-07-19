@@ -1683,6 +1683,28 @@ function setGlobalWxConfig(config) {
     return { ...globalConfig.globalWxConfig };
 }
 
+// 单镜像部署时，start.sh 会自动生成应用宝 API Token 并导出为环境变量
+// YYB_API_KEY（与 YYB_API_TOKEN 同值）。若 wx-config 尚未保存过（apiKey 为空），
+// 则自动把接口地址与 token 写入配置，使前端“应用宝”配置开箱即预填好。
+// 仅在确实未配置时才写入，避免覆盖用户手动设置（如指向外部 yyb 服务）。
+function ensureYybAutoConfig() {
+    const cfg = globalConfig.globalWxConfig || {};
+    if (!cfg.apiKey && process.env.YYB_API_KEY) {
+        setGlobalWxConfig({
+            ...DEFAULT_WX_CONFIG,
+            ...cfg,
+            apiBase: process.env.YYB_API_URL || DEFAULT_WX_CONFIG.apiBase,
+            apiKey: process.env.YYB_API_KEY,
+            enabled: true,
+            confirmed: true,
+        });
+    }
+}
+
+// 模块加载完成后调用：若环境变量里已注入自动生成的 YYB_API_KEY，
+// 且 wx-config 尚未保存过，则自动预填，使前端“应用宝”配置开箱即用。
+ensureYybAutoConfig();
+
 // ==================== Code/GID 抓取服务配置 ====================
 
 function getCaptureConfig() {

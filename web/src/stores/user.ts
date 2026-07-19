@@ -144,9 +144,6 @@ export const useUserStore = defineStore('user', () => {
           accountLimit: res.data.data.accountLimit ?? 2,
           mustChangePassword: res.data.data.mustChangePassword,
         }
-        const { useWxLoginStore } = await import('./wx-login')
-        const wxLoginStore = useWxLoginStore()
-        await wxLoginStore.loadConfigFromServer()
       }
       return res.data
     }

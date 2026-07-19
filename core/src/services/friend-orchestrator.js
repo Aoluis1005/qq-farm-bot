@@ -33,6 +33,7 @@ const {
   setCanGetHelpExp,
   getHelpAutoDisabledByLimit,
   setOnExpLimitReachedCallback,
+  setOnExpLimitResetCallback,
   updateOperationLimits,
 } = require('./friend-operation-limits');
 const {
@@ -56,6 +57,9 @@ let badExecutedOnStartup = false;
 let consecutiveBadFailureCount = 0;
 let dogInfoBootstrapAttempted = false;
 let dogInfoBootstrapReadyAt = 0;
+// 当前巡查账号 id（checkFriends 开头写入），供经验上限持久化回调使用，
+// 避免依赖容器内可能为空的环境变量 FARM_ACCOUNT_ID。
+let currentAccountId = '';
 
 const BAD_FAILURE_LIMIT = 3;
 
@@ -65,9 +69,14 @@ function ensureExpLimitCallback() {
   if (expLimitCallbackRegistered) return;
   expLimitCallbackRegistered = true;
   setOnExpLimitReachedCallback(() => {
-    const accountId = process.env.FARM_ACCOUNT_ID || '';
-    if (accountId) {
-      applyConfigSnapshot({ friendHelpExpExhausted: true }, { accountId });
+    if (currentAccountId) {
+      applyConfigSnapshot({ friendHelpExpExhausted: true }, { accountId: currentAccountId });
+    }
+  });
+  setOnExpLimitResetCallback(() => {
+    // 跨日重置：清掉持久化的"经验已满"标志，否则会卡在仅帮护主犬模式回不来
+    if (currentAccountId) {
+      applyConfigSnapshot({ friendHelpExpExhausted: false }, { accountId: currentAccountId });
     }
   });
 }
@@ -262,7 +271,8 @@ async function checkFriends(options = {}) {
 
   await bootstrapFriendDogInfoCacheIfNeeded();
 
-  const accountId = process.env.FARM_ACCOUNT_ID || '';
+  const accountId = userState.accountId || process.env.FARM_ACCOUNT_ID || '';
+  currentAccountId = accountId;
   const helpEnabled = !!isAutomationOn('friend_help');
   const stealEnabled = !!isAutomationOn('friend_steal');
   const badEnabled = !!isAutomationOn('friend_bad');
@@ -293,9 +303,6 @@ async function checkFriends(options = {}) {
       module: 'friend',
       event: '经验上限恢复',
     });
-  } else if (!cfgSnapshot.friendHelpExpExhausted && !getCanGetHelpExp() && getHelpAutoDisabledByLimit()) {
-    // 跨日重置后，清除持久化标志
-    applyConfigSnapshot({ friendHelpExpExhausted: false }, { accountId });
   }
 
   try {
@@ -318,31 +325,10 @@ async function checkFriends(options = {}) {
       : new Set();
     const expLimitEnabled = !!isAutomationOn('friend_help_exp_limit');
 
-    // 修复：canGetHelpExp 被 autoDisableHelpByExpLimit 设为 false 后，
-    // 必须确认"服务端数据确实显示经验还有额度"才能重置回 true。
-    // 关键：只有当 operationLimits 里真正存在这 6 个经验 id 的记录、且其中有
-    // 任意一个尚未满时，才允许重置。若 operationLimits 里压根没有这些 id 的数据
-    // （例如新号/跨日重置后尚未帮助过，或服务端未回传这些 id），则无法判断，
-    // 必须保持 canGetHelpExp=false，继续只帮护主犬，绝不能无差别帮所有人。
-    if (expLimitEnabled && !getCanGetHelpExp() && getHelpAutoDisabledByLimit()) {
-      // 仅用真正的"帮忙"经验 id：浇水10001 / 除虫10002 / 除草10003
-      const allExpIds = [0x2711, 0x2712, 0x2713];
-      const hasKnownLimit = hasKnownHelpExpLimits(allExpIds);
-      const anyExpLeft = canGetExpByCandidates(allExpIds);
-      if (hasKnownLimit && anyExpLeft) {
-        setCanGetHelpExp(true);
-        log('好友', '经验上限已重置（服务端显示仍有经验额度）', {
-          module: 'friend',
-          event: '经验上限重置',
-        });
-      } else if (!hasKnownLimit) {
-        // 没有服务端经验额度数据，保守处理：保持只帮护主犬模式，避免无差别帮助。
-        log('好友', '经验额度数据缺失，维持仅帮助护主犬模式', {
-          module: 'friend',
-          event: '经验上限维持',
-        });
-      }
-    }
+    // 经验满状态现在完全由经验增量判定（detectExpFull）驱动，
+    // 不再依赖服务端恒为 0 的 day_ex_times_lt，故删除此处的"额度恢复"分支，
+    // 避免 detl=0 被误判为"仍有额度"而把 canGetHelpExp 重置回 true（导致无差别帮助）。
+    // 跨日恢复由 checkDailyReset + onExpLimitResetCallback 负责。
 
     const helpExpReached = expLimitEnabled && !getCanGetHelpExp();
 
@@ -482,6 +468,12 @@ async function checkFriends(options = {}) {
     // Help
     if (helpTargets.length > 0 && doHelp) {
       for (const target of helpTargets) {
+        // 经验满判定（detectExpFull）可能在巡逻中途触发并翻转 canGetHelpExp=false。
+        // 本轮已在开头按 helpExpReached 建好 helpTargets（含普通好友），需对每个普通好友实时复核，
+        // 否则开关触发后本轮剩余普通好友仍会被无差别帮助（表现="只帮护主犬"未生效）。
+        if (!target.hasGuardDog && expLimitEnabled && !getCanGetHelpExp()) {
+          continue;
+        }
         try {
           const result = await visitFriendForHelp(
             target, tally, userState.gid, userState.accountId,

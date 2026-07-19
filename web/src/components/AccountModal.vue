@@ -5,7 +5,6 @@ import api from '@/api'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseTextarea from '@/components/ui/BaseTextarea.vue'
-import { useWxLoginStore } from '@/stores/wx-login'
 
 const props = defineProps<{
   show: boolean
@@ -13,12 +12,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['close', 'saved'])
-
 const CODE_QUERY_RE = /[?&]code=([^&]+)/i
-const QR_AUTO_REFRESH_MS = 110_000
 const CAPTURE_SUCCESS_STORAGE_KEY = 'capture_login_succeeded'
-
-const wxLoginStore = useWxLoginStore()
 
 interface CaptureFlowState {
   id: string
@@ -40,11 +35,9 @@ interface CaptureFlowState {
   }
 }
 
-const activeTab = ref<'wx' | 'capture' | 'manual' | 'yyb' | 'yybqr'>('manual')
+const activeTab = ref<'capture' | 'manual' | 'yyb' | 'yybqr'>('manual')
 const loading = ref(false)
-const wxChecking = ref(false)
 const errorMessage = ref('')
-const wxAccountName = ref('')
 const captureEnabled = ref(false)
 const captureLoading = ref(false)
 const captureChecking = ref(false)
@@ -112,48 +105,6 @@ const captureNextStep = computed(() => {
     return `即将自动${props.editData ? '更新' : '添加'}账号，好友 GID 将在后台同步`
   return `即将自动${props.editData ? '更新' : '添加'}账号`
 })
-
-const { pause: stopWxCheck, resume: startWxCheck } = useIntervalFn(async () => {
-  if (activeTab.value !== 'wx' || wxLoginStore.isLoading || wxChecking.value)
-    return
-  if (shouldRefreshWxQr()) {
-    await loadWxQRCode()
-    return
-  }
-  if (wxLoginStore.status !== 'qr_ready' && wxLoginStore.status !== 'confirming')
-    return
-
-  wxChecking.value = true
-  try {
-    const result = await wxLoginStore.checkLogin()
-    if (result.success && result.wxid) {
-      stopWxCheck()
-      const codeResult = await wxLoginStore.getFarmCode(result.wxid)
-      if (codeResult.success && codeResult.code) {
-        const name = wxAccountName.value.trim() || result.nickname || `微信账号${Date.now()}`
-        if (wxLoginStore.config.autoAddAccount) {
-          await addAccount({
-            id: props.editData?.id,
-            name: props.editData ? (props.editData.name || name) : name,
-            code: codeResult.code,
-            platform: 'wx',
-            loginType: 'wx_qr',
-            wxid: result.wxid,
-            avatar: result.avatar,
-          })
-        }
-        else {
-          form.code = codeResult.code
-          form.platform = 'wx'
-          activeTab.value = 'manual'
-        }
-      }
-    }
-  }
-  finally {
-    wxChecking.value = false
-  }
-}, 2000, { immediate: false })
 
 const { pause: stopCaptureCheck, resume: startCaptureCheck } = useIntervalFn(async () => {
   if (activeTab.value !== 'capture' || !captureFlow.value || captureCompleting.value || captureChecking.value)
@@ -292,22 +243,6 @@ async function copyCaptureValue(field: 'host' | 'port') {
   }
 }
 
-function shouldRefreshWxQr() {
-  return !!wxLoginStore.qrCreatedAt
-    && (wxLoginStore.status === 'qr_ready' || wxLoginStore.status === 'confirming')
-    && Date.now() - wxLoginStore.qrCreatedAt > QR_AUTO_REFRESH_MS
-}
-
-async function loadWxQRCode() {
-  if (activeTab.value !== 'wx')
-    return
-  stopWxCheck()
-  wxLoginStore.resetState()
-  const success = await wxLoginStore.getQRCode()
-  if (success)
-    startWxCheck()
-}
-
 async function addAccount(data: any) {
   loading.value = true
   errorMessage.value = ''
@@ -374,21 +309,9 @@ async function submitManual() {
   await addAccount(payload)
 }
 
-const wxQrImageSrc = computed(() => {
-  if (!wxLoginStore.qrCode)
-    return ''
-  if (wxLoginStore.qrCode.startsWith('data:'))
-    return wxLoginStore.qrCode
-  if (wxLoginStore.qrCode.startsWith('http'))
-    return wxLoginStore.qrCode
-  return `data:image/png;base64,${wxLoginStore.qrCode}`
-})
-
 function close() {
-  stopWxCheck()
   stopCaptureCheck()
   void cancelCaptureSession()
-  wxLoginStore.resetState()
   resetYybQr()
   showCaptureHelp.value = false
   emit('close')
@@ -412,27 +335,21 @@ watch(() => props.show, (newVal) => {
       form.name = props.editData.name || ''
       form.code = props.editData.code || ''
       form.platform = props.editData.platform || 'qq'
-      wxAccountName.value = props.editData.name || ''
     }
     else {
       activeTab.value = 'manual'
       form.name = ''
       form.code = ''
       form.platform = 'qq'
-      wxAccountName.value = ''
     }
   }
   else {
-    stopWxCheck()
     stopCaptureCheck()
     void cancelCaptureSession()
-    wxLoginStore.resetState()
   }
 })
 
 watch(activeTab, (tab) => {
-  if (tab === 'wx')
-    loadWxQRCode()
   if (tab !== 'capture')
     void cancelCaptureSession()
   if (tab === 'yyb' || tab === 'yybqr')
@@ -459,16 +376,29 @@ const yybReconnectMaxAttempts = ref(3)
 
 const yybConfigured = computed(() => !!yybApiBase.value && !!yybApiKey.value)
 
+// 已配置视图里展示/编辑当前应用宝接口配置（token 由后端部署时自动预填）
+const yybShowConfigEditor = ref(false)
+async function copyYybToken() {
+  const v = yybApiKey.value.trim()
+  if (!v) return
+  try {
+    await navigator.clipboard?.writeText(v)
+  }
+  catch {}
+}
+
 async function loadYybConfig() {
   if (yybConfigLoaded.value) return
   try {
     const { data } = await api.get('/api/admin/wx-config')
-    if (data?.ok && data.config) {
-      yybApiBase.value = data.config.apiBase || ''
-      yybApiKey.value = data.config.apiKey || ''
-      yybAutoReconnect.value = data.config.autoReconnect === true
-      yybReconnectDelayMin.value = data.config.reconnectDelayMin || 5
-      yybReconnectMaxAttempts.value = data.config.reconnectMaxAttempts || 3
+    // 后端 GET /api/admin/wx-config 返回 { ok: true, data: {...} }
+    const cfg = data?.data || (data?.ok ? data : null)
+    if (cfg) {
+      yybApiBase.value = cfg.apiBase || ''
+      yybApiKey.value = cfg.apiKey || ''
+      yybAutoReconnect.value = cfg.autoReconnect === true
+      yybReconnectDelayMin.value = cfg.reconnectDelayMin || 5
+      yybReconnectMaxAttempts.value = cfg.reconnectMaxAttempts || 3
     }
   } catch (e: any) {
     console.error('加载应用宝配置失败', e)
@@ -487,12 +417,14 @@ async function saveYybConfig() {
   try {
     // 复用 globalWxConfig 保存（需先读取现有完整配置再合并，避免覆盖其他字段）
     const { data: existing } = await api.get('/api/admin/wx-config')
+    // 后端返回 { ok: true, data: {...} }
+    const existingConfig = existing?.data || {}
     const merged = {
-      ...(existing?.config || {}),
+      ...(existingConfig || {}),
       apiBase: yybApiBase.value.trim(),
       apiKey: yybApiKey.value.trim(),
       // appId 不写死：优先沿用已存配置，未配置则不强制写入
-      ...(existing?.config?.appId ? {} : { appId: '' }),
+      ...(existingConfig?.appId ? {} : { appId: '' }),
       enabled: true,
       autoReconnect: yybAutoReconnect.value,
       reconnectDelayMin: Number(yybReconnectDelayMin.value) || 5,
@@ -717,18 +649,6 @@ function resetYybQr() {
             手动填码
           </button>
           <button
-            v-if="wxLoginStore.config.enabled"
-            class="flex-1 py-2 text-center text-sm font-medium transition-colors"
-            :class="activeTab === 'wx' ? 'border-b-2' : 'opacity-60'"
-            :style="{
-              color: activeTab === 'wx' ? 'var(--theme-primary)' : 'var(--theme-text)',
-              borderColor: 'var(--theme-primary)',
-            }"
-            @click="activeTab = 'wx'"
-          >
-            微信扫码
-          </button>
-          <button
             v-if="captureEnabled"
             class="flex-1 py-2 text-center text-sm font-medium transition-colors"
             :class="activeTab === 'capture' ? 'border-b-2' : 'opacity-60'"
@@ -762,48 +682,6 @@ function resetYybQr() {
           >
             应用宝扫码
           </button>
-        </div>
-
-        <div v-if="activeTab === 'wx'" class="space-y-4">
-          <BaseInput
-            v-model="wxAccountName"
-            label="账号备注（可选）"
-            placeholder="留空则使用微信昵称"
-          />
-
-          <div class="flex flex-col items-center justify-center py-4 space-y-4">
-            <div
-              v-if="wxQrImageSrc"
-              class="border rounded-lg p-2"
-              :style="{ borderColor: 'color-mix(in srgb, var(--theme-text) 20%, transparent)', background: '#fff' }"
-            >
-              <img :src="wxQrImageSrc" class="h-48 w-48">
-            </div>
-            <div
-              v-else
-              class="h-48 w-48 flex items-center justify-center rounded-lg"
-              :style="{ background: 'color-mix(in srgb, var(--theme-bg) 90%, var(--theme-text))' }"
-            >
-              <div v-if="wxLoginStore.isLoading" i-svg-spinners-90-ring-with-bg class="text-3xl" :style="{ color: 'var(--theme-primary)' }" />
-              <span v-else class="text-sm" :style="{ color: 'var(--theme-text)' }">点击获取二维码</span>
-            </div>
-
-            <p class="text-center text-sm" :style="{ color: 'var(--theme-text)' }">
-              {{ wxLoginStore.statusMessage }}
-            </p>
-
-            <p v-if="wxLoginStore.errorMessage" class="text-center text-sm text-red-600">
-              {{ wxLoginStore.errorMessage }}
-            </p>
-
-            <BaseButton variant="secondary" size="sm" :loading="wxLoginStore.isLoading" @click="loadWxQRCode">
-              刷新二维码
-            </BaseButton>
-          </div>
-
-          <div class="text-center text-xs opacity-60" :style="{ color: 'var(--theme-text)' }">
-            使用微信扫描二维码登录，成功后会自动添加账号
-          </div>
         </div>
 
         <div v-if="activeTab === 'capture'" class="space-y-4">
@@ -1036,7 +914,7 @@ function resetYybQr() {
             />
             <BaseInput
               v-model="yybApiKey"
-              label="API Token（请自行填写，不会预填）"
+              label="API Token（部署时已自动生成并预填）"
               placeholder="请输入你的应用宝 API Token"
             />
             <div v-if="yybError" class="text-sm text-red-500">
@@ -1058,6 +936,30 @@ function resetYybQr() {
                   刷新列表
                 </BaseButton>
               </div>
+            </div>
+
+            <!-- 应用宝接口配置（部署时自动预填，可查看/复制/编辑） -->
+            <div class="rounded-lg border p-3 space-y-2" :style="{ borderColor: 'color-mix(in srgb, var(--theme-text) 15%, transparent)' }">
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-medium" :style="{ color: 'var(--theme-text)' }">应用宝接口配置</span>
+                <BaseButton variant="ghost" size="sm" @click="yybShowConfigEditor = !yybShowConfigEditor">
+                  {{ yybShowConfigEditor ? '收起' : '编辑' }}
+                </BaseButton>
+              </div>
+              <template v-if="!yybShowConfigEditor">
+                <div class="text-xs opacity-60" :style="{ color: 'var(--theme-text)' }">接口地址</div>
+                <div class="text-sm break-all" :style="{ color: 'var(--theme-text)' }">{{ yybApiBase }}</div>
+                <div class="text-xs opacity-60 mt-1" :style="{ color: 'var(--theme-text)' }">API Token（已自动生成）</div>
+                <div class="flex items-center gap-2">
+                  <code class="flex-1 text-sm break-all rounded px-2 py-1" :style="{ background: 'color-mix(in srgb, var(--theme-text) 8%, transparent)', color: 'var(--theme-text)' }">{{ yybApiKey }}</code>
+                  <BaseButton variant="ghost" size="sm" @click="copyYybToken" title="复制 Token">复制</BaseButton>
+                </div>
+              </template>
+              <template v-else>
+                <BaseInput v-model="yybApiBase" label="接口地址" placeholder="http://127.0.0.1:8450" />
+                <BaseInput v-model="yybApiKey" label="API Token" placeholder="请输入你的应用宝 API Token" />
+                <BaseButton variant="primary" size="sm" :loading="yybConfigSaving" @click="saveYybConfig">保存</BaseButton>
+              </template>
             </div>
 
             <!-- 离线重连配置 -->
