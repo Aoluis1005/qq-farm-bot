@@ -8,13 +8,15 @@
 
 当前仓库定位为 `2.3.x` 重构维护版，重点是整理前后端结构、降低维护成本，并保留已有核心功能。
 
+> **派生说明**：本仓库是在 [cwser/qq-farm-bot-private](https://github.com/cwser/qq-farm-bot-private) 基础上进行的**二次修改（二改）**维护分支，在其版本之上增加了多账号 Worker 模型、Vue 3 控制面板重构、ACE 安全链路等内容。更早的上游原始项目见下方「特别感谢」。
+
 维护信息：
 
 - 仓库：`Aoluis1005/qq-farm-bot`
 - 维护分支：`main`
 - 完整更新日志参考：[QQ 农场更新日志](https://github.com/Aoluis1005/qq-farm-bot/blob/main/UPDATE_README.md)
 
-> **注意**：本仓库为个人维护分支，原作者信息已移除。以下所有功能与配置均以本仓库为准。
+> **注意**：本仓库为基于 [cwser/qq-farm-bot-private](https://github.com/cwser/qq-farm-bot-private) 的二改维护分支（原作者/上游信息见「特别感谢」）。以下所有功能与配置均以本仓库为准。
 
 ## 当前状态
 
@@ -222,6 +224,7 @@ pnpm package:release
 
 ## 特别感谢
 
+- **本仓库基于 [cwser/qq-farm-bot-private](https://github.com/cwser/qq-farm-bot-private) 二改**（在此版本基础上进行修改，是其下游维护分支）
 - 基于 [Penty-d/qq-farm-bot-ui](https://github.com/Penty-d/qq-farm-bot-ui) 二改
 - 核心功能：[linguo2625469/qq-farm-bot](https://github.com/linguo2625469/qq-farm-bot)
 - 部分功能：[QianChenJun/qq-farm-bot](https://github.com/QianChenJun/qq-farm-bot)
