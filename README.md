@@ -10,10 +10,11 @@
 
 维护信息：
 
-- 仓库：`cwser/qq-farm-bot-private`
+- 仓库：`Aoluis1005/qq-farm-bot`
 - 维护分支：`main`
-- 作者 QQ：`1352674939`
-- 完整更新日志参考：[QQ 农场更新日志](https://github.com/cwser/qq-farm-bot-private/blob/main/UPDATE_README.md)
+- 完整更新日志参考：[QQ 农场更新日志](https://github.com/Aoluis1005/qq-farm-bot/blob/main/UPDATE_README.md)
+
+> **注意**：本仓库为个人维护分支，原作者信息已移除。以下所有功能与配置均以本仓库为准。
 
 ## 当前状态
 
@@ -57,8 +58,8 @@
 ## 快速启动
 
 ```powershell
-git clone https://github.com/cwser/qq-farm-bot-private.git
-cd qq-farm-bot-private
+git clone https://github.com/Aoluis1005/qq-farm-bot.git
+cd qq-farm-bot
 
 corepack enable
 pnpm install
@@ -81,8 +82,8 @@ pnpm dev:core
 ## Docker 部署
 
 ```bash
-git clone https://github.com/cwser/qq-farm-bot-private.git
-cd qq-farm-bot-private
+git clone https://github.com/Aoluis1005/qq-farm-bot.git
+cd qq-farm-bot
 
 docker compose up -d --build
 docker compose logs -f
@@ -139,6 +140,16 @@ chmod +x ./qq-farm-bot
 - 默认管理员密码：`admin`
 - 部署后请立即修改默认密码
 - 不要把运行时数据、账号文件、日志或 `.env` 文件提交到仓库
+
+## 应用宝接口配置（重要）
+
+应用宝登录 / 离线重连依赖一个**应用宝接口服务**（提供 `wxapp/getCode` 等能力）。添加账号时填写的「接口地址」和「API Token」**必须换成你自己的**：
+
+- **接口地址**：默认显示的 `http://111.229.128.163:8000/wxapp/getCode` 仅为示例，请勿直接使用，请填写你自己部署的接口服务地址。
+- **API Token**：**不会预填**，需要你自行申请/填写自己的 Token，不要使用他人或示例值。
+- 离线自动重连、扫码登录等能力均依赖该接口可用；接口不可用或 Token 失效时需重新填写。
+
+> 如果你没有自己的应用宝接口服务，应用宝登录功能将无法使用，可改用其他登录方式。
 
 ## 数据与隐私
 
