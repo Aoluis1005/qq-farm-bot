@@ -20,6 +20,7 @@ const defaultAutomation = {
   friend_bad: false,
   friend_golden_bug: false,
   friend_help_exp_limit: false,
+  friend_turbo_mode: false,
   golden_bug_clear: true,
   fertilizer_gift: false,
   fertilizer_buy_organic: false,

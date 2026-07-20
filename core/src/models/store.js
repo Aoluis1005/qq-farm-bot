@@ -205,6 +205,7 @@ const DEFAULT_AUTOMATION = {
     land_upgrade: false,
     friend: true,
     friend_help_exp_limit: true,
+    friend_turbo_mode: false,
     friend_steal: true,
     friend_help: true,
     friend_bad: false,

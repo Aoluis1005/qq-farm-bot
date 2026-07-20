@@ -784,7 +784,7 @@ async function visitFriendForHelp(friend, tally, myGid, accountId, ignoreExpLimi
       friendGid: gid,
       actions: actionLogs,
     });
-  } else if (expLimitMode && hasGuardDog) {
+  } else if (expLimitMode && hasGuardDog && (analysis.needWater.length + analysis.needWeed.length + analysis.needBug.length) > 0) {
     // 护主犬好友但所有操作都没成功，记录原因方便排查
     // 调试：对比 列表快照(friend.dryNum/weedNum/insectNum) 与 进农场实测土地合计，
     // 用于判断是"快照滞后"还是"分析漏判"。

@@ -17,6 +17,7 @@ interface AutomationSettings {
     friend_bad: boolean
     friend_golden_bug: boolean
     friend_help_exp_limit: boolean
+    friend_turbo_mode: boolean
     golden_bug_clear: boolean
     fertilizer_gift: boolean
     fertilizer_buy_organic: boolean
@@ -216,6 +217,7 @@ function isFastMatureFertilizerMode(mode: string) {
         <BaseSwitch v-model="settings.automation.friend_bad" label="自动捣乱" />
         <BaseSwitch v-model="settings.automation.friend_golden_bug" label="自动放黄金虫" />
         <BaseSwitch v-model="settings.automation.friend_help_exp_limit" label="经验满只帮护主犬" />
+        <BaseSwitch v-model="settings.automation.friend_turbo_mode" label="极速务农（只帮护主犬）" />
       </div>
 
       <div v-if="settings.automation.friend && settings.automation.friend_golden_bug" class="grid grid-cols-1 gap-3 rounded bg-amber-50 p-3 text-sm md:grid-cols-2 dark:bg-amber-900/20">

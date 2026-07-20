@@ -81,21 +81,6 @@ function ensureExpLimitCallback() {
   });
 }
 
-// ===== 护主犬"无有效操作"指数退避冷却 =====
-// 避免同一好友反复进农场无效果（服务端列表数据也可能延迟更新）。
-// 退避阶梯：首次 30s，之后 30s→60s→2min→5min（封顶）连续无操作时逐次翻倍。
-const guardDogNoEffectCooldown = new Map(); // gid → expireAt
-const guardDogNoEffectStreak = new Map();   // gid → 连续无有效操作次数
-const GUARD_DOG_NO_EFFECT_COOLDOWN_MS = 30000;        // 基线（首次）
-const GUARD_DOG_NO_EFFECT_COOLDOWN_MAX_MS = 300000;   // 封顶 5 分钟
-
-// ===== 全局自适应巡查间隔（仅帮护主犬模式）=====
-// 连续 N 轮"无护主犬被帮到"时逐步放宽循环间隔，减少空闲时段的无效轮询与 RPC；
-// 一旦某轮成功帮到至少一只护主犬，立即清零回到基线快查节奏。
-// 阶梯：idle 0-1 轮 → base；2-3 轮 → base×2；4+ 轮 → base×4（并整体封顶 60s）。
-let guardIdleRoundStreak = 0;
-const GUARD_ADAPTIVE_MAX_INTERVAL_MS = 60000; // 自适应间隔封顶 60s
-
 async function getCachedFriendsList(forceRefresh = false) {
   return await getAllFriends();
 }
@@ -272,15 +257,17 @@ async function checkFriends(options = {}) {
   const helpEnabled = !!isAutomationOn('friend_help');
   const stealEnabled = !!isAutomationOn('friend_steal');
   const badEnabled = !!isAutomationOn('friend_bad');
+  const turboMode = !!isAutomationOn('friend_turbo_mode');
 
   const onlyHelp = options.onlyHelp || false;
   const onlySteal = options.onlySteal || false;
   const onlyBad = options.onlyBad || false;
   const ignoreExpLimit = options.ignoreExpLimit || false;
 
-  const doHelp = onlyHelp ? true : (onlySteal || onlyBad ? false : helpEnabled);
-  const doSteal = onlySteal ? true : (onlyHelp || onlyBad ? false : stealEnabled);
-  const doBad = onlyBad ? true : (onlyHelp || onlySteal ? false : badEnabled);
+  // 极速务农：强制只帮护主犬 + 暂停偷菜/捣乱（无视 friend_help 总开关是否开）
+  const doHelp = onlyHelp ? true : (onlySteal || onlyBad ? false : (helpEnabled || turboMode));
+  const doSteal = onlySteal ? true : (onlyHelp || onlyBad ? false : (stealEnabled && !turboMode));
+  const doBad = onlyBad ? true : (onlyHelp || onlySteal ? false : (badEnabled && !turboMode));
 
   const shouldRun = doHelp || doSteal || doBad;
 
@@ -355,24 +342,13 @@ async function checkFriends(options = {}) {
 
     // Help targets
     if (doHelp) {
-      if (helpExpReached && guardDogGidSet.size > 0) {
+      if ((turboMode || helpExpReached) && guardDogGidSet.size > 0) {
         // Experience limit reached — only help guard dog friends
-        const now = Date.now();
-        // 清理过期冷却；连击计数一并清零，好友重新出现时从基线 30s 起算
-        for (const [k, v] of guardDogNoEffectCooldown.entries()) {
-          if (v <= now) {
-            guardDogNoEffectCooldown.delete(k);
-            guardDogNoEffectStreak.delete(k);
-          }
-        }
-
         for (const friend of rawFriends) {
           const gid = toNum(friend.gid);
           if (gid === userState.gid) continue;
           if (!guardDogGidSet.has(gid)) continue;
           if (blacklist.has(gid)) continue;
-          // 冷却中的好友跳过——快照数据可能已过期，等下次刷新后再查
-          if (guardDogNoEffectCooldown.has(gid)) continue;
 
           const name = friend.remark || friend.name || `GID:${gid}`;
           const plant = friend.plant;
@@ -380,7 +356,8 @@ async function checkFriends(options = {}) {
           const weedNum = plant ? toNum(plant.weed_num) : 0;
           const insectNum = plant ? toNum(plant.insect_num) : 0;
 
-          if (dryNum > 0 || weedNum > 0 || insectNum > 0) {
+          // 极速务农：忽略滞后快照筛选，进全部护主犬（依赖进农场后的实时数据，根治漏帮）
+          if (turboMode || dryNum > 0 || weedNum > 0 || insectNum > 0) {
             helpTargets.push({
               gid,
               name,
@@ -441,7 +418,6 @@ async function checkFriends(options = {}) {
 
     // ---- Execute ----
     const tally = { steal: 0, water: 0, weed: 0, bug: 0, putBug: 0, putWeed: 0 };
-    let guardDogActedCount = 0; // 本轮成功帮到的护主犬数（用于自适应间隔）
 
     // Steal
     if (stealTargets.length > 0 && doSteal) {
@@ -478,24 +454,16 @@ async function checkFriends(options = {}) {
         try {
           const result = await visitFriendForHelp(
             target, tally, userState.gid, userState.accountId,
-            ignoreExpLimit, helpExpReached
+            ignoreExpLimit, helpExpReached || turboMode
           );
-          // 护主犬：成功后清零冷却与连击；无有效操作则指数退避（30s→60s→2min→5min 封顶）
-          if (helpExpReached && target.hasGuardDog && result) {
-            const gid = toNum(target.gid);
-            if (result.acted) {
-              guardDogActedCount++;
-              guardDogNoEffectCooldown.delete(gid);
-              guardDogNoEffectStreak.delete(gid);
-            } else {
-              const streak = (guardDogNoEffectStreak.get(gid) || 0) + 1;
-              guardDogNoEffectStreak.set(gid, streak);
-              const cooldownMs = Math.min(
-                GUARD_DOG_NO_EFFECT_COOLDOWN_MS * Math.pow(2, streak - 1),
-                GUARD_DOG_NO_EFFECT_COOLDOWN_MAX_MS
-              );
-              guardDogNoEffectCooldown.set(gid, Date.now() + cooldownMs);
-            }
+          // 帮助成功才输出日志；失败（无有效操作/异常）不打日志
+          if (result && result.acted) {
+            log('好友', `成功帮助${target.hasGuardDog ? '护主犬' : '好友'} ${target.name}`, {
+              module: 'friend',
+              event: '帮助成功',
+              gid: toNum(target.gid),
+              hasGuardDog: !!target.hasGuardDog,
+            });
           }
         } catch {
           // Skip individual failures
@@ -503,17 +471,6 @@ async function checkFriends(options = {}) {
         // 放慢访问节奏，降低单账号短时请求密度，避免触发游戏风控导致断连
         await randomDelay(100, 200);
       }
-    }
-
-    // 自适应间隔：仅在"经验满/只帮护主犬"模式下统计空闲轮
-    if (helpExpReached) {
-      if (guardDogActedCount > 0) {
-        guardIdleRoundStreak = 0; // 本轮帮到护主犬 → 立即回到基线快查
-      } else {
-        guardIdleRoundStreak++;   // 本轮无护主犬被帮到 → 空闲计数+1
-      }
-    } else {
-      guardIdleRoundStreak = 0;   // 非经验满模式，不做放宽
     }
 
     // Bad (put weeds/insects)
@@ -638,15 +595,10 @@ async function friendCheckLoop() {
 
   // 经验满(仅帮护主犬)模式下缩短巡查间隔，让护主犬好友更快被复查
   const expLimitActive = !!isAutomationOn('friend_help_exp_limit') && !getCanGetHelpExp();
-  let interval;
-  if (expLimitActive) {
-    const base = Math.max(15000, CONFIG.friendCheckInterval);
-    // 自适应：连续空闲轮逐步放宽 base→base×2→base×4（封顶 60s），有活立即回 base
-    const factor = guardIdleRoundStreak >= 4 ? 4 : (guardIdleRoundStreak >= 2 ? 2 : 1);
-    interval = Math.max(base, Math.min(base * factor, GUARD_ADAPTIVE_MAX_INTERVAL_MS));
-  } else {
-    interval = Math.max(30000, CONFIG.friendCheckInterval);
-  }
+  const turboMode = !!isAutomationOn('friend_turbo_mode');
+  const interval = (expLimitActive || turboMode)
+    ? Math.max(15000, CONFIG.friendCheckInterval)
+    : Math.max(30000, CONFIG.friendCheckInterval);
   friendScheduler.setTimeoutTask('friend_check_loop', interval, () => friendCheckLoop());
 }
 
@@ -689,8 +641,6 @@ function stopFriendCheckLoop() {
   dogInfoBootstrapAttempted = false;
   dogInfoBootstrapReadyAt = 0;
   clearAllInvalidKnownFriendGidCooldown();
-  guardDogNoEffectStreak.clear();
-  guardIdleRoundStreak = 0;
   networkEvents.off('friendApplicationReceived', onFriendApplicationReceived);
   friendScheduler.clearAll();
 }
