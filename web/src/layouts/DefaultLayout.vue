@@ -4,14 +4,17 @@ import { onMounted, onUnmounted, ref, watch } from 'vue'
 import MysteryMerchantBanner from '@/components/shop/MysteryMerchantBanner.vue'
 import FloatingDock from '@/components/FloatingDock.vue'
 import TopAccountMenu from '@/components/TopAccountMenu.vue'
+import { useAccountStore } from '@/stores/account'
 import { useAppStore } from '@/stores/app'
 
 const appStore = useAppStore()
+const accountStore = useAccountStore()
 const { loginPageConfig } = storeToRefs(appStore)
 const headerLogoFailed = ref(false)
 
 onMounted(() => {
   appStore.fetchLoginPageConfig()
+  accountStore.fetchAccounts()
 })
 
 onUnmounted(() => {
