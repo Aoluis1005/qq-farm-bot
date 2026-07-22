@@ -94,6 +94,7 @@ function createRuntimeState(deps) {
     function addAccountLog(action, msg, accountId = '', accountName = '', meta = {}) {
         const entry = {
             time: formatLocalDateTime24(new Date()),
+            ts: Date.now(),
             action,
             msg,
             accountId: accountId ? String(accountId) : '',

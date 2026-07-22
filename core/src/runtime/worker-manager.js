@@ -313,14 +313,22 @@ function createWorkerManager(deps) {
 
     /**
      * 停止账号 Worker
+     * @param {object} [opts]
+     * @param {boolean} [opts.resetReconnect=true] 是否同时清零「应用宝离线重连」计数。
+     *   手动停止 / 踢下线 / 删除账号时应清零；唯独自动重连流程(ws_reconnect_failed)必须传 false，
+     *   否则每次断线都会被清零，导致 maxAttempts 永远不触发、无限重连。
      */
-    function stopWorker(accountId) {
+    function stopWorker(accountId, opts = {}) {
+        const { resetReconnect = true } = opts;
         const wrk = workers[accountId];
         if (!wrk) return;
 
-        // 手动停止账号：取消尚未触发的离线重连计划并清零计数
+        // 取消尚未触发的离线重连计划
         scheduler.clear(`reconnect_attempt_${accountId}`);
-        reconnectAttemptsMap.delete(accountId);
+        if (resetReconnect) {
+            // 仅「账号退役 / 用户主动停止」场景清零计数；自动重连循环内不在此清零
+            reconnectAttemptsMap.delete(accountId);
+        }
 
         const targetProc = wrk.process;
         wrk.stopping = true;
@@ -553,8 +561,9 @@ function createWorkerManager(deps) {
                 `账号 ${  wrk.name  } 连接中断，交由应用宝离线重连处理`,
                 accountId, wrk.name, { reason });
 
-            // 先停止当前 worker（清理进程）
-            stopWorker(accountId);
+            // 先停止当前 worker（清理进程）；注意：自动重连流程内【不】清零计数，
+            // 否则每次断线都被清零，maxAttempts 永不触发、无限重连。
+            stopWorker(accountId, { resetReconnect: false });
 
             // 应用宝离线重连：仅当全局配置开启时执行。Worker 内已无自动重连，
             // 此处是唯一的重连入口，按 reconnectDelayMin 延迟重启 Worker 并刷新 code。

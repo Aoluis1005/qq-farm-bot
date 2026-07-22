@@ -46,13 +46,19 @@ const currentAccountDisconnected = computed(() =>
   currentStatusReady.value && !status.value?.connection?.connected,
 )
 
-// 解析日志时间戳：后端 accountLog 的 time 为 "YYYY-MM-DD HH:mm:ss" 非 ISO 格式，
-// Date.parse 在部分引擎会返回 NaN，必须加容错兜底，否则排序崩溃导致旧日志乱序常驻。
+// 解析日志时间戳：后端 accountLog 的 time 为 "YYYY-MM-DD HH:mm:ss"（空格分隔，非标准 ISO），
+// Chrome/V8 下 Date.parse 会返回 NaN。若回退到 Date.now()，旧日志会被错误地排到列表最底部「常驻」，
+// 表现为“时间已过仍显示在日志最下方”。因此这里把空格替换为 'T' 转成 ISO 再解析。
 function parseLogTs(time: any): number {
+  if (time === null || time === undefined || time === '')
+    return Date.now()
   const t = Number(time)
   if (!Number.isNaN(t) && t > 0)
     return t
-  const parsed = Date.parse(String(time || ''))
+  let s = String(time).trim()
+  if (s.includes(' ') && /^\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}(:\d{2})?/.test(s))
+    s = s.replace(' ', 'T')
+  const parsed = Date.parse(s)
   if (!Number.isNaN(parsed))
     return parsed
   return Date.now()
@@ -61,7 +67,7 @@ function parseLogTs(time: any): number {
 const allLogs = computed(() => {
   const sLogs = statusLogs.value || []
   const aLogs = (statusAccountLogs.value || []).map((log: any) => ({
-    ts: parseLogTs(log.time || log.ts),
+    ts: parseLogTs(log.ts ?? log.time),
     time: log.time,
     tag: log.action === 'Error' ? '错误' : '系统',
     msg: log.reason ? `${log.msg} (${log.reason})` : log.msg,
