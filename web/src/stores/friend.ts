@@ -367,6 +367,30 @@ export const useFriendStore = defineStore('friend', () => {
     }
   }
 
+  async function deleteFriendsBatch(accountId: string, gids: number[], password?: string) {
+    if (!accountId || !gids || gids.length === 0)
+      return { ok: false, successCount: 0, failedCount: 0 }
+    try {
+      const res = await api.post('/api/friend/batch-delete', { gids, password }, {
+        headers: { 'x-account-id': accountId },
+      })
+      return {
+        ok: !!res.data.ok,
+        successCount: res.data.successCount || 0,
+        failedCount: res.data.failedCount || 0,
+        failed: res.data.failed || [],
+      }
+    }
+    catch (e: any) {
+      return {
+        ok: false,
+        successCount: 0,
+        failedCount: gids.length,
+        error: e?.response?.data?.error || e?.message || '批量删除失败',
+      }
+    }
+  }
+
   return {
     friends,
     loading,
@@ -396,5 +420,6 @@ export const useFriendStore = defineStore('friend', () => {
     removeKnownFriendGid,
     batchAddKnownFriendGids,
     removeUnsyncedKnownFriendGids,
+    deleteFriendsBatch,
   }
 })

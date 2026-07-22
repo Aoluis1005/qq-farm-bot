@@ -168,6 +168,39 @@ function registerAdminFriendRoutes({
     }
   });
 
+  app.post("/api/friend/batch-delete", async (req, res) => {
+    const accountId = getAccountOrRespond(req, res, access);
+    if (!accountId) return;
+
+    const gids = Array.isArray(req.body?.gids)
+      ? req.body.gids.map(Number).filter(Boolean)
+      : [];
+    if (gids.length === 0) {
+      return res.status(400).json({ ok: false, error: "请提供要删除的好友 GID 列表" });
+    }
+
+    const password = String(req.body?.password || "").trim();
+
+    const success = [];
+    const failed = [];
+    for (const gid of gids) {
+      try {
+        await provider.delFriend(accountId, gid);
+        success.push(gid);
+      } catch (error) {
+        failed.push({ gid, error: error?.message || String(error) });
+      }
+    }
+    res.json({
+      ok: true,
+      success,
+      failed,
+      successCount: success.length,
+      failedCount: failed.length,
+      hasPassword: !!password,
+    });
+  });
+
   app.post("/api/friend/:gid/delete", async (req, res) => {
     const accountId = getAccountOrRespond(req, res, access);
     if (!accountId) return;

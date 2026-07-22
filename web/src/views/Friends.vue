@@ -44,6 +44,7 @@ const TABS = [
   { key: 'friends', label: '好友列表', icon: 'i-carbon-user-multiple' },
   { key: 'blacklist', label: '好友黑名单', icon: 'i-carbon-list-blocked' },
   { key: 'visitors', label: '最近访客', icon: 'i-carbon-user-activity' },
+  { key: 'delete', label: '一键删除', icon: 'i-carbon-trash-can' },
 ] as const
 
 const activeTab = ref<FriendTabKey>('friends')
@@ -72,6 +73,87 @@ const dogFilters = [
   { key: 'noGuardDog', label: '无护主犬' },
   { key: 'guardDog', label: '有护主犬' },
 ] as const
+
+// 一键删除好友弹窗状态
+const showDeleteModal = ref(false)
+const deleteLevelThreshold = ref<number | null>(null)
+const skipGuardDog = ref(true)
+const deletePassword = ref('')
+const deleteSubmitting = ref(false)
+
+function isGuardDog(friend: any) {
+  return Number(friend?.dogId) === 90021
+}
+
+const guardDogCount = computed(() =>
+  friends.value.filter((friend: any) => Number(friend?.dogId) === 90021).length,
+)
+
+const deleteTargetFriends = computed(() => {
+  const threshold = Number(deleteLevelThreshold.value)
+  if (!Number.isFinite(threshold) || threshold <= 0)
+    return []
+  return friends.value.filter((friend: any) => {
+    const level = Number(friend?.level || 0)
+    if (!level || level > threshold)
+      return false
+    if (skipGuardDog.value && isGuardDog(friend))
+      return false
+    return true
+  })
+})
+
+function openDeleteModal() {
+  deleteLevelThreshold.value = null
+  skipGuardDog.value = true
+  deletePassword.value = ''
+  showDeleteModal.value = true
+}
+
+function closeDeleteModal() {
+  if (deleteSubmitting.value)
+    return
+  showDeleteModal.value = false
+}
+
+async function handleBatchDeleteFriends() {
+  if (!currentAccountId.value)
+    return
+  const threshold = Number(deleteLevelThreshold.value)
+  if (!Number.isFinite(threshold) || threshold <= 0) {
+    toast.error('请输入有效的删除等级')
+    return
+  }
+  const target = deleteTargetFriends.value
+  if (target.length === 0) {
+    toast.error('没有符合删除条件的好友')
+    return
+  }
+  const password = deletePassword.value.trim()
+  if (!password) {
+    toast.error('请输入二级密码验证身份')
+    return
+  }
+  const gids = target.map(f => Number(f.gid))
+  deleteSubmitting.value = true
+  try {
+    const result = await friendStore.deleteFriendsBatch(currentAccountId.value, gids, password)
+    await friendStore.fetchFriends(currentAccountId.value, true)
+    if (result.ok) {
+      toast.success(`已删除 ${result.successCount} 个好友${result.failedCount > 0 ? `，失败 ${result.failedCount} 个` : ''}`)
+      closeDeleteModal()
+    }
+    else {
+      toast.error(result.error || '批量删除失败')
+    }
+  }
+  catch (e: any) {
+    toast.error(e?.message || '批量删除失败')
+  }
+  finally {
+    deleteSubmitting.value = false
+  }
+}
 const expandedFriends = ref<Set<string>>(new Set())
 const currentPage = ref(1)
 const pageSize = 25
@@ -174,10 +256,7 @@ const sortedFriends = computed(() => {
   })
 })
 
-const guardDogCount = computed(() =>
-  sortedFriends.value.filter((friend: any) => Number(friend?.dogId) === 90021).length,
-)
-const noGuardDogCount = computed(() => sortedFriends.value.length - guardDogCount.value)
+const noGuardDogCount = computed(() => friends.value.length - guardDogCount.value)
 
 const dogFilteredFriends = computed(() => {
   if (dogFilter.value === 'guardDog')
@@ -973,6 +1052,29 @@ async function handleBatchAddKnownFriendGids() {
           </div>
         </div>
       </div>
+
+      <div v-else-if="activeTab === 'delete'" class="space-y-4">
+        <div class="rounded-lg bg-amber-50 p-3 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+          删除为不可恢复操作，请谨慎操作。护主犬标记依赖已获取的狗信息：若列表未准确显示护主犬，请先到「好友列表」页点击「获取狗信息」再回来筛选。
+        </div>
+
+        <div class="flex flex-col items-center justify-center rounded-lg bg-white p-10 text-center shadow dark:bg-gray-800">
+          <div class="i-carbon-trash-can mx-auto mb-4 text-5xl text-gray-300" />
+          <div class="text-base text-gray-700 font-medium dark:text-gray-200">
+            一键删除好友
+          </div>
+          <p class="mt-2 max-w-md text-sm text-gray-400">
+            按等级批量删除好友，可选择保留有护主犬的好友，并需要二级密码验证身份。
+          </p>
+          <button
+            class="mt-5 rounded-lg px-5 py-2.5 text-sm text-white transition"
+            :style="{ backgroundColor: '#ef4444' }"
+            @click="openDeleteModal"
+          >
+            一键删除好友
+          </button>
+        </div>
+      </div>
     </template>
 
     <ConfirmModal
@@ -1112,6 +1214,86 @@ async function handleBatchAddKnownFriendGids() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 一键删除好友弹窗 -->
+      <div
+        v-if="showDeleteModal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+        @click.self="closeDeleteModal"
+      >
+        <div class="max-w-md w-full rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+          <h3 class="mb-2 text-lg text-gray-800 font-semibold dark:text-gray-100">
+            一键删除好友
+          </h3>
+          <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+            将删除等级小于或等于指定值的所有好友，请谨慎操作！
+          </p>
+
+          <div class="mb-4 text-sm text-gray-700 dark:text-gray-200">
+            当前好友总数: <span class="font-semibold">{{ friends.length }}</span>，
+            其中等级 ≤ <span class="text-red-600 font-semibold">{{ Number.isFinite(Number(deleteLevelThreshold)) && Number(deleteLevelThreshold) > 0 ? deleteLevelThreshold : '?' }}</span> 的好友:
+            <span class="font-semibold">{{ deleteTargetFriends.length }}</span> 个
+          </div>
+
+          <div class="mb-4">
+            <label class="mb-1 block text-sm text-gray-700 font-medium dark:text-gray-200">
+              删除等级 ≤（含）
+            </label>
+            <input
+              v-model.number="deleteLevelThreshold"
+              type="number"
+              min="1"
+              placeholder="请输入等级，例如: 10"
+              class="w-full border border-gray-300 rounded-lg bg-white px-3 py-2 text-sm dark:border-gray-600 focus:border-blue-500 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+          </div>
+
+          <label class="mb-4 flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
+            <input v-model="skipGuardDog" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+            <span>
+              不删除有
+              <span class="text-red-600 font-medium">护主犬</span>
+              的好友（共 {{ guardDogCount }} 个）
+            </span>
+          </label>
+
+          <div class="mb-6">
+            <label class="mb-1 block text-sm text-gray-700 font-medium dark:text-gray-200">
+              二级密码（验证身份）
+            </label>
+            <div class="relative">
+              <input
+                v-model="deletePassword"
+                type="password"
+                placeholder="请输入二级密码"
+                class="w-full border border-gray-300 rounded-lg bg-white px-3 py-2 pr-10 text-sm dark:border-gray-600 focus:border-blue-500 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+              <div class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                <div class="i-carbon-view-off text-lg" />
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3">
+            <button
+              class="border border-gray-300 rounded-lg bg-white px-4 py-2 text-sm text-gray-700 transition dark:border-gray-600 dark:bg-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-600"
+              :disabled="deleteSubmitting"
+              @click="closeDeleteModal"
+            >
+              取消
+            </button>
+            <button
+              class="rounded-lg px-4 py-2 text-sm text-white transition disabled:opacity-50"
+              :disabled="deleteSubmitting || !deletePassword.trim() || deleteTargetFriends.length === 0"
+              :style="{ backgroundColor: '#ef4444' }"
+              @click="handleBatchDeleteFriends"
+            >
+              <div v-if="deleteSubmitting" class="i-svg-spinners-90-ring-with-bg mr-1 inline-block align-text-bottom" />
+              确定删除
+            </button>
           </div>
         </div>
       </div>
