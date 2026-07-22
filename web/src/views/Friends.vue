@@ -138,10 +138,13 @@ async function handleBatchDeleteFriends() {
   deleteSubmitting.value = true
   try {
     const result = await friendStore.deleteFriendsBatch(currentAccountId.value, gids, password)
-    await friendStore.fetchFriends(currentAccountId.value, true)
     if (result.ok) {
+      // 乐观更新：立即从本地列表移除已删除的好友，避免等待整表刷新
+      if (result.success && result.success.length > 0) {
+        const removed = new Set(result.success.map(Number))
+        friends.value = friends.value.filter(f => !removed.has(Number(f.gid)))
+      }
       toast.success(`已删除 ${result.successCount} 个好友${result.failedCount > 0 ? `，失败 ${result.failedCount} 个` : ''}`)
-      closeDeleteModal()
     }
     else {
       toast.error(result.error || '批量删除失败')
@@ -152,6 +155,12 @@ async function handleBatchDeleteFriends() {
   }
   finally {
     deleteSubmitting.value = false
+    // 删除请求结束即关闭弹窗、停止 loading（不再等待整表同步）
+    showDeleteModal.value = false
+  }
+  // 后台静默刷新好友列表（整表 forceSync 同步较慢，不阻塞确认按钮 loading）
+  if (currentAccountId.value) {
+    friendStore.fetchFriends(currentAccountId.value, true).catch(() => {})
   }
 }
 const expandedFriends = ref<Set<string>>(new Set())

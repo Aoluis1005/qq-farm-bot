@@ -371,11 +371,14 @@ export const useFriendStore = defineStore('friend', () => {
     if (!accountId || !gids || gids.length === 0)
       return { ok: false, successCount: 0, failedCount: 0 }
     try {
+      // 删除好友为逐个 RPC，好友较多时可能耗时数分钟，单独放大超时避免被默认 20s 误判为失败
       const res = await api.post('/api/friend/batch-delete', { gids, password }, {
         headers: { 'x-account-id': accountId },
+        timeout: 600000,
       })
       return {
         ok: !!res.data.ok,
+        success: Array.isArray(res.data.success) ? res.data.success.map(Number) : [],
         successCount: res.data.successCount || 0,
         failedCount: res.data.failedCount || 0,
         failed: res.data.failed || [],
