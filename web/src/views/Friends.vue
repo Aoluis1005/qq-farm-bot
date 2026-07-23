@@ -461,6 +461,30 @@ async function handleToggleBlacklist(friend: any, e: Event) {
   await friendStore.toggleBlacklist(currentAccountId.value, Number(friend.gid))
 }
 
+async function handleDeleteFriend(friend: any, e: Event) {
+  e.stopPropagation()
+  if (!currentAccountId.value)
+    return
+  const gid = Number(friend?.gid) || 0
+  if (!gid)
+    return
+  const name = String(friend?.name || `GID ${gid}`).trim()
+  confirmAction(
+    `确定要删除好友「${name}」吗？此操作不可恢复，将直接从好友列表中移除该好友。`,
+    async () => {
+      const result = await friendStore.deleteFriend(currentAccountId.value!, gid)
+      if (result.ok) {
+        friends.value = friends.value.filter(f => Number(f.gid) !== gid)
+        toast.success(result.message || `已删除好友: ${name}`)
+      }
+      else {
+        toast.error(result.error || '删除好友失败')
+      }
+      return result
+    },
+  )
+}
+
 function getFriendStatusText(friend: any) {
   const p = friend.plant || {}
   const info = []
@@ -856,6 +880,7 @@ async function handleBatchAddKnownFriendGids() {
             @toggle-friend="toggleFriend"
             @operate="handleOp"
             @toggle-blacklist="handleToggleBlacklist"
+            @delete-friend="handleDeleteFriend"
             @remove-known-friend-gid="handleRemoveKnownFriendGid"
             @friend-avatar-error="handleFriendAvatarError"
           />

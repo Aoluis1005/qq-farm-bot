@@ -394,6 +394,27 @@ export const useFriendStore = defineStore('friend', () => {
     }
   }
 
+  async function deleteFriend(accountId: string, gid: number) {
+    if (!accountId || !gid)
+      return { ok: false, error: '参数无效' }
+    try {
+      const res = await api.post(`/api/friend/${gid}/delete`, {}, {
+        headers: { 'x-account-id': accountId },
+        timeout: 60000,
+      })
+      return {
+        ok: !!res.data.ok,
+        message: res.data.message,
+      }
+    }
+    catch (e: any) {
+      return {
+        ok: false,
+        error: e?.response?.data?.error || e?.message || '删除好友失败',
+      }
+    }
+  }
+
   return {
     friends,
     loading,
@@ -424,5 +445,6 @@ export const useFriendStore = defineStore('friend', () => {
     batchAddKnownFriendGids,
     removeUnsyncedKnownFriendGids,
     deleteFriendsBatch,
+    deleteFriend,
   }
 })

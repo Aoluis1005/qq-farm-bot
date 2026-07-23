@@ -27,6 +27,7 @@ const emit = defineEmits<{
   (e: 'toggleFriend', friendId: string): void
   (e: 'operate', friendId: string, type: FriendActionType, event: Event): void
   (e: 'toggleBlacklist', friend: any, event: Event): void
+  (e: 'deleteFriend', friend: any, event: Event): void
   (e: 'removeKnownFriendGid', friend: any, event: Event): void
   (e: 'friendAvatarError', friend: any): void
 }>()
@@ -135,6 +136,12 @@ function goToPage(page: number) {
           @click="emit('toggleBlacklist', friend, $event)"
         >
           {{ blacklistGidSet.has(Number(friend.gid)) ? '移出黑名单' : '加入黑名单' }}
+        </button>
+        <button
+          class="rounded bg-red-600 px-3 py-2 text-sm text-white transition hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600"
+          @click="emit('deleteFriend', friend, $event)"
+        >
+          删除好友
         </button>
         <button
           v-if="isQqAccount && knownFriendGidSet.has(Number(friend.gid))"
