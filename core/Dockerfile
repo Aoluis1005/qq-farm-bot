@@ -16,6 +16,7 @@ RUN pnpm config set registry https://registry.npmmirror.com/ \
 
 COPY core ./core
 COPY web ./web
+COPY UPDATE_README.md /app/UPDATE_README.md
 
 RUN pnpm build:web
 
