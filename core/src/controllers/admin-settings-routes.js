@@ -130,6 +130,10 @@ function buildSettingsPayload(store, accountId, currentUser) {
       typeof store.getFertilizerBuyCheckIntervalMinutes === "function"
         ? store.getFertilizerBuyCheckIntervalMinutes(accountId)
         : 30,
+    mysteryAutoBuyCurrencies:
+      accountId && typeof store.getMysteryAutoBuyCurrencies === "function"
+        ? store.getMysteryAutoBuyCurrencies(accountId)
+        : [],
     goldenBugKeepCount: Number(accountConfig.goldenBugKeepCount) || 0,
     goldenBugRoundLimit: Number(accountConfig.goldenBugRoundLimit) || 24,
     autoAcceptFriendMinLevel:

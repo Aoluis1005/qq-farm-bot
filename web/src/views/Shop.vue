@@ -6,6 +6,7 @@ import ConfirmModal from '@/components/ConfirmModal.vue'
 import DecorationGoodsCard from '@/components/shop/DecorationGoodsCard.vue'
 import MallGoodsCard from '@/components/shop/MallGoodsCard.vue'
 import MysteryGoodsCard from '@/components/shop/MysteryGoodsCard.vue'
+import MysteryAutoBuyCard from '@/components/shop/MysteryAutoBuyCard.vue'
 import PetGoodsCard from '@/components/shop/PetGoodsCard.vue'
 import PurchaseQuantityModal from '@/components/shop/PurchaseQuantityModal.vue'
 import SeedGoodsCard from '@/components/shop/SeedGoodsCard.vue'
@@ -445,6 +446,7 @@ onMounted(() => {
       </div>
 
       <div v-else class="space-y-4">
+        <MysteryAutoBuyCard :account-id="currentAccountId" />
         <div v-if="mysteryError" class="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
           {{ mysteryError }}
         </div>

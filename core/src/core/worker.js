@@ -100,6 +100,7 @@ const {
 } = require('../utils/network');
 const { loadProto } = require('../utils/proto');
 const { setLogHook, log, toNum } = require('../utils/utils');
+const { startMysteryAutoBuyTimer, stopMysteryAutoBuyTimer } = require('../services/mystery-scheduler');
 
 // 设置环境变量中的账号ID
 if (parentPort && workerData && workerData.accountId && !process.env.FARM_ACCOUNT_ID) {
@@ -535,6 +536,18 @@ function applyRuntimeConfig(config, syncStatusAfter = false) {
                     if (!loginReady) return;
                     await runGoldenBugPlacement({ force: true });
                 });
+            }
+
+            // 神秘商人自动购买：开关变化（或首次开启）时按当前状态同步定时器
+            const prevMystery = !!(prevAuto && prevAuto.mystery_auto_buy);
+            const newMystery = !!(newAuto && newAuto.mystery_auto_buy);
+            if (newMystery && !prevMystery) {
+                workerScheduler.setTimeoutTask('mystery_auto_buy_start', 1000, () => {
+                    startMysteryAutoBuyTimer();
+                });
+            }
+            else if (!newMystery && prevMystery) {
+                stopMysteryAutoBuyTimer();
             }
         }
     }

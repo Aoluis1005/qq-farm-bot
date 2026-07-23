@@ -209,6 +209,7 @@ function createDataProvider(deps) {
                 bagSeedPriority: s.bagSeedPriority,
                 bagSeedFallbackStrategy: s.bagSeedFallbackStrategy,
                 bagPriorityLandTypes: s.bagPriorityLandTypes,
+                mysteryAutoBuyCurrencies: s.mysteryAutoBuyCurrencies,
             };
             store.applyConfigSnapshot(patch, { accountId: id });
             const rev = nextConfigRevision();
@@ -237,6 +238,7 @@ function createDataProvider(deps) {
                 bagSeedPriority: store.getBagSeedPriority(id),
                 bagSeedFallbackStrategy: store.getBagSeedFallbackStrategy(id),
                 bagPriorityLandTypes: store.getBagPriorityLandTypes(id),
+                mysteryAutoBuyCurrencies: store.getMysteryAutoBuyCurrencies(id),
                 configRevision: rev
             };
         },

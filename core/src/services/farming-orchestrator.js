@@ -9,6 +9,7 @@ const { analyzeLands, resolveRemovableHarvestedLands } = require('./farm-land-an
 const { runFertilizerByConfig } = require('./farm-fertilizer');
 const { autoPlantEmptyLands } = require('./planting-service');
 const { startFertilizerBuyCheckTimer, stopFertilizerBuyCheckTimer } = require('./farm-scheduler');
+const { startMysteryAutoBuyTimer, stopMysteryAutoBuyTimer } = require('./mystery-scheduler');
 
 // ─── 状态标记 ───
 
@@ -295,6 +296,7 @@ function startFarmCheckLoop(options = {}) {
   networkEvents.on('landsChanged', onLandsChangedPush);
   if (!externalSchedulerMode) scheduleNextFarmCheck(1000); // 1 秒后首次检查
   startFertilizerBuyCheckTimer();
+  startMysteryAutoBuyTimer();
 }
 
 /** 收到地块变化推送时的响应 */
@@ -319,6 +321,7 @@ function stopFarmCheckLoop() {
   farmScheduler.clearAll();
   networkEvents.removeListener('landsChanged', onLandsChangedPush);
   stopFertilizerBuyCheckTimer();
+  stopMysteryAutoBuyTimer();
 }
 
 function refreshFarmCheckLoop(delayMs = 0) {

@@ -214,6 +214,7 @@ const DEFAULT_AUTOMATION = {
     fertilizer_gift: false,
     fertilizer_buy_organic: false,
     fertilizer_buy_normal: false,
+    mystery_auto_buy: false,
     sell: false,
     fertilizer: 'smart_normal',
     fertilizer_multi_season: true,
@@ -268,6 +269,7 @@ const DEFAULT_ACCOUNT_CONFIG = {
     fertilizerBuyNormalCount: 1,
     fertilizerBuyNormalThresholdHours: 10,
     fertilizerBuyCheckIntervalMinutes: 60,
+    mysteryAutoBuyCurrencies: [],
     bagSeedPriority: [],
     bagSeedFallbackStrategy: 'level',
     bagPriorityLandTypes: [...DEFAULT_FERTILIZER_LAND_TYPES],
@@ -660,6 +662,14 @@ function normalizeAccountConfig(raw, fallbackConfig = accountFallbackConfig) {
         cfg.fertilizerBuyCheckIntervalMinutes = Math.max(1, Math.min(1440, Number(input.fertilizerBuyCheckIntervalMinutes) || 60));
     }
 
+    // 神秘商人自动购买货币类型
+    if (Array.isArray(input.mysteryAutoBuyCurrencies)) {
+        const ALLOWED_MYSTERY_CURRENCIES = [1001, 1002, 1003, 1005];
+        cfg.mysteryAutoBuyCurrencies = input.mysteryAutoBuyCurrencies
+            .map(n => Number(n))
+            .filter(n => ALLOWED_MYSTERY_CURRENCIES.includes(n));
+    }
+
     // 自动接受好友最低等级
     if (input.autoAcceptFriendMinLevel !== undefined && input.autoAcceptFriendMinLevel !== null) {
         cfg.autoAcceptFriendMinLevel = Math.max(0, Math.min(200, Number(input.autoAcceptFriendMinLevel) || 0));
@@ -707,6 +717,7 @@ function pickDefaultPlanConfig(raw) {
         fertilizerBuyNormalCount: cfg.fertilizerBuyNormalCount,
         fertilizerBuyNormalThresholdHours: cfg.fertilizerBuyNormalThresholdHours,
         fertilizerBuyCheckIntervalMinutes: cfg.fertilizerBuyCheckIntervalMinutes,
+        mysteryAutoBuyCurrencies: [...cfg.mysteryAutoBuyCurrencies],
         goldenBugKeepCount: cfg.goldenBugKeepCount,
         goldenBugRoundLimit: cfg.goldenBugRoundLimit,
         autoAcceptFriendMinLevel: cfg.autoAcceptFriendMinLevel,
@@ -1065,6 +1076,7 @@ function getConfigSnapshot(accountId) {
         goldenBugKeepCount: Math.max(0, Math.min(9999, Number(cfg.goldenBugKeepCount) || 0)),
         goldenBugRoundLimit: Math.max(1, Math.min(100, Number(cfg.goldenBugRoundLimit) || 24)),
         friendHelpExpExhausted: cfg.friendHelpExpExhausted === true,
+        mysteryAutoBuyCurrencies: [...cfg.mysteryAutoBuyCurrencies || []],
         ui
     };
 }
@@ -1160,6 +1172,12 @@ function applyConfigSnapshot(patch = {}, opts = {}) {
     }
     if (patch.fertilizerBuyCheckIntervalMinutes !== undefined && patch.fertilizerBuyCheckIntervalMinutes !== null) {
         cfg.fertilizerBuyCheckIntervalMinutes = Math.max(1, Math.min(1440, Number(patch.fertilizerBuyCheckIntervalMinutes) || 60));
+    }
+    if (Array.isArray(patch.mysteryAutoBuyCurrencies)) {
+        const ALLOWED_MYSTERY_CURRENCIES = [1001, 1002, 1003, 1005];
+        cfg.mysteryAutoBuyCurrencies = patch.mysteryAutoBuyCurrencies
+            .map(n => Number(n))
+            .filter(n => ALLOWED_MYSTERY_CURRENCIES.includes(n));
     }
     if (patch.autoAcceptFriendMinLevel !== undefined && patch.autoAcceptFriendMinLevel !== null) {
         cfg.autoAcceptFriendMinLevel = Math.max(0, Math.min(200, Number(patch.autoAcceptFriendMinLevel) || 0));
@@ -1336,6 +1354,15 @@ function getFertilizerBuyNormalThresholdHours(accountId) {
 
 function getFertilizerBuyCheckIntervalMinutes(accountId) {
     return Math.max(1, Math.min(1440, Number(getAccountConfigSnapshot(accountId).fertilizerBuyCheckIntervalMinutes) || 60));
+}
+
+function isMysteryAutoBuyOn(accountId) {
+    return !!getAccountConfigSnapshot(accountId).automation.mystery_auto_buy;
+}
+
+function getMysteryAutoBuyCurrencies(accountId) {
+    const snapshot = getAccountConfigSnapshot(accountId);
+    return Array.isArray(snapshot.mysteryAutoBuyCurrencies) ? [...snapshot.mysteryAutoBuyCurrencies] : [];
 }
 
 function getPlantBlacklist(accountId) {
@@ -1899,6 +1926,8 @@ module.exports = {
     getFertilizerBuyNormalCount,
     getFertilizerBuyNormalThresholdHours,
     getFertilizerBuyCheckIntervalMinutes,
+    isMysteryAutoBuyOn,
+    getMysteryAutoBuyCurrencies,
     getUI,
     setUITheme,
     getOfflineReminder,

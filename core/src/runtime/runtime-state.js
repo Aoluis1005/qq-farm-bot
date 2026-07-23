@@ -57,6 +57,7 @@ function createRuntimeState(deps) {
             bagSeedFallbackStrategy: store.getBagSeedFallbackStrategy(accountId),
             bagPriorityLandTypes: store.getBagPriorityLandTypes(accountId),
             autoAcceptFriendMinLevel: store.getAutoAcceptFriendMinLevel(accountId),
+            mysteryAutoBuyCurrencies: store.getMysteryAutoBuyCurrencies(accountId),
             __revision: configRevision
         };
     }

@@ -17,6 +17,7 @@ export interface AutomationConfig {
   fertilizer_multi_season?: boolean
   fertilizer_land_types?: string[]
   fertilizer_smart_seconds?: number
+  mystery_auto_buy?: boolean
   friend_steal?: boolean
   friend_help?: boolean
   friend_bad?: boolean
@@ -101,6 +102,7 @@ export interface SettingsState {
   fertilizerBuyCheckIntervalMinutes: number
   goldenBugKeepCount: number
   goldenBugRoundLimit: number
+  mysteryAutoBuyCurrencies: number[]
 }
 
 function createDefaultOfflineReminder(): OfflineConfig {
@@ -161,6 +163,7 @@ export const useSettingStore = defineStore('setting', () => {
     fertilizerBuyCheckIntervalMinutes: 30,
     goldenBugKeepCount: 0,
     goldenBugRoundLimit: 24,
+    mysteryAutoBuyCurrencies: [],
   })
   const loading = ref(false)
   let fetchRequestId = 0
@@ -196,6 +199,7 @@ export const useSettingStore = defineStore('setting', () => {
       fertilizerBuyCheckIntervalMinutes: 30,
       goldenBugKeepCount: 0,
       goldenBugRoundLimit: 24,
+      mysteryAutoBuyCurrencies: [],
     }
     loading.value = false
   }
@@ -237,6 +241,9 @@ export const useSettingStore = defineStore('setting', () => {
         settings.value.fertilizerBuyCheckIntervalMinutes = d.fertilizerBuyCheckIntervalMinutes ?? 30
         settings.value.goldenBugKeepCount = d.goldenBugKeepCount ?? 0
         settings.value.goldenBugRoundLimit = d.goldenBugRoundLimit ?? 24
+        settings.value.mysteryAutoBuyCurrencies = Array.isArray(d.mysteryAutoBuyCurrencies)
+          ? d.mysteryAutoBuyCurrencies
+          : []
         settings.value.bagSeedPriority = d.bagSeedPriority ?? []
         settings.value.bagSeedFallbackStrategy = d.bagSeedFallbackStrategy ?? 'level'
         settings.value.bagPriorityLandTypes = (d.bagPriorityLandTypes && d.bagPriorityLandTypes.length > 0)
@@ -276,6 +283,9 @@ export const useSettingStore = defineStore('setting', () => {
         fertilizerBuyCheckIntervalMinutes: newSettings.fertilizerBuyCheckIntervalMinutes ?? 30,
         goldenBugKeepCount: newSettings.goldenBugKeepCount ?? 0,
         goldenBugRoundLimit: newSettings.goldenBugRoundLimit ?? 24,
+        mysteryAutoBuyCurrencies: Array.isArray(newSettings.mysteryAutoBuyCurrencies)
+          ? newSettings.mysteryAutoBuyCurrencies
+          : [],
       }
 
       await api.post('/api/settings/save', settingsPayload, {
