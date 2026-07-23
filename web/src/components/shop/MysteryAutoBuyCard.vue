@@ -73,8 +73,8 @@ async function persist() {
   }
 }
 
-function onToggle(value: boolean) {
-  enabled.value = value
+function onToggle(value: boolean | undefined) {
+  enabled.value = value ?? false
   persist()
 }
 
