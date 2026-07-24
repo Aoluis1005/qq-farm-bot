@@ -2,6 +2,7 @@ import { useStorage } from '@vueuse/core'
 import axios from 'axios'
 import NProgress from 'nprogress'
 import { createRouter, createWebHistory } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import { menuRoutes } from './menu'
 import 'nprogress/nprogress.css'
 
@@ -27,8 +28,11 @@ async function ensureTokenValid() {
     timeout: 6000,
   }).then((res) => {
     const ok = !!(res.data && res.data.ok)
-    if (ok)
+    if (ok) {
       validatedToken = token
+      const userStore = useUserStore()
+      userStore.fetchUserInfo().catch(() => {})
+    }
     return ok
   }).catch(() => false).finally(() => {
     validatingPromise = null
