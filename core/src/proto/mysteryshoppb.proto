@@ -1,3 +1,4 @@
+Warning: Permanently added '111.229.128.163' (ED25519) to the list of known hosts.
 syntax = "proto3";
 
 package gamepb.mysteryshoppb;
@@ -11,7 +12,7 @@ service MysteryShopService {
 message GetActiveNPCRequest {}
 
 message MysteryShopNPC {
-  int32 npc_id = 1;
+  int64 npc_id = 1;
   int32 item_id = 2;
   int32 item_type = 3;
   int32 item_count = 4;
@@ -30,7 +31,7 @@ message GetActiveNPCReply {
 }
 
 message BuyRequest {
-  int32 npc_id = 1;
+  int64 npc_id = 1;
 }
 
 message MysteryShopReward {

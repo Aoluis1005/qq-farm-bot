@@ -40,8 +40,15 @@ async function getActiveMysteryShop() {
   const request = types.GetActiveMysteryNPCRequest.encode(
     types.GetActiveMysteryNPCRequest.create({})
   ).finish();
-  const { body } = await sendMsgAsync(SERVICE, 'GetActiveNPC', request);
-  return normalizeNPC(types.GetActiveMysteryNPCReply.decode(body));
+  // 神秘商人超时时间加到 60 秒（比默认 20 秒长）
+  try {
+    const { body } = await sendMsgAsync(SERVICE, 'GetActiveNPC', request, 60000);
+    return normalizeNPC(types.GetActiveMysteryNPCReply.decode(body));
+  } catch (e) {
+    // 首次超时重试一次
+    const { body } = await sendMsgAsync(SERVICE, 'GetActiveNPC', request, 60000);
+    return normalizeNPC(types.GetActiveMysteryNPCReply.decode(body));
+  }
 }
 
 async function buyMysteryShopGoods(npcId) {
