@@ -2,6 +2,25 @@ syntax = "proto3";
 
 package gamepb.friendpb;
 
+// ============ 好友服务（从抓包恢复）============
+service FriendService {
+  // 已确认存在的接口
+  rpc GetAll(GetAllRequest) returns (GetAllReply);
+  rpc GetGameFriends(GetGameFriendsRequest) returns (GetGameFriendsReply);
+  rpc SyncAll(SyncAllRequest) returns (SyncAllReply);
+  rpc GetApplications(GetApplicationsRequest) returns (GetApplicationsReply);
+  rpc AcceptFriends(AcceptFriendsRequest) returns (AcceptFriendsReply);
+  rpc RejectFriends(RejectFriendsRequest) returns (RejectFriendsReply);
+  rpc DelFriend(DelFriendRequest) returns (DelFriendReply);
+  rpc SetBlockApplications(SetBlockApplicationsRequest) returns (SetBlockApplicationsReply);
+
+  // 候选接口（待抓包确认）
+  rpc ApplyFriend(ApplyFriendRequest) returns (ApplyFriendReply);
+  rpc SendInvite(SendInviteRequest) returns (SendInviteReply);
+  rpc AddFriend(AddFriendRequest) returns (AddFriendReply);
+  rpc ReportInvitation(ReportInvitationRequest) returns (ReportInvitationReply);
+}
+
 // ============ 好友农场摘要信息 ============
 message Plant {
     int64 dry_time_sec = 1;      // 缺水倒计时秒
@@ -130,4 +149,59 @@ message FriendApplicationReceivedNotify {
 // 好友添加成功通知 (对方同意后)
 message FriendAddedNotify {
     repeated GameFriend friends = 1;
+}
+
+// ============ 候选：主动加好友（待抓包确认）============
+
+// 通用占位
+message ApplyFriendRequest {
+    int64 target_gid = 1;
+    string target_open_id = 2;
+    int64 share_cfg_id = 3;
+    string share_key = 4;
+    int64 doc_id = 5;
+    string scene_id = 6;
+}
+
+message ApplyFriendReply {
+    bool success = 1;
+    int64 error_code = 2;
+    string error_message = 3;
+}
+
+message SendInviteRequest {
+    int64 target_gid = 1;
+    string target_open_id = 2;
+    int64 share_cfg_id = 3;
+    string share_key = 4;
+    int64 doc_id = 5;
+    string scene_id = 6;
+}
+
+message SendInviteReply {
+    bool success = 1;
+}
+
+message AddFriendRequest {
+    int64 target_gid = 1;
+    string target_open_id = 2;
+    int64 share_cfg_id = 3;
+    string share_key = 4;
+    int64 doc_id = 5;
+    string scene_id = 6;
+}
+
+message AddFriendReply {
+    bool success = 1;
+}
+
+message ReportInvitationRequest {
+    int64 sharer_id = 1;
+    string sharer_open_id = 2;
+    int64 share_cfg_id = 3;
+    string scene_id = 4;
+}
+
+message ReportInvitationReply {
+    bool success = 1;
 }
