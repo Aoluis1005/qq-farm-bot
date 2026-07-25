@@ -1,0 +1,35 @@
+# 好友数据（已清洗，时间戳已去除，按 uid 去重）
+# 复制本文件内容到 qq-farm-bot/core/share.txt 后，bot 会自动用 processInviteCodes() 逐条 ReportArkClick
+uid=1229865305&openid=oL61MvulTCGB114ka_MEi8Tc2Owo8&share_source=1&doc_id=5&share_key=d1e306008c614a48891fb646c9cd7ab9
+uid=1055712958&openid=oL61Mvvp7XgFqap_EjBLKP93uRJdk&share_source=1&doc_id=5&share_key=d9cbc96ede1d044e55867201567960937e
+uid=1234148008&openid=oL61MvqFKQbo2kce2zhOnQNVbnhg&share_source=1&doc_id=0&share_key=6d54fc1f2c494a82a98492f0ca7f3dcc
+uid=1221740431&openid=oL61MvOlHklFzjoXaqAkGkBtdJlg&share_source=9&doc_id=7&share_key=c53286d35b9048344af75d63fb5cc3d3
+uid=1246080682&openid=oL61MvvGZg9xBZlhDtwMb5SmIge0&share_source=1&doc_id=25&share_key=0ce87b674685480da79c8727f10a1dcc
+uid=1215482024&openid=oL61MvBIHhnbTsHo-bNhneEDxaCg&share_source=1&doc_id=8&share_key=1b6fb91d2880493449d97464ad709e4b3
+uid=1133405138&openid=oL61MvpisdRojSRPkR81KBRBEmLE8&share_source=1&doc_id=7&share_key=d498f5e1789e4664a2b05be9448cf99e
+uid=1220309394&openid=oL61MvqFF49sQfOwvwdvzpugTlGQ&share_source=9&doc_id=25&share_key=a7704e25d6c94f74bafe5955b3f0b58
+uid=1242369029&openid=oL61MvpFGlBhyJgovjE7fWxTtP6k&share_source=1&doc_id=0&share_key=8a36186b9fed41d6a3fe701395b1840
+uid=1246871757&openid=oL61MvqkOXY0ed2233HUySZP6DXg&share_source=8&doc_id=7&share_key=d194d9eb95d346f5b406fb6112f2fe89
+uid=1101203921&openid=oL61MvguOZM5P45H_QsLKePYLfA&share_source=1&doc_id=8&share_key=b069f0f557e349a4a0cceba8c0a07b63
+uid=1218383461&openid=oL61MviT3UQSPmKzg_cB_Kbo_2OI&share_source=5&doc_id=8&share_key=4cceec41c07fb4c60817c39256613a509
+uid=1189846675&openid=oL61MvttE6VgJARFLJKHrg8-fzgl5&share_source=1&doc_id=0&share_key=b9f2d79e879467297e4c8d8fa16dd9d
+uid=1218752843&openid=oL61MvIUpRJILEPZG4Tapcy5e19k&share_source=9&doc_id=25&share_key=478232534bef448fd8d32ab6ba7d516e8
+uid=1217414910&openid=oL61Mvw3WDSbVriUVmaf75pQ9Dn7E&share_source=1&doc_id=11&share_key=e42cace8a27f46e3b1fe4b934bcfd767e
+uid=1233071064&openid=oL61Mvo9JeNINY4A87FZlOOkcqjMg&share_source=1&doc_id=25&share_key=2d489913b64c478683597779bb01090e
+uid=1239988590&openid=oL61MvrmnhXxd6I9iCquPHIXPRbuI&share_source=1&doc_id=7&share_key=e0d149190c984525a7574378e2e7b41
+uid=1222394680&openid=oL61MvLFbpOpl0blDIHFIFPLBoRk&share_source=5&doc_id=25&share_key=e2db6ba568194298a2e4d02eeabb641f2
+uid=1251128885&openid=oL61Mwv4adBjtv6NEGgDtKJJr-Ak&share_source=1&doc_id=8&share_key=00619d6f62a44d1da5d5107568a102de
+uid=1218251240&openid=oL61MvsWB_dp193zulXtFDZt6GTk&share_source=9&doc_id=11&share_key=f4ebc5346ee5487dabcc9f67560748ba
+uid=1217586371&openid=oL61MvieCTzK6VfeONFlQONNGn3g&share_source=8&doc_id=11&share_key=7dff589798bd4d659afce5cda5045b22
+uid=1092733757&openid=oL61MvN66EspH89ZILca44Nx-7Uxg&share_source=1&doc_id=8&share_key=f07e442296194e30ba7077bff9047352
+uid=1125495534&openid=oL61Mvo_-JCt5iCnxoyXb9D1xkTg&share_source=1&doc_id=26&share_key=042624ca40c453e85d558ae8db04511
+uid=1216150186&openid=oL61MvrLKKUNwrAfE2ir-SIINEX&share_source=1&doc_id=12&share_key=37c47f932ec143f9998e57bdb94f7ae6
+uid=1110193558&openid=oL61MvpcZQ6SoO8YTVEtAdq69ynI&share_source=8&doc_id=26&share_key=5b58fdf36ea0442595cf21a3727dd59f
+uid=1228472005&openid=oL61Mwv-N8AH7XoxMT7l8PEQwgos&share_source=1&doc_id=0&share_key=84d9763cc9314ab5a453a26241a1359a
+uid=1225727683&openid=oL61MvKSxBQjfqtn6x9FXQpDAji4&share_source=8&doc_id=12&share_key=2fff198b93f5a44d29d812b0149052119
+uid=1229175898&openid=oL61MvpDDtq9Oy0Mb8xi_nhfaaTY&share_source=1&doc_id=7&share_key=44eff41cad0942e08a5462ea41c1ddd3
+uid=1222503036&openid=oL61Mvjv5v3sozYOhS-YQVcAtkOW&share_source=5&doc_id=5&share_key=2c72027364624d93a949b279db0c22c2
+uid=1236560498&openid=oL61Mvm5hk_iUln2L-Y-YaDD79Q&share_source=8&doc_id=5&share_key=e9655d9c1c3e4cffb1ed6b94a14ab8f8
+uid=1239641307&openid=oL61MvpbUl17oZ5l53QVTl2p-awB&share_source=5&doc_id=25&share_key=aadd50d4f9ed4555993a628960843f81
+uid=1153594243&openid=oL61MvmrFXP9zgflUIFPM0mhHkkAj9E&share_source=5&doc_id=5&share_key=2c872d01e2474c33bfb05ede947bb84e
+uid=1244357775&openid=oL61Mvvty48GekHJNrhhgDukpj7U&share_source=8&doc_id=11&share_key=1b49cb658e1f41dda3f7b6375e95b898
