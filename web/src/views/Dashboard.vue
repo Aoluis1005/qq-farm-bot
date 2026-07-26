@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useIntervalFn } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
-import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import api from '@/api'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
@@ -10,8 +10,10 @@ import { useAccountStore } from '@/stores/account'
 import { useBagStore } from '@/stores/bag'
 import { useStatusStore } from '@/stores/status'
 import { useToastStore } from '@/stores/toast'
+import { useAppStore } from '@/stores/app'
 import { formatCouponAmount, formatGoldAmount, formatGoldBeanAmount } from '@/utils/number-format'
 
+const appStore = useAppStore()
 const statusStore = useStatusStore()
 const accountStore = useAccountStore()
 const bagStore = useBagStore()
@@ -26,6 +28,62 @@ const {
 } = storeToRefs(statusStore)
 const { currentAccountId, currentAccount } = storeToRefs(accountStore)
 const { dashboardItems } = storeToRefs(bagStore)
+
+const showAccountDropdown = ref(false)
+const { accounts } = storeToRefs(accountStore)
+
+// 关闭下拉（点击外部）
+onMounted(() => {
+  document.addEventListener('click', closeAccountDropdown)
+})
+onUnmounted(() => {
+  document.removeEventListener('click', closeAccountDropdown)
+})
+function closeAccountDropdown(e: MouseEvent) {
+  const el = (e.target as HTMLElement)
+  if (!el.closest('[data-account-dropdown]')) showAccountDropdown.value = false
+}
+function selectAccount(acc: any) {
+  accountStore.setCurrentAccount(acc)
+  showAccountDropdown.value = false
+}
+function openAddAccount() {
+  showAccountDropdown.value = false
+  // 跳转设置页或打开弹窗
+}
+
+// 账号显示名
+function accountDisplayName(acc: any) {
+  if (!acc) return '选择账号'
+  return acc.nick || acc.name || acc.uin || acc.qq || acc.id || '选择账号'
+}
+
+// 当前账号的微信昵称（去括号备注）
+const nickName = computed(() => {
+  const acc = currentAccount.value
+  if (!acc) return '选择账号'
+  const status = statusStore.status?.status
+  const live = status?.name && status?.name !== '未登录' ? String(status.name).trim() : ''
+  return live || acc.nick || acc.name || acc.uin || acc.qq || '选择账号'
+})
+
+// 当前账号的头像 URL
+const currentAvatarSrc = computed(() => {
+  const acc = currentAccount.value
+  if (!acc) return ''
+  const status = statusStore.status?.status
+  const live = status?.avatar || status?.avatarUrl || status?.avatar_url
+  if (live) return String(live).trim()
+  const qq = String(acc.uin || acc.qq || '').trim()
+  if (/^\d+$/.test(qq)) return `https://q1.qlogo.cn/g?b=qq&nk=${qq}&s=100`
+  return ''
+})
+
+// 头像加载失败处理
+function onAvatarError(e: Event) {
+  const t = e.target as HTMLImageElement | null
+  if (t) t.style.display = 'none'
+}
 
 const logContainer = ref<HTMLElement | null>(null)
 const autoScroll = ref(true)
@@ -521,34 +579,81 @@ useIntervalFn(updateCountdowns, 1000)
   <div class="flex flex-col gap-5 pt-1 md:pt-2">
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-3 sm:grid-cols-2">
       <!-- 合并账号面板 -->
-      <div class="ui-card metric-card overflow-hidden rounded-lg">
+      <div class="ui-card metric-card overflow-visible rounded-lg">
         <div class="flex flex-col">
           <!-- 第一行：居中标题 -->
-          <div class="flex items-center justify-center gap-2 border-b border-gray-100/80 px-5 py-3 dark:border-gray-700/80">
-            <div class="i-fas-user-circle text-blue-500" />
-            <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">QQ农场智能助手</span>
+          <div class="flex items-center px-5 py-3 border-b border-gray-100/80 dark:border-gray-700/80">
+            <button class="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700" @click="appStore.toggleSidebar()">
+              <span class="i-carbon-menu text-base" />
+            </button>
+            <div class="flex flex-1 items-center justify-center gap-2">
+              <div class="i-fas-user-circle text-blue-500" />
+              <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">QQ农场智能助手</span>
+            </div>
+            <div class="w-7" />
           </div>
 
           <!-- 第二行：头像 + 数据 -->
           <div class="flex gap-4 px-5 py-4">
             <!-- 左侧头像块 -->
-            <div class="flex w-[100px] shrink-0 flex-col items-center gap-2">
+            <div class="flex w-[120px] shrink-0 flex-col items-center gap-2 pt-2">
               <!-- 头像 -->
-              <div class="relative flex h-[72px] w-[72px] items-center justify-center overflow-hidden rounded-[18px] bg-gradient-to-br from-gray-200 to-gray-300 ring-1 ring-gray-200 dark:from-gray-600 dark:to-gray-700 dark:ring-gray-600">
-                <div class="text-2xl font-bold text-white dark:text-gray-300">
+              <div class="relative flex h-[80px] w-[80px] items-center justify-center overflow-hidden rounded-[20px] bg-gradient-to-br from-gray-200 to-gray-300 ring-1 ring-gray-200 dark:from-gray-600 dark:to-gray-700 dark:ring-gray-600">
+                <img
+                  v-if="currentAvatarSrc"
+                  :src="currentAvatarSrc"
+                  :alt="displayName"
+                  class="h-full w-full object-cover"
+                  @error="onAvatarError"
+                >
+                <div v-show="!currentAvatarSrc" class="text-3xl font-bold text-white dark:text-gray-300">
                   {{ (displayName || '?').charAt(0).toUpperCase() }}
                 </div>
                 <div class="absolute -bottom-[3px] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border-2 border-white bg-blue-500 px-2 py-[1px] text-[10px] font-semibold text-white dark:border-gray-800">
-                  Lv.{{ status?.status?.level || 0 }}
+                  Lv.{{ String(status?.status?.level ?? 0) }}
                 </div>
               </div>
 
-              <!-- 昵称 + 切换 -->
-              <div class="flex items-center gap-1">
-                <span class="max-w-[80px] truncate text-xs font-semibold text-gray-800 dark:text-gray-200" :title="displayName">
-                  {{ displayName }}
+              <!-- 昵称 + 切换三角形（居中紧挨） -->
+              <div data-account-dropdown class="relative flex items-center justify-center gap-0.5">
+                <span class="max-w-[80px] truncate text-xs font-semibold text-gray-800 dark:text-gray-200" :title="String(nickName)">
+                  {{ nickName }}
                 </span>
-                <span class="cursor-pointer text-[10px] text-blue-500 hover:text-blue-600">切换 ▼</span>
+                <span
+                  class="cursor-pointer text-[10px] text-blue-500 transition-colors hover:text-blue-600 select-none"
+                  @click.stop="showAccountDropdown = !showAccountDropdown"
+                >
+                  ▼
+                </span>
+
+                <!-- 账号切换下拉框 -->
+                <div
+                  v-if="showAccountDropdown"
+                  class="absolute left-1/2 top-full z-50 mt-1 w-44 -translate-x-1/2 overflow-hidden rounded-lg border border-gray-200/70 bg-white/95 py-1 shadow-xl backdrop-blur-sm dark:border-gray-700/70 dark:bg-gray-900/95"
+                >
+                  <div class="max-h-60 overflow-y-auto">
+                    <button
+                      v-for="acc in accounts"
+                      :key="acc.id || acc.uin"
+                      class="flex w-full items-center gap-2 whitespace-nowrap px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100/60 dark:hover:bg-gray-700/50"
+                      :style="{ backgroundColor: currentAccount?.id === acc.id ? 'color-mix(in srgb, var(--theme-primary) 10%, transparent)' : undefined }"
+                      @click="selectAccount(acc)"
+                    >
+                      <span class="truncate">{{ accountDisplayName(acc) }}</span>
+                      <div v-if="currentAccount?.id === acc.id" class="i-carbon-checkmark shrink-0 ml-auto" :style="{ color: 'var(--theme-primary)' }" />
+                    </button>
+                  </div>
+                  <div class="border-t border-gray-100 pt-1 dark:border-gray-700">
+                    <button
+                      class="flex w-full items-center gap-2 whitespace-nowrap px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100/50 dark:hover:bg-gray-700/50"
+                      :style="{ color: 'var(--theme-primary)' }"
+                      @click="openAddAccount"
+                    >
+                      <div class="i-carbon-add" />
+                      <span>添加账号</span>
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <!-- EXP 进度条 -->
@@ -557,8 +662,12 @@ useIntervalFn(updateCountdowns, 1000)
                   <div class="h-full rounded-full bg-blue-500 transition-all duration-500" :style="{ width: `${getExpPercent(status?.levelProgress)}%` }" />
                 </div>
                 <div class="mt-0.5 text-center text-[9px] text-gray-400">
-                  EXP {{ status?.levelProgress?.current || 0 }}/{{ status?.levelProgress?.needed || '?' }}
+                  EXP {{ status?.levelProgress?.current || 0 }} / {{ status?.levelProgress?.needed || '?' }}
                 </div>
+                <div class="mt-0.5 text-center text-[9px] text-gray-400">
+                  效率: {{ expRate }}
+                </div>
+                <div class="text-center text-[9px] text-gray-400">{{ timeToLevel }}</div>
               </div>
             </div>
 

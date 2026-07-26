@@ -156,9 +156,9 @@ const connectionStatus = computed(() => {
 
 // 根据用户角色过滤导航菜单
 const navItems = computed(() => {
-  const isAdmin = userStore.isAdmin
+  const allowedNames = ['illustrated', 'analytics', 'settings', 'admin']
   return menuRoutes
-    .filter(item => item.showInNav !== false && (!item.adminOnly || isAdmin))
+    .filter(item => allowedNames.includes(item.name))
     .map(item => ({
       path: item.path ? `/${item.path}` : '/',
       label: item.label,
@@ -433,10 +433,9 @@ async function copyToken() {
               </span>
               <div class="mt-0.5 flex items-center gap-1.5">
                 <span
-                  class="rounded px-1 py-0.2 text-[10px] font-medium leading-tight"
-                  :class="userStore.isAdmin ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'"
+                  class="rounded px-1 py-0.2 text-[10px] font-medium leading-tight bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
                 >
-                  {{ userStore.isAdmin ? '管理员' : '用户' }}
+                  用户
                 </span>
                 <span v-if="userStore.userCard" class="truncate text-xs text-gray-400">
                   {{ getDurationLabel(userStore.userCard) }} {{ userStore.accountLimit }}额度

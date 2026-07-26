@@ -1,74 +1,22 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { menuRoutes } from '@/router/menu'
-import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
-const router = useRouter()
-const userStore = useUserStore()
 
-const primaryNames = ['dashboard', 'personal', 'friends', 'activity']
+const primaryNames = ['dashboard', 'friends', 'shop', 'activity', 'personal']
 const primaryItems = computed(() => menuRoutes.filter(item => primaryNames.includes(item.name)))
-
-const secondaryItems = computed(() => {
-  return menuRoutes.filter(item => {
-    if (primaryNames.includes(item.name)) return false
-    if (item.adminOnly && !userStore.isAdmin) return false
-    return true
-  })
-})
-
-const activeInSecondary = computed(() => {
-  return secondaryItems.value.some(item =>
-    item.path === '' ? route.path === '/' : route.path.startsWith(`/${item.path}`),
-  )
-})
-
-const showMorePanel = ref(false)
 
 function isActive(path: string): boolean {
   if (path === '') return route.path === '/' || route.path === ''
   return route.path.startsWith(`/${path}`)
 }
-
-function goTo(path: string) {
-  router.push(path === '' ? '/' : `/${path}`)
-  showMorePanel.value = false
-}
-
-function toggleMorePanel() { showMorePanel.value = !showMorePanel.value }
-function closeMorePanel() { showMorePanel.value = false }
 </script>
 
 <template>
   <div class="ambient-glow" />
   <div class="floating-nav-wrapper">
-    <Transition name="more-panel">
-      <div v-if="showMorePanel" class="more-panel">
-        <div class="more-panel-header">
-          <span class="more-panel-title">更多功能</span>
-          <button class="more-panel-close" @click="closeMorePanel">
-            <span class="i-carbon-close" />
-          </button>
-        </div>
-        <div class="more-panel-grid">
-          <button
-            v-for="item in secondaryItems"
-            :key="item.path"
-            class="more-panel-item"
-            :class="{ 'more-panel-item--active': isActive(item.path) }"
-            @click="goTo(item.path)"
-          >
-            <span class="more-panel-item-icon" :class="item.icon" />
-            <span class="more-panel-item-label">{{ item.label }}</span>
-          </button>
-        </div>
-      </div>
-    </Transition>
-    <Transition name="more-overlay">
-      <div v-if="showMorePanel" class="more-overlay" @click="closeMorePanel" />
-    </Transition>
     <nav class="floating-nav" role="navigation" aria-label="主导航">
       <router-link
         v-for="item in primaryItems"
@@ -76,19 +24,10 @@ function closeMorePanel() { showMorePanel.value = false }
         :to="item.path === '' ? '/' : `/${item.path}`"
         class="nav-item"
         :class="{ 'nav-item--active': isActive(item.path) }"
-        @click="closeMorePanel"
       >
         <span class="nav-item-icon" :class="item.icon" />
         <span class="nav-item-label">{{ item.label }}</span>
       </router-link>
-      <button
-        class="nav-item"
-        :class="{ 'nav-item--active': showMorePanel || activeInSecondary }"
-        @click="toggleMorePanel"
-      >
-        <span class="nav-item-icon i-carbon-overflow-menu-horizontal" />
-        <span class="nav-item-label">更多</span>
-      </button>
     </nav>
   </div>
 </template>
