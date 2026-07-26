@@ -38,4 +38,5 @@ module.exports = {
   syncFriendsFromGids,
   fetchFriendsDogInfo,
   delFriend: friendApi.delFriend,
+  applyFriend: friendApi.applyFriend,
 };

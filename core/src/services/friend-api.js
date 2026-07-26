@@ -667,6 +667,36 @@ async function acceptFriends(gids) {
 }
 
 /** Delete a friend by GID. */
+async function applyFriend(openid, opts = {}) {
+  if (!openid || typeof openid !== "string") {
+    throw new Error("缺少有效的目标 openid");
+  }
+  const payload = types.ApplyFriendRequest.encode(
+    types.ApplyFriendRequest.fromObject({
+      host_gid: openid,
+      reason: Number(opts.reason ?? 0),
+      host_type: Number(opts.hostType ?? 0),
+      share_key: opts.shareKey || "",
+    })
+  ).finish();
+  const { body, meta } = await sendMsgAsync(
+    "gamepb.friendpb.FriendService",
+    "ApplyFriend",
+    payload
+  );
+  if (meta && Number(meta.error_code || 0) !== 0) {
+    throw new Error(`服务器拒绝: code=${meta.error_code} ${meta.error_message || ""}`);
+  }
+  const reply = types.ApplyFriendReply.decode(body);
+  log("好友", `已向 ${openid} 发起好友申请`, {
+    module: "friend",
+    event: "申请加好友",
+    result: "ok",
+    openid,
+  });
+  return reply;
+}
+
 async function delFriend(gid) {
   const numericGid = toNum(gid);
   if (!numericGid) throw new Error('无效的好友 GID');
@@ -819,6 +849,7 @@ module.exports = {
   getApplications,
   acceptFriends,
   delFriend,
+  applyFriend,
   enterFriendFarm,
   leaveFriendFarm,
   checkCanOperateRemote,

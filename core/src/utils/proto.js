@@ -182,6 +182,8 @@ async function loadProto() {
     types.GetGameFriendsRequest = root.lookupType('gamepb.friendpb.GetGameFriendsRequest');
     types.DelFriendRequest = root.lookupType('gamepb.friendpb.DelFriendRequest');
     types.DelFriendReply = root.lookupType('gamepb.friendpb.DelFriendReply');
+    types.ApplyFriendRequest = root.lookupType('gamepb.friendpb.ApplyFriendRequest');
+    types.ApplyFriendReply = root.lookupType('gamepb.friendpb.ApplyFriendReply');
 
     // 访问
     types.VisitEnterRequest = root.lookupType('gamepb.visitpb.EnterRequest');

@@ -40,7 +40,8 @@ const {
     batchGetFriendDogInfo,
     syncFriendsFromGids,
     fetchFriendsDogInfo,
-    delFriend
+    delFriend,
+    applyFriend
 } = require('../services/friend');
 const { getInteractRecords } = require('../services/interact');
 const { processInviteCodes } = require('../services/invite');
@@ -842,6 +843,9 @@ async function handleApiCall(msg) {
                 break;
             case 'delFriend':
                 result = await delFriend(args[0]);
+                break;
+            case 'applyFriend':
+                result = await applyFriend(args[0], args[1]);
                 break;
             case 'getSeeds':
                 result = await getAvailableSeeds();

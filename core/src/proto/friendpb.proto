@@ -120,7 +120,7 @@ message SetBlockApplicationsReply {
     bool block = 1;
 }
 
-// ============ 服务器推送通知 ============
+// ============ 服务器推送事件 ============
 
 // 收到好友申请通知
 message FriendApplicationReceivedNotify {
@@ -131,3 +131,13 @@ message FriendApplicationReceivedNotify {
 message FriendAddedNotify {
     repeated GameFriend friends = 1;
 }
+
+// ============ 主动申请加好友 (从 Telnix 反编译) ============
+message ApplyFriendRequest {
+    string host_gid = 1;
+    int32 reason = 2;
+    int32 host_type = 3;
+    string share_key = 4;
+}
+
+message ApplyFriendReply {}
