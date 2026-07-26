@@ -520,93 +520,88 @@ useIntervalFn(updateCountdowns, 1000)
 <template>
   <div class="flex flex-col gap-5 pt-1 md:pt-2">
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-3 sm:grid-cols-2">
-      <div class="ui-card metric-card min-h-[168px] flex flex-col rounded-lg p-5">
-        <div class="mb-2 flex items-start justify-between">
-          <div class="flex items-center gap-1.5 text-sm text-gray-500">
-            <div class="i-fas-user-circle" />
-            账号
+      <!-- 合并账号面板 -->
+      <div class="ui-card metric-card overflow-hidden rounded-lg">
+        <div class="flex flex-col">
+          <!-- 第一行：居中标题 -->
+          <div class="flex items-center justify-center gap-2 border-b border-gray-100/80 px-5 py-3 dark:border-gray-700/80">
+            <div class="i-fas-user-circle text-blue-500" />
+            <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">QQ农场智能助手</span>
           </div>
-          <div class="rounded-lg bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-            Lv.{{ status?.status?.level || 0 }}
-          </div>
-        </div>
-        <div class="mb-1 truncate text-xl font-bold" :title="displayName">
-          {{ displayName }}
-        </div>
-        <div class="mt-auto">
-          <div class="mb-1 flex justify-between text-xs text-gray-500">
-            <div class="flex items-center gap-1">
-              <div class="i-fas-bolt text-blue-400" />
-              <span>EXP</span>
-            </div>
-            <span>{{ status?.levelProgress?.current || 0 }} / {{ status?.levelProgress?.needed || '?' }}</span>
-          </div>
-          <div class="h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
-            <div
-              class="h-full rounded-full bg-blue-500 transition-all duration-500"
-              :style="{ width: `${getExpPercent(status?.levelProgress)}%` }"
-            />
-          </div>
-          <div class="mt-2 flex justify-between text-xs text-gray-400">
-            <span>效率: {{ expRate }}</span>
-            <span>{{ timeToLevel }}</span>
-          </div>
-        </div>
-      </div>
 
-      <div class="ui-card metric-card min-h-[168px] flex flex-col justify-between rounded-lg p-5">
-        <div class="flex justify-between">
-          <div>
-            <div class="flex items-center gap-1.5 text-xs text-gray-500">
-              <div class="i-fas-coins text-yellow-500" />
-              金币
+          <!-- 第二行：头像 + 数据 -->
+          <div class="flex gap-4 px-5 py-4">
+            <!-- 左侧头像块 -->
+            <div class="flex w-[100px] shrink-0 flex-col items-center gap-2">
+              <!-- 头像 -->
+              <div class="relative flex h-[72px] w-[72px] items-center justify-center overflow-hidden rounded-[18px] bg-gradient-to-br from-gray-200 to-gray-300 ring-1 ring-gray-200 dark:from-gray-600 dark:to-gray-700 dark:ring-gray-600">
+                <div class="text-2xl font-bold text-white dark:text-gray-300">
+                  {{ (displayName || '?').charAt(0).toUpperCase() }}
+                </div>
+                <div class="absolute -bottom-[3px] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border-2 border-white bg-blue-500 px-2 py-[1px] text-[10px] font-semibold text-white dark:border-gray-800">
+                  Lv.{{ status?.status?.level || 0 }}
+                </div>
+              </div>
+
+              <!-- 昵称 + 切换 -->
+              <div class="flex items-center gap-1">
+                <span class="max-w-[80px] truncate text-xs font-semibold text-gray-800 dark:text-gray-200" :title="displayName">
+                  {{ displayName }}
+                </span>
+                <span class="cursor-pointer text-[10px] text-blue-500 hover:text-blue-600">切换 ▼</span>
+              </div>
+
+              <!-- EXP 进度条 -->
+              <div class="w-full px-1">
+                <div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
+                  <div class="h-full rounded-full bg-blue-500 transition-all duration-500" :style="{ width: `${getExpPercent(status?.levelProgress)}%` }" />
+                </div>
+                <div class="mt-0.5 text-center text-[9px] text-gray-400">
+                  EXP {{ status?.levelProgress?.current || 0 }}/{{ status?.levelProgress?.needed || '?' }}
+                </div>
+              </div>
             </div>
-            <div class="text-2xl text-yellow-600 font-bold dark:text-yellow-500">
-              {{ formatGoldAmount(status?.status?.gold || 0) }}
-            </div>
-            <div
-              v-if="(status?.sessionGoldGained || 0) !== 0"
-              class="text-[10px]"
-              :class="(status?.sessionGoldGained || 0) > 0 ? 'text-green-500' : 'text-red-500'"
-            >
-              {{ (status?.sessionGoldGained || 0) > 0 ? '+' : '' }}{{ formatGoldAmount(status?.sessionGoldGained || 0) }}
-            </div>
-          </div>
-          <div class="text-right">
-            <div class="flex items-center justify-end gap-1.5 text-xs text-gray-500">
-              <div class="i-fas-ticket-alt text-emerald-400" />
-              点券
-            </div>
-            <div class="text-2xl text-emerald-500 font-bold dark:text-emerald-400">
-              {{ formatCouponAmount(status?.status?.coupon || 0) }}
-            </div>
-            <div
-              v-if="(status?.sessionCouponGained || 0) !== 0"
-              class="text-[10px]"
-              :class="(status?.sessionCouponGained || 0) > 0 ? 'text-green-500' : 'text-red-500'"
-            >
-              {{ (status?.sessionCouponGained || 0) > 0 ? '+' : '' }}{{ formatCouponAmount(status?.sessionCouponGained || 0) }}
-            </div>
-          </div>
-          <div class="text-right">
-            <div class="flex items-center justify-end gap-1.5 text-xs text-gray-500">
-              <div class="i-carbon-circle text-amber-500" />
-              金豆
-            </div>
-            <div class="text-2xl text-amber-500 font-bold dark:text-amber-400">
-              {{ formatGoldBeanAmount(status?.status?.goldBean || 0) }}
-            </div>
-          </div>
-        </div>
-        <div class="mt-4 border-t border-gray-100/80 pt-3 dark:border-gray-700/80">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <div class="h-2.5 w-2.5 rounded-full" :class="status?.connection?.connected ? 'bg-green-500' : currentStatusReady ? 'bg-red-500' : 'bg-gray-300'" />
-              <span class="text-xs font-bold">{{ status?.connection?.connected ? '在线' : currentStatusReady ? '离线' : '检查中' }}</span>
-            </div>
-            <div class="flex items-center gap-1.5 text-xs text-gray-400">
-              <div class="i-fas-clock text-purple-400" />
-              {{ formatDuration(localUptime) }}
+
+            <!-- 右侧数据（纵向排列） -->
+            <div class="flex min-w-0 flex-1 flex-col">
+              <!-- 数据行 -->
+              <div class="flex items-center border-b border-gray-100/80 py-2.5 dark:border-gray-700/80">
+                <div class="flex w-16 items-center gap-1.5 text-xs text-gray-500">
+                  <div class="i-fas-coins text-yellow-500" />
+                  <span>金币</span>
+                </div>
+                <div class="flex-1 text-right text-sm font-bold text-yellow-600 dark:text-yellow-500">
+                  {{ formatGoldAmount(status?.status?.gold || 0) }}
+                </div>
+              </div>
+              <div class="flex items-center border-b border-gray-100/80 py-2.5 dark:border-gray-700/80">
+                <div class="flex w-16 items-center gap-1.5 text-xs text-gray-500">
+                  <div class="i-fas-ticket-alt text-emerald-400" />
+                  <span>点券</span>
+                </div>
+                <div class="flex-1 text-right text-sm font-bold text-emerald-500 dark:text-emerald-400">
+                  {{ formatCouponAmount(status?.status?.coupon || 0) }}
+                </div>
+              </div>
+              <div class="flex items-center border-b border-gray-100/80 py-2.5 dark:border-gray-700/80">
+                <div class="flex w-16 items-center gap-1.5 text-xs text-gray-500">
+                  <div class="i-carbon-circle text-amber-500" />
+                  <span>金豆</span>
+                </div>
+                <div class="flex-1 text-right text-sm font-bold text-amber-500 dark:text-amber-400">
+                  {{ formatGoldBeanAmount(status?.status?.goldBean || 0) }}
+                </div>
+              </div>
+              <div class="flex items-center py-2.5">
+                <div class="flex w-16 items-center gap-1.5 text-xs text-gray-500">
+                  <div class="i-fas-clock text-purple-400" />
+                  <span>在线</span>
+                </div>
+                <div class="flex flex-1 items-center justify-end gap-2 text-right text-sm font-bold text-gray-700 dark:text-gray-200">
+                  <span class="inline-block h-2 w-2 rounded-full" :class="status?.connection?.connected ? 'bg-green-500' : currentStatusReady ? 'bg-red-500' : 'bg-gray-300'" />
+                  {{ formatDuration(localUptime) }}
+                </div>
+              </div>
             </div>
           </div>
         </div>
