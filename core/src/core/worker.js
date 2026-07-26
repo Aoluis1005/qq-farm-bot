@@ -845,7 +845,7 @@ async function handleApiCall(msg) {
                 result = await delFriend(args[0]);
                 break;
             case 'applyFriend':
-                result = await applyFriend(args[0], args[1]);
+                result = await applyFriend(args[0], args[1] || {});
                 break;
             case 'getSeeds':
                 result = await getAvailableSeeds();

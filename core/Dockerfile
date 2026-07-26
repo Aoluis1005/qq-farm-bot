@@ -25,15 +25,10 @@ FROM golang:1.23-alpine AS yyb-builder
 
 WORKDIR /src
 
-RUN apk add --no-cache git
-
-# yyb-go 为公开仓库，直接克隆即可；如需私有仓库可传入 build-arg GITHUB_TOKEN
+# yyb-go 源码已预置到构建上下文根目录的 yyb-go/（服务器无法直连 github.com，故不走 git clone）。
+# 保留 ARG 声明以避免 docker-compose 传入 GITHUB_TOKEN 时构建报 "build-arg not defined"。
 ARG GITHUB_TOKEN=
-RUN if [ -n "$GITHUB_TOKEN" ]; then \
-      git clone --depth 1 https://x-access-token:${GITHUB_TOKEN}@github.com/Aoluis1005/yyb-go.git . ; \
-    else \
-      git clone --depth 1 https://github.com/Aoluis1005/yyb-go.git . ; \
-    fi
+COPY yyb-go /src
 
 # 纯 Go 实现（modernc sqlite，无需 CGO），静态编译；使用国内 goproxy 加速依赖拉取
 ENV GOPROXY=https://goproxy.cn,direct

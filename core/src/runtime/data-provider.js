@@ -143,7 +143,7 @@ function createDataProvider(deps) {
         syncFriendsFromGids: (ref, gids) => callWorkerApi(resolveAccountId(ref), 'syncFriendsFromGids', gids, SYNC_TIMEOUT),
         fetchFriendsDogInfo: (ref) => callWorkerApi(resolveAccountId(ref), 'fetchFriendsDogInfo', DOG_INFO_TIMEOUT),
         delFriend: (ref, gid) => callWorkerApi(resolveAccountId(ref), 'delFriend', gid),
-        applyFriend: (ref, openid, opts) => callWorkerApi(resolveAccountId(ref), 'applyFriend', openid, opts),
+        applyFriend: (ref, gid, opts) => callWorkerApi(resolveAccountId(ref), 'applyFriend', gid, opts),
 
         // ========== 仓库 ==========
         useItem: (ref, itemId, count) => callWorkerApi(resolveAccountId(ref), 'useItem', itemId, count),

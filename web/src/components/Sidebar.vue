@@ -156,7 +156,7 @@ const connectionStatus = computed(() => {
 
 // 根据用户角色过滤导航菜单
 const navItems = computed(() => {
-  const allowedNames = ['illustrated', 'analytics', 'settings', 'admin']
+  const allowedNames = ['illustrated', 'analytics', 'Settings', 'admin']
   return menuRoutes
     .filter(item => allowedNames.includes(item.name))
     .map(item => ({

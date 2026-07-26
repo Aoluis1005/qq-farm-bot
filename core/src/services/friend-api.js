@@ -1,4 +1,5 @@
 const protobuf = require('protobufjs/minimal');
+const crypto = require('node:crypto');
 const { parentPort } = require('node:worker_threads');
 const { CONFIG } = require('../config/config');
 const {
@@ -726,10 +727,108 @@ async function delFriend(gid) {
   return reply;
 }
 
-/** Enter a friend's farm. Visit reason = 2 (general visit). */
-async function enterFriendFarm(gid) {
+/**
+ * Send a friend application to a target GID.
+ * Mirrors the game client's ApplyFriend RPC (gamepb.friendpb.FriendService.ApplyFriend).
+ *
+ * 【2026-07-25 经 TSDK 解密抓包逐字节还原的真实协议】
+ * 加好友分两步（客户端顺序）：
+ *   1) 以 reason=5 进入目标农场，Enter 请求携带一个 32 位十六进制的会话 nonce (visit_token)。
+ *   2) 发送 ApplyFriend，请求体 = { gid, token }，其中
+ *        token = SHA256("<visit_token>:<gid>") + ":" + gid
+ *      服务器用 Enter 登记的 visit_token 重算哈希做校验；业务体不含 openid。
+ *
+ * visit_token 从不由服务器下发（任何响应帧都没有），判定为客户端本地生成的随机 nonce，
+ * 因此这里默认用 crypto.randomBytes(16) 生成；也可通过 opts.visitToken 指定。
+ *
+ * 加解密 / 密钥流由底层 TSDK 透明处理，我们只负责构造 protobuf 并调用 sendMsgAsync。
+ *
+ * @param {number|string} gid 目标用户 gid
+ * @param {{visitToken?:string, enterReason?:number}} [opts]
+ */
+async function applyFriend(gid, opts = {}) {
+  const numericGid = toNum(gid);
+  if (!numericGid) {
+    throw new Error('缺少目标 gid');
+  }
+  if (!types.ApplyFriendRequest || !types.ApplyFriendReply) {
+    throw new Error('ApplyFriend 接口类型未加载');
+  }
+
+  // 会话 nonce：合法的 32-hex 则复用，否则随机生成
+  const visitToken = (typeof opts.visitToken === 'string' && /^[0-9a-f]{32}$/i.test(opts.visitToken))
+    ? opts.visitToken.toLowerCase()
+    : crypto.randomBytes(16).toString('hex');
+  const enterReason = opts.enterReason != null ? Number(opts.enterReason) : 5;
+
+  // 加好友协议必须先用 reason=5 进入农场并登记 visit_token（Enter），
+  // 服务器才能用登记的 nonce 校验 ApplyFriend 的 token。跳过 Enter 会导致 1005024（凭证无效）。
+  // 默认发送 Enter 前置流程；仅当显式传 skipEnter:true 时才跳过（不推荐）。
+  const skipEnter = opts.skipEnter === true;
+
+  // 步骤 1：以 reason=5 进入目标农场并登记 visit_token
+  if (!skipEnter) {
+    try {
+      await enterFriendFarm(numericGid, { reason: enterReason, visitToken });
+    } catch (err) {
+      logWarn('好友', `加好友前置进入农场失败(gid=${numericGid}): ${err.message}`, {
+        module: 'friend',
+        event: '发送好友申请',
+        result: 'enter_error',
+        friendGid: numericGid,
+      });
+      throw err;
+    }
+  } else {
+    log('好友', `跳过 Enter，直接发送好友申请(gid=${numericGid})`, {
+      module: 'friend',
+      event: '发送好友申请',
+      result: 'skip_enter',
+      friendGid: numericGid,
+    });
+  }
+
+  // 步骤 2：token = sha256(visit_token:gid) + ":" + gid
+  const gidStr = String(numericGid);
+  const digest = crypto.createHash('sha256').update(`${visitToken}:${gidStr}`).digest('hex');
+  const token = `${digest}:${gidStr}`;
+
+  const payload = types.ApplyFriendRequest.encode(
+    types.ApplyFriendRequest.create({
+      gid: toLong(numericGid),
+      token,
+    })
+  ).finish();
+
+  const { body } = await sendMsgAsync(
+    'gamepb.friendpb.FriendService',
+    'ApplyFriend',
+    payload
+  );
+  const reply = types.ApplyFriendReply.decode(body);
+
+  log('好友', `已发送加好友申请: gid=${gidStr}`, {
+    module: 'friend',
+    event: '发送好友申请',
+    result: 'ok',
+    friendGid: numericGid,
+  });
+  return reply;
+}
+
+/**
+ * Enter a friend's farm.
+ * @param {number|string} gid target gid
+ * @param {{reason?:number, visitToken?:string}} [opts] reason 默认 2（偷菜访问）；
+ *        加好友时传 reason=5 + visitToken(32hex)
+ */
+async function enterFriendFarm(gid, opts = {}) {
+  const reason = opts.reason != null ? Number(opts.reason) : 2;
+  const enterReq = { host_gid: toLong(gid), reason };
+  if (opts.visitToken) enterReq.visit_token = String(opts.visitToken);
+
   const payload = types.VisitEnterRequest.encode(
-    types.VisitEnterRequest.create({ host_gid: toLong(gid), reason: 2 })
+    types.VisitEnterRequest.create(enterReq)
   ).finish();
   const { body } = await sendMsgAsync(
     'gamepb.visitpb.VisitService',

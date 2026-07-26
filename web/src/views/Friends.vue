@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import api from '@/api'
 import ConfirmModal from '@/components/ConfirmModal.vue'
+import FriendsAddPanel from '@/components/friends/FriendsAddPanel.vue'
 import FriendsFriendList from '@/components/friends/FriendsFriendList.vue'
 import FriendsPageHeader from '@/components/friends/FriendsPageHeader.vue'
 import FriendsSyncSettings from '@/components/friends/FriendsSyncSettings.vue'
@@ -42,6 +43,7 @@ const { status, loading: statusLoading, realtimeConnected, currentStatusReady } 
 
 const TABS = [
   { key: 'friends', label: '好友列表', icon: 'i-carbon-user-multiple' },
+  { key: 'add', label: '主动加好友', icon: 'i-carbon-user-follow' },
   { key: 'blacklist', label: '好友黑名单', icon: 'i-carbon-list-blocked' },
   { key: 'visitors', label: '最近访客', icon: 'i-carbon-user-activity' },
   { key: 'delete', label: '一键删除', icon: 'i-carbon-trash-can' },
@@ -762,11 +764,7 @@ async function handleBatchAddKnownFriendGids() {
       :blacklist-count="blacklist.length"
     />
 
-    <div v-if="showInitialLoading" class="flex justify-center py-12">
-      <div class="i-svg-spinners-90-ring-with-bg text-4xl text-blue-500" />
-    </div>
-
-    <div v-else-if="!currentAccountId" class="flex flex-col items-center justify-center gap-4 rounded-lg bg-white p-12 text-center text-gray-500 shadow dark:bg-gray-800">
+    <div v-if="!currentAccountId" class="flex flex-col items-center justify-center gap-4 rounded-lg bg-white p-12 text-center text-gray-500 shadow dark:bg-gray-800">
       <div class="i-carbon-user-offline text-4xl text-gray-400" />
       <div>
         <div class="text-lg text-gray-700 font-medium dark:text-gray-300">
@@ -776,6 +774,16 @@ async function handleBatchAddKnownFriendGids() {
           请先添加农场账号
         </div>
       </div>
+    </div>
+
+    <FriendsAddPanel
+      v-else-if="activeTab === 'add'"
+      :account-id="currentAccountId"
+      :account-running="!!currentAccount?.running"
+    />
+
+    <div v-else-if="showInitialLoading" class="flex justify-center py-12">
+      <div class="i-svg-spinners-90-ring-with-bg text-4xl text-blue-500" />
     </div>
 
     <div v-else-if="currentAccountDisconnected && !hasAnyFriendData" class="flex flex-col items-center justify-center gap-4 rounded-lg bg-white p-12 text-center text-gray-500 shadow dark:bg-gray-800">

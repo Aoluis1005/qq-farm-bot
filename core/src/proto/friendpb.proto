@@ -111,6 +111,20 @@ message DelFriendRequest {
 
 message DelFriendReply {}
 
+// --- 主动发送好友申请 ---
+// 抓包样例: gamepb.friendpb.FriendService.ApplyFriend
+// 【2026-07-25 经 TSDK 解密抓包逐字节还原】真实结构为:
+//   field1 (varint) = 目标 gid
+//   field2 (string, 75B) = "<64hex token>:<gid>"，其中 token = SHA256("<hex32>:<gid>")
+//     hex32 是 32 位十六进制的客户端会话 nonce，需在前置 Enter 请求 field7 中带上同一值。
+// 业务体不含 openid。
+message ApplyFriendRequest {
+    int64 gid = 1;           // 目标 gid
+    string token = 2;        // "<sha256(hex32:gid)>:<gid>"
+}
+
+message ApplyFriendReply {}
+
 // --- 设置屏蔽申请 ---
 message SetBlockApplicationsRequest {
     bool block = 1;

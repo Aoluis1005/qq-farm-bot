@@ -28,7 +28,9 @@ enum EnterReason {
 // ============ 进入好友农场 ============
 message EnterRequest {
     int64 host_gid = 1;      // 好友的GID
-    int32 reason = 2;        // EnterReason 进入原因
+    int32 reason = 2;        // EnterReason 进入原因（偷菜=2；主动加好友=5）
+    // field 3 = 0（客户端加好友时显式带 0，proto3 默认值可省略）
+    string visit_token = 7;  // 加好友流程的会话 nonce（32位hex），ApplyFriend 用 sha256(visit_token:gid) 校验
 }
 
 message EnterReply {

@@ -394,6 +394,42 @@ export const useFriendStore = defineStore('friend', () => {
     }
   }
 
+  async function applyFriend(
+    accountId: string,
+    gid: number,
+    visitToken?: string,
+    skipEnter?: boolean,
+  ) {
+    if (!accountId || !gid)
+      return { ok: false, code: 0, error: '参数无效' }
+    try {
+      const payload: Record<string, any> = { gid }
+      if (visitToken)
+        payload.visitToken = visitToken
+      if (typeof skipEnter === 'boolean')
+        payload.skipEnter = skipEnter
+      const res = await api.post('/api/friend/apply', payload, {
+        headers: { 'x-account-id': accountId },
+        timeout: 30000,
+      })
+      return {
+        ok: !!res.data.ok,
+        code: Number(res.data.code) || 0,
+        error: res.data.error || '',
+        data: res.data.data,
+      }
+    }
+    catch (e: any) {
+      const raw = e?.response?.data?.error || e?.message || '加好友失败'
+      const m = String(raw).match(/code=(\d+)/)
+      return {
+        ok: false,
+        code: m ? Number(m[1]) : 0,
+        error: String(raw),
+      }
+    }
+  }
+
   async function deleteFriend(accountId: string, gid: number) {
     if (!accountId || !gid)
       return { ok: false, error: '参数无效' }
@@ -446,5 +482,6 @@ export const useFriendStore = defineStore('friend', () => {
     removeUnsyncedKnownFriendGids,
     deleteFriendsBatch,
     deleteFriend,
+    applyFriend,
   }
 })
