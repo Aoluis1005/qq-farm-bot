@@ -990,6 +990,11 @@ async function handleApiCall(msg) {
                 result = await getIllustratedListV2(args[0], args[1]);
                 break;
             }
+            case 'getCareerInfo': {
+                const { getCareerInfo } = require('../services/career-api');
+                result = await getCareerInfo();
+                break;
+            }
             case 'claimIllustratedRewards': {
                 const { claimAllRewardsV2 } = require('../services/illustrated');
                 result = await claimAllRewardsV2(args[0]);

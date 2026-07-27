@@ -1,0 +1,37 @@
+syntax = "proto3";
+package gamepb.careerpb;
+
+// 个人生涯统计（作物/花卉收获排行 + 玩家维度聚合）
+service CareerService {
+  rpc CareerInfoGet(CareerInfoGetRequest) returns (CareerInfoGetReply);
+}
+
+message CareerInfoGetRequest {}
+
+// 作物/花卉收获排行条目（仅含 fruit_id + count，名字/头像由后端按 ItemInfo 装饰）
+message CareerStatItem {
+  int64 fruit_id = 1;
+  int64 count = 2;
+}
+
+// 玩家达到某等级解锁的统计
+message CareerLevelStat {
+  int64 fruit_id = 1;
+  int64 count = 2;
+  int32 level = 4;
+}
+
+// 完整响应
+message CareerInfoGetReply {
+  repeated CareerStatItem items = 1;   // 收获排行（按 count 倒序）
+  int64 stats_total = 2;                // 总收获数（备用统计）
+  int64 stats_count = 3;                // 排行榜类型数（备用统计）
+  string name = 4;                      // 玩家昵称
+  string avatar = 5;                    // 玩家头像 URL
+  int32 level = 9;                      // 玩家等级 Lv
+  int64 exp = 10;                       // 经验值
+  int64 gid = 11;                       // 角色编号（游戏内唯一 id）
+  repeated CareerLevelStat level_stats = 12; // 玩家等级达成统计
+  int32 achieved_levels = 13;           // 玩家达成等级数
+  string openid = 15;                   // 玩家 openid
+}

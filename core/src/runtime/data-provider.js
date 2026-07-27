@@ -174,6 +174,7 @@ function createDataProvider(deps) {
         // ========== Illustrated ==========
         getIllustratedList: (ref, type, level) => callWorkerApi(resolveAccountId(ref), 'getIllustratedList', type, level),
         claimIllustratedRewards: (ref, type) => callWorkerApi(resolveAccountId(ref), 'claimIllustratedRewards', type),
+        getCareerInfo: (ref) => callWorkerApi(resolveAccountId(ref), 'getCareerInfo'),
 
         // ========== 配置 ==========
         setAutomation: async (ref, key, value) => {

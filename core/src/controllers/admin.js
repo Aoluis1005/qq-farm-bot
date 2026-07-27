@@ -26,6 +26,20 @@ const { getDataFile, getResourcePath } = require("../config/runtime-paths");
 const store = require("../models/store");
 const { addOrUpdateAccount, deleteAccount } = store;
 const { findAccountByRef } = require("../services/account-resolver");
+
+// 保险：单个异步请求处理器抛错（如路由里漏传依赖导致 TypeError）会变成
+// unhandledRejection 并默认终止整个进程，连锁拖垮所有账号会话与在线账号。
+// 这里只记录、不让进程退出，避免出现「一个坏请求 → 全服重启 → 全部掉线」的雪崩。
+process.on("unhandledRejection", (reason, promise) => {
+  try {
+    const msg = reason && reason.stack ? reason.stack : String(reason);
+    // eslint-disable-next-line no-console
+    console.error("[unhandledRejection] 已捕获并忽略，进程继续运行:", msg);
+  } catch {
+    /* noop */
+  }
+});
+
 const { createModuleLogger } = require("../services/logger");
 const { registerAdminActivityRoutes } = require("./admin-activity-routes");
 const {
@@ -33,6 +47,7 @@ const {
 } = require("./admin-account-runtime-routes");
 const { registerAdminAccountRoutes } = require("./admin-account-routes");
 const { registerAdminFriendRoutes } = require("./admin-friend-routes");
+const { registerAdminCareerRoutes } = require("./admin-career-routes");
 const { registerAdminAnalyticsRoutes } = require("./admin-analytics-routes");
 const { createAdminAccountAccess } = require("./admin-account-access");
 const { registerAdminAuthRoutes } = require("./admin-auth-routes");
@@ -400,8 +415,6 @@ function startAdminServer(dataProvider) {
     canAccessAccount,
     sendProviderError,
   });
-    sendProviderError,
-  });
   registerAdminPlantBlacklistRoutes({
     app,
     provider,
@@ -546,7 +559,8 @@ function startAdminServer(dataProvider) {
     sendProviderError,
   });
   registerAdminQrLoginRoutes({ app });
-  registerAdminFriendRoutes({ app, provider });
+  registerAdminFriendRoutes({ app, provider, store, getAccountIdFromRequest, canAccessAccount, sendProviderError });
+  registerAdminCareerRoutes({ app, provider, getAccountIdFromRequest, canAccessAccount, sendProviderError });
   registerAdminProxyRoutes({ app, logger: adminLogger });
   registerAdminLoginLogRoutes({
     app,

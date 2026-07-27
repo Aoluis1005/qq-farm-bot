@@ -2,6 +2,22 @@
 
 这里记录最近更新了什么。
 
+## 2026-07-27（Aoluis1005 维护分支）
+
+### 新增功能
+
+- **个人生涯统计弹窗**：点击概览页微信头像即可弹出，展示玩家头像 / 昵称 / 等级 / 经验 / 角色编号，以及「历史累计收获」与「累计摘取好友作物」两项统计；下方为收获明细网格（含前三名金银铜标牌）。新增后端 `gamepb.careerpb.CareerService/CareerInfoGet` 接口与 `GET /api/career`（需 `x-admin-token` 与 `x-account-id`）。
+
+### Bug 修复
+
+- **修复生涯弹窗收获列表为空**：后端 `proto.js` 全局开启 `keepCase:true`，而 `career-api.js` 误用 `fruitId` / `statsTotal` 等 camelCase 字段，导致解码取不到数值、列表被过滤为空；已统一改为 `fruit_id` / `stats_total` / `level_stats` / `achieved_levels` 等 snake_case，实测返回 174 条收获数据。
+- **修复好友页面导致服务崩溃 / 反复重启**：`admin.js` 注册好友路由时漏传 `getAccountIdFromRequest` 等依赖，打开「好友」页面调用 `/api/friends` 会抛出 `TypeError` 使整个 Node 进程退出，触发容器重启、登录掉线、账号自动停止；已补全路由依赖，并新增 `process.on('unhandledRejection')` 全局守卫，单个坏请求不再拖垮全服。
+- **修复生涯弹窗 API 超时体验**：后端 `sendMsgAsync` 超时由 20s 降到 10s，路由出错时返回 `{ok:false, error}`（不再误报 `ok:true` 造成弹窗空白）；前端超时提示文案改为「加载超时，请确认该账号已在游戏中上线后重试」并保留重试按钮。
+
+### 优化
+
+- **生涯弹窗移动端体验**：改为居中毛玻璃卡片（`backdrop-blur-2xl` + 半透明底色），四周留白、不再贴边/顶屏；层级抬到 `z-[1100]` 避免被底部悬浮导航栏遮挡；并隐藏滚动条（保留滚动能力），排版更美观。
+
 ## 2026-07-22（Aoluis1005 维护分支）
 
 ### Bug 修复

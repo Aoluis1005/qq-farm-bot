@@ -7,6 +7,7 @@ import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseSelect from '@/components/ui/BaseSelect.vue'
 import AccountModal from '@/components/AccountModal.vue'
+import CareerModal from '@/components/CareerModal.vue'
 import { useAccountStore } from '@/stores/account'
 import { useBagStore } from '@/stores/bag'
 import { useStatusStore } from '@/stores/status'
@@ -32,8 +33,13 @@ const { dashboardItems } = storeToRefs(bagStore)
 
 const showAccountDropdown = ref(false)
 const showAccountModal = ref(false)
+const showCareerModal = ref(false)
 const accountToEdit = ref<any>(null)
 const { accounts } = storeToRefs(accountStore)
+
+function openCareerModal() {
+  showCareerModal.value = true
+}
 
 // 关闭下拉（点击外部）
 onMounted(() => {
@@ -619,7 +625,11 @@ useIntervalFn(updateCountdowns, 1000)
             <!-- 左侧头像块 -->
             <div class="flex w-[120px] shrink-0 flex-col items-center gap-2 pt-2">
               <!-- 头像 -->
-              <div class="relative flex h-[80px] w-[80px] items-center justify-center overflow-hidden rounded-[20px] bg-gradient-to-br from-gray-200 to-gray-300 ring-1 ring-gray-200 dark:from-gray-600 dark:to-gray-700 dark:ring-gray-600">
+              <div
+                class="relative flex h-[80px] w-[80px] cursor-pointer items-center justify-center overflow-hidden rounded-[20px] bg-gradient-to-br from-gray-200 to-gray-300 ring-1 ring-gray-200 transition-transform hover:scale-[1.02] dark:from-gray-600 dark:to-gray-700 dark:ring-gray-600"
+                title="查看生涯统计"
+                @click="openCareerModal"
+              >
                 <img
                   v-if="currentAvatarSrc"
                   :src="currentAvatarSrc"
@@ -955,5 +965,6 @@ useIntervalFn(updateCountdowns, 1000)
     @close="showAccountModal = false; accountToEdit = null"
     @saved="handleAccountSaved"
   />
+  <CareerModal :show="showCareerModal" @close="showCareerModal = false" />
 </template>
  

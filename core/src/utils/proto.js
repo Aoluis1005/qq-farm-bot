@@ -41,6 +41,7 @@ async function loadProto() {
         getResourcePath('proto', 'qqvippb.proto'),
         getResourcePath('proto', 'sharepb.proto'),
         getResourcePath('proto', 'illustratedpb.proto'),
+        getResourcePath('proto', 'careerpb.proto'),
         getResourcePath('proto', 'interactpb.proto'),
         getResourcePath('proto', 'dogpb.proto'),
         getResourcePath('proto', 'activitypb.proto'),
@@ -146,6 +147,8 @@ async function loadProto() {
     types.GetIllustratedListV2Reply = root.lookupType('gamepb.illustratedpb.GetIllustratedListV2Reply');
     types.ClaimAllRewardsV2Request = root.lookupType('gamepb.illustratedpb.ClaimAllRewardsV2Request');
     types.ClaimAllRewardsV2Reply = root.lookupType('gamepb.illustratedpb.ClaimAllRewardsV2Reply');
+    types.CareerInfoGetRequest = root.lookupType('gamepb.careerpb.CareerInfoGetRequest');
+    types.CareerInfoGetReply = root.lookupType('gamepb.careerpb.CareerInfoGetReply');
     types.CoreItem = root.lookupType('corepb.Item');
 
     // 活动
