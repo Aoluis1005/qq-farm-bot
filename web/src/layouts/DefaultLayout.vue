@@ -25,9 +25,7 @@ onUnmounted(() => {})
         <MysteryMerchantBanner />
         <div class="custom-scrollbar min-h-0 flex flex-1 flex-col overflow-y-auto p-3 pb-[calc(5rem+env(safe-area-inset-bottom))] md:p-6 sm:p-4 md:pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:pb-[calc(5rem+env(safe-area-inset-bottom))]">
           <RouterView v-slot="{ Component, route }">
-            <Transition name="slide-fade" mode="out-in">
-              <component :is="Component" :key="route.path" />
-            </Transition>
+            <component :is="Component" :key="route.path" />
           </RouterView>
         </div>
       </div>

@@ -6,6 +6,7 @@ import api from '@/api'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseSelect from '@/components/ui/BaseSelect.vue'
+import AccountModal from '@/components/AccountModal.vue'
 import { useAccountStore } from '@/stores/account'
 import { useBagStore } from '@/stores/bag'
 import { useStatusStore } from '@/stores/status'
@@ -30,6 +31,8 @@ const { currentAccountId, currentAccount } = storeToRefs(accountStore)
 const { dashboardItems } = storeToRefs(bagStore)
 
 const showAccountDropdown = ref(false)
+const showAccountModal = ref(false)
+const accountToEdit = ref<any>(null)
 const { accounts } = storeToRefs(accountStore)
 
 // 关闭下拉（点击外部）
@@ -49,7 +52,14 @@ function selectAccount(acc: any) {
 }
 function openAddAccount() {
   showAccountDropdown.value = false
-  // 跳转设置页或打开弹窗
+  accountToEdit.value = null
+  showAccountModal.value = true
+}
+
+async function handleAccountSaved() {
+  showAccountModal.value = false
+  accountToEdit.value = null
+  await accountStore.fetchAccounts()
 }
 
 // 账号显示名
@@ -313,6 +323,27 @@ const filteredOperations = computed(() => {
   return result
 })
 
+const todayStatsExpanded = ref(false)
+
+// 今日统计默认展示顺序（折叠时只看前6项）
+const DEFAULT_KEYS = ['sell', 'tongQiGift', 'harvest', 'steal', 'plant', 'fertilize']
+
+const todayStatsRows = computed(() => {
+  const allKeys = Object.keys(filteredOperations.value)
+  const keys = todayStatsExpanded.value
+    ? DEFAULT_KEYS.concat(allKeys.filter(k => !DEFAULT_KEYS.includes(k)))
+    : DEFAULT_KEYS
+
+  // 排成 2 列行
+  const rows: { key: string }[][] = []
+  for (let i = 0; i < keys.length; i += 2) {
+    const k1 = keys[i] || ""
+    const k2 = keys[i + 1] || ""
+    rows.push([{ key: k1 }, { key: k2 }])
+  }
+  return rows
+})
+
 function getEventLabel(event: string) {
   return eventLabelMap[event] || event
 }
@@ -420,16 +451,6 @@ function getOpIcon(key: string | number) {
 
 function getOpColor(key: string | number) {
   return OP_META[String(key)]?.color || 'text-gray-400'
-}
-
-function formatOpValue(key: string | number, val: number) {
-  // 出售按金币收益显示
-  if (key === 'sell') {
-    const n = Number(val) || 0
-    if (n >= 10000) return `${(n / 10000).toFixed(1)}万`
-    return n.toLocaleString()
-  }
-  return val
 }
 
 function getExpPercent(progress: any) {
@@ -716,53 +737,48 @@ useIntervalFn(updateCountdowns, 1000)
         </div>
       </div>
 
-      <div class="ui-card metric-card min-h-[168px] flex flex-col justify-between rounded-lg p-5">
-        <div class="mb-2 flex items-center gap-1.5 text-sm text-gray-500">
-          <div class="i-fas-flask text-emerald-400" />
-          化肥容器
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <div class="flex items-center gap-1 text-xs text-gray-400">
-              <div class="i-fas-flask text-emerald-400" />
-              普通
-            </div>
-            <div class="font-bold">
-              {{ formatBucketTime(fertilizerNormal) }}
-            </div>
+      <!-- 今日统计（展开/折叠） -->
+      <div class="ui-card metric-card overflow-visible rounded-lg p-5">
+        <div class="mb-3 flex items-center justify-between">
+          <div class="flex items-center gap-2 text-sm text-gray-500">
+            <div class="i-carbon-chart-column" />
+            <span>今日统计</span>
           </div>
-          <div>
-            <div class="flex items-center gap-1 text-xs text-gray-400">
-              <div class="i-fas-vial text-emerald-400" />
-              有机
-            </div>
-            <div class="font-bold">
-              {{ formatBucketTime(fertilizerOrganic) }}
-            </div>
+          <div v-if="Object.keys(filteredOperations).length" class="flex items-center gap-1 text-xs text-gray-400 cursor-pointer select-none hover:text-blue-500" @click="todayStatsExpanded = !todayStatsExpanded">
+            <span>{{ todayStatsExpanded ? '收起' : '展开' }}</span>
+            <div class="i-carbon-chevron-down text-sm transition-transform duration-200" :class="{ 'rotate-180': todayStatsExpanded }" />
           </div>
         </div>
-        <div class="my-3 border-t border-gray-100/80 dark:border-gray-700/80" />
-        <div class="mb-1 flex items-center gap-1.5 text-sm text-gray-500">
-          <div class="i-fas-star text-emerald-400" />
-          收藏点
+
+        <div v-if="currentAccountDisconnected" class="flex flex-col items-center justify-center gap-4 py-8 text-center text-gray-500">
+          <div class="i-carbon-connection-signal-off text-4xl text-gray-400" />
+          <div class="text-base font-medium text-gray-700 dark:text-gray-300">账号未登录</div>
+          <div class="text-sm text-gray-400">请先运行账号或检查网络连接。</div>
         </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <div class="flex items-center gap-1 text-xs text-gray-400">
-              <div class="i-fas-bookmark text-emerald-400" />
-              普通
-            </div>
-            <div class="font-bold">
-              {{ collectionNormal?.count || 0 }}
-            </div>
-          </div>
-          <div>
-            <div class="flex items-center gap-1 text-xs text-gray-400">
-              <div class="i-fas-gem text-emerald-400" />
-              典藏
-            </div>
-            <div class="font-bold">
-              {{ collectionRare?.count || 0 }}
+        <div v-else-if="!Object.keys(filteredOperations).length" class="flex flex-col items-center justify-center gap-3 py-6 text-center">
+          <div class="i-carbon-chart-column text-3xl text-gray-300" />
+          <div class="text-sm font-medium text-gray-600 dark:text-gray-300">暂无主动作统计</div>
+          <div class="text-xs text-gray-400">通常是刚启动、刚切换账号，或本轮巡查尚未完成。</div>
+        </div>
+        <div v-else class="flex flex-col gap-2">
+          <div
+            v-for="(row, ri) in todayStatsRows"
+            :key="ri"
+            class="flex gap-2"
+          >
+            <div
+              v-for="cell in row"
+              :key="cell.key"
+              class="flex flex-1 items-center justify-between rounded-lg px-3 py-2"
+              :class="cell.key ? 'ui-subtle-panel' : 'invisible'"
+            >
+              <template v-if="cell.key">
+                <div class="flex items-center gap-1.5">
+                  <div class="text-sm" :class="[getOpIcon(cell.key), getOpColor(cell.key)]" />
+                  <span class="text-xs text-gray-500">{{ getOpName(cell.key) }}</span>
+                </div>
+                <span class="text-sm font-bold">{{ filteredOperations[cell.key] }}</span>
+              </template>
             </div>
           </div>
         </div>
@@ -887,50 +903,57 @@ useIntervalFn(updateCountdowns, 1000)
         </div>
 
         <div class="ui-card flex-1 rounded-lg p-5">
-          <h3 class="mb-3 flex items-center gap-2 text-lg font-medium">
-            <div class="i-carbon-chart-column" />
-            <span>今日统计</span>
-          </h3>
-          <div v-if="currentAccountDisconnected" class="ui-subtle-panel flex flex-col items-center justify-center gap-4 rounded-lg p-10 text-center text-gray-500">
-            <div class="i-carbon-connection-signal-off text-4xl text-gray-400" />
-            <div class="flex flex-col">
-              <div class="text-lg text-gray-700 font-medium dark:text-gray-300">
-                账号未登录
+          <div class="mb-2 flex items-center gap-1.5 text-sm text-gray-500">
+            <div class="i-fas-flask text-emerald-400" />
+            化肥容器
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <div class="flex items-center gap-1 text-xs text-gray-400">
+                <div class="i-fas-flask text-emerald-400" />
+                普通
               </div>
-              <div class="mt-1 text-sm text-gray-400">
-                请先运行账号或检查网络连接。
+              <div class="font-bold">{{ formatBucketTime(fertilizerNormal) }}</div>
+            </div>
+            <div>
+              <div class="flex items-center gap-1 text-xs text-gray-400">
+                <div class="i-fas-vial text-emerald-400" />
+                有机
               </div>
+              <div class="font-bold">{{ formatBucketTime(fertilizerOrganic) }}</div>
             </div>
           </div>
-          <div v-else-if="!Object.keys(filteredOperations).length" class="ui-subtle-panel flex flex-col items-center justify-center gap-3 rounded-lg p-8 text-center">
-            <div class="i-carbon-chart-column text-3xl text-gray-300" />
-            <div class="text-sm text-gray-600 font-medium dark:text-gray-300">
-              暂无主动作统计
-            </div>
-            <div class="text-xs text-gray-400">
-              通常是刚启动、刚切换账号，或本轮巡查尚未完成。
-            </div>
+          <div class="my-3 border-t border-gray-100/80 dark:border-gray-700/80" />
+          <div class="mb-1 flex items-center gap-1.5 text-sm text-gray-500">
+            <div class="i-fas-star text-emerald-400" />
+            收藏点
           </div>
-          <div v-else class="grid grid-cols-2 gap-2 2xl:gap-3">
-            <div
-              v-for="(val, key) in filteredOperations"
-              :key="key"
-              class="ui-subtle-panel flex items-center justify-between rounded-lg px-3 py-2"
-            >
-              <div class="flex items-center gap-2">
-                <div class="text-base 2xl:text-lg" :class="[getOpIcon(key), getOpColor(key)]" />
-                <div class="text-xs text-gray-500 2xl:text-sm">
-                  {{ getOpName(key) }}
-                </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <div class="flex items-center gap-1 text-xs text-gray-400">
+                <div class="i-fas-bookmark text-emerald-400" />
+                普通
               </div>
-              <div class="text-sm font-bold 2xl:text-base">
-                {{ formatOpValue(key, val) }}
+              <div class="font-bold">{{ collectionNormal?.count || 0 }}</div>
+            </div>
+            <div>
+              <div class="flex items-center gap-1 text-xs text-gray-400">
+                <div class="i-fas-gem text-emerald-400" />
+                典藏
               </div>
+              <div class="font-bold">{{ collectionRare?.count || 0 }}</div>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <AccountModal
+    :show="showAccountModal"
+    :edit-data="accountToEdit"
+    @close="showAccountModal = false; accountToEdit = null"
+    @saved="handleAccountSaved"
+  />
 </template>
  

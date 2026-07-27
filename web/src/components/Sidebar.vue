@@ -19,8 +19,9 @@ const statusStore = useStatusStore()
 const appStore = useAppStore()
 const userStore = useUserStore()
 const shopStore = useShopStore()
-const route = useRoute()
+// route already defined
 const router = useRouter()
+const route = useRoute()
 const { currentAccount, currentAccountId } = storeToRefs(accountStore)
 const { status, realtimeConnected } = storeToRefs(statusStore)
 const { mysteryOffer, mysteryOfferAccountId } = storeToRefs(shopStore)
@@ -183,8 +184,7 @@ watch(
   () => route.path,
   () => {
     // Close sidebar on route change (mobile only)
-    if (window.innerWidth < 1024)
-      appStore.closeSidebar()
+    appStore.closeSidebar()
   },
 )
 
@@ -381,7 +381,7 @@ async function copyToken() {
 
 <template>
   <aside
-    class="fixed inset-y-0 left-0 z-50 h-full w-72 flex flex-col border-r border-gray-200/50 p-3 transition-transform duration-300 lg:static lg:translate-x-0 dark:border-gray-700/50"
+    class="fixed inset-y-0 left-0 z-[1001] h-full w-72 flex flex-col border-r border-gray-200/50 p-3 transition-transform duration-300 lg:static lg:translate-x-0 dark:border-gray-700/50"
     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
     :style="{ background: 'color-mix(in srgb, var(--surface-1) 88%, transparent)', color: 'var(--theme-text)' }"
   >
@@ -648,6 +648,13 @@ async function copyToken() {
       </div>
     </div>
   </aside>
+
+  <!-- 点击空白关闭侧边栏 -->
+  <div
+    v-if="sidebarOpen"
+    class="fixed inset-0 z-[999] bg-transparent"
+    @click="appStore.closeSidebar"
+  />
 
   <!-- Overlay for mobile when sidebar is open -->
   <div
