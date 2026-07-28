@@ -11,15 +11,32 @@ const accountStore = useAccountStore()
 
 // 右滑呼出侧边栏（触屏）
 const touchStartX = ref(0)
+const touchStartY = ref(0)
 function onTouchStart(e: TouchEvent) {
   touchStartX.value = e.touches?.[0]?.clientX ?? 0
+  touchStartY.value = e.touches?.[0]?.clientY ?? 0
 }
 function onTouchMove(e: TouchEvent) {
-  const dx = (e.touches?.[0]?.clientX ?? 0) - touchStartX.value
-  if (touchStartX.value < 20 && dx > 60) {
-    appStore.openSidebar()
+  const x = e.touches?.[0]?.clientX ?? 0
+  const y = e.touches?.[0]?.clientY ?? 0
+  const dx = x - touchStartX.value
+  const dy = Math.abs(y - touchStartY.value)
+  if (dx > 80 && dx > dy * 2) {
+    if (!appStore.sidebarOpen) appStore.openSidebar()
   }
 }
+
+onMounted(() => {
+  appStore.fetchLoginPageConfig()
+  accountStore.fetchAccounts()
+  document.addEventListener('touchstart', onTouchStart as any, { passive: true })
+  document.addEventListener('touchmove', onTouchMove as any, { passive: true })
+})
+
+onUnmounted(() => {
+  document.removeEventListener('touchstart', onTouchStart as any)
+  document.removeEventListener('touchmove', onTouchMove as any)
+})
 
 onMounted(() => {
   appStore.fetchLoginPageConfig()
@@ -30,7 +47,7 @@ onUnmounted(() => {})
 </script>
 
 <template>
-  <div class="w-screen flex overflow-hidden bg-gray-50 dark:bg-gray-900" style="height: 100dvh;" @touchstart="onTouchStart" @touchmove="onTouchMove">>
+  <div class="w-screen flex overflow-hidden bg-gray-50 dark:bg-gray-900" style="height: 100dvh;">>
     <Sidebar />
     <main class="relative h-full min-h-0 min-w-0 flex flex-1 flex-col overflow-hidden">
       <div class="min-h-0 flex flex-1 flex-col overflow-hidden">

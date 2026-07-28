@@ -6,8 +6,8 @@ import api from '@/api'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseSelect from '@/components/ui/BaseSelect.vue'
-import CareerModal from '../components/CareerModal.vue'
 import AccountModal from '@/components/AccountModal.vue'
+import CareerModal from '@/components/CareerModal.vue'
 import { useAccountStore } from '@/stores/account'
 import { useBagStore } from '@/stores/bag'
 import { useStatusStore } from '@/stores/status'
@@ -32,10 +32,17 @@ const { currentAccountId, currentAccount } = storeToRefs(accountStore)
 const { dashboardItems } = storeToRefs(bagStore)
 
 const showAccountDropdown = ref(false)
-const showCareerModal = ref(false)
 const showAccountModal = ref(false)
+const showCareerModal = ref(false)
+const startAllLoading = ref(false)
+const startAllResults = ref<{ name: string; ok: boolean; msg: string }[]>([])
+const showStartAllModal = ref(false)
 const accountToEdit = ref<any>(null)
 const { accounts } = storeToRefs(accountStore)
+
+function openCareerModal() {
+  showCareerModal.value = true
+}
 
 // 关闭下拉（点击外部）
 onMounted(() => {
@@ -62,6 +69,57 @@ async function handleAccountSaved() {
   showAccountModal.value = false
   accountToEdit.value = null
   await accountStore.fetchAccounts()
+}
+
+// 一键启动
+const allAccountsRunning = computed(() => {
+  const accs = accountStore.accounts
+  return accs.length > 0 && accs.every(a => a.running)
+})
+
+async function startAllAccounts() {
+  if (startAllLoading.value) return
+  startAllLoading.value = true
+  startAllResults.value = []
+
+  const accs = accountStore.accounts
+  const toStart = accs.filter(a => !a.running)
+
+  if (toStart.length === 0) {
+    // 全部在线，执行全部停止
+    for (const acc of accs) {
+      try {
+        await accountStore.stopAccount(String(acc.id))
+        startAllResults.value.push({ name: acc.name || acc.nick || acc.id, ok: true, msg: '已停止' })
+      } catch {
+        startAllResults.value.push({ name: acc.name || acc.nick || acc.id, ok: false, msg: '停止失败' })
+      }
+    }
+  } else {
+    // 启动所有离线账号
+    for (const acc of toStart) {
+      try {
+        await api.post(`/api/accounts/${acc.id}/start`)
+      } catch {
+        startAllResults.value.push({ name: acc.name || acc.nick || acc.id, ok: false, msg: '启动失败，请重新扫码' })
+      }
+    }
+    // 等待 5 秒后检查实际运行状态
+    await new Promise(r => setTimeout(r, 5000))
+    await accountStore.fetchAccounts()
+    const latest = accountStore.accounts
+    for (const acc of toStart) {
+      const updated = latest.find(a => String(a.id) === String(acc.id))
+      if (updated?.running) {
+        startAllResults.value.push({ name: acc.name || acc.nick || acc.id, ok: true, msg: '启动成功' })
+      } else {
+        startAllResults.value.push({ name: acc.name || acc.nick || acc.id, ok: false, msg: '启动失败，请重新扫码' })
+      }
+    }
+  }
+
+  startAllLoading.value = false
+  showStartAllModal.value = true
 }
 
 // 账号显示名
@@ -282,6 +340,40 @@ const localUptime = ref(0)
 let localNextFarmRemainSec = 0
 let localNextHelpRemainSec = 0
 let localNextStealRemainSec = 0
+let localFarmTotalSec = 120
+let localHelpTotalSec = 180
+let localStealTotalSec = 120
+let lastUpdateTime = Date.now()
+
+// 圆环进度（requestAnimationFrame 实时驱动）
+const farmPct = ref(0)
+const helpPct = ref(0)
+const stealPct = ref(0)
+
+function animateProgress() {
+  const now = Date.now()
+  const elapsed = (now - lastUpdateTime) / 1000
+  if (localNextFarmRemainSec > 0) {
+    const remain = Math.max(0, localNextFarmRemainSec - elapsed)
+    farmPct.value = localFarmTotalSec > 0 ? Math.min(1, remain / localFarmTotalSec) : 0
+  } else { farmPct.value = 0 }
+  if (localNextHelpRemainSec > 0) {
+    const remain = Math.max(0, localNextHelpRemainSec - elapsed)
+    helpPct.value = localHelpTotalSec > 0 ? Math.min(1, remain / localHelpTotalSec) : 0
+  } else { helpPct.value = 0 }
+  if (localNextStealRemainSec > 0) {
+    const remain = Math.max(0, localNextStealRemainSec - elapsed)
+    stealPct.value = localStealTotalSec > 0 ? Math.min(1, remain / localStealTotalSec) : 0
+  } else { stealPct.value = 0 }
+  requestAnimationFrame(animateProgress)
+}
+
+let rafStarted = false
+function startProgressAnimation() {
+  if (rafStarted) return
+  rafStarted = true
+  requestAnimationFrame(animateProgress)
+}
 
 function resetDashboardState() {
   lastBagFetchAt.value = 0
@@ -395,10 +487,19 @@ function updateCountdowns() {
 
 watch(status, (newVal) => {
   if (newVal?.nextChecks) {
-    localNextFarmRemainSec = newVal.nextChecks.farmRemainSec || 0
-    localNextHelpRemainSec = newVal.nextChecks.helpRemainSec || 0
-    localNextStealRemainSec = newVal.nextChecks.stealRemainSec || 0
+    const newFarmRemain = newVal.nextChecks.farmRemainSec || 0
+    const newHelpRemain = newVal.nextChecks.helpRemainSec || 0
+    const newStealRemain = newVal.nextChecks.stealRemainSec || 0
+    // 新一轮检查：剩余时间比上次大，说明刚检查完重置了，此时剩余=这轮总时间
+    if (newFarmRemain > localNextFarmRemainSec) localFarmTotalSec = newFarmRemain
+    if (newHelpRemain > localNextHelpRemainSec) localHelpTotalSec = newHelpRemain
+    if (newStealRemain > localNextStealRemainSec) localStealTotalSec = newStealRemain
+    localNextFarmRemainSec = newFarmRemain
+    localNextHelpRemainSec = newHelpRemain
+    localNextStealRemainSec = newStealRemain
+    lastUpdateTime = Date.now()
     updateCountdowns()
+    startProgressAnimation()
   }
 
   if (newVal?.uptime !== undefined)
@@ -599,6 +700,19 @@ useIntervalFn(updateCountdowns, 1000)
 </script>
 
 <template>
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="violetGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#818cf8" /><stop offset="100%" stop-color="#6366f1" />
+      </linearGradient>
+      <linearGradient id="coralGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#fb923c" /><stop offset="100%" stop-color="#f97316" />
+      </linearGradient>
+      <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#34d399" /><stop offset="100%" stop-color="#10b981" />
+      </linearGradient>
+    </defs>
+  </svg>
   <div class="flex flex-col gap-5 pt-1 md:pt-2">
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-3 sm:grid-cols-2">
       <!-- 合并账号面板 -->
@@ -613,7 +727,15 @@ useIntervalFn(updateCountdowns, 1000)
               <div class="i-fas-user-circle text-blue-500" />
               <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">QQ农场智能助手</span>
             </div>
-            <div class="w-7" />
+            <button
+              class="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+              :disabled="startAllLoading"
+              @click="startAllAccounts"
+            >
+              <span v-if="startAllLoading" class="i-svg-spinners-90-ring-with-bg text-base" />
+              <span v-else-if="allAccountsRunning" class="i-carbon-stop-filled text-base text-red-400" />
+              <span v-else class="i-carbon-play text-base" />
+            </button>
           </div>
 
           <!-- 第二行：头像 + 数据 -->
@@ -621,7 +743,11 @@ useIntervalFn(updateCountdowns, 1000)
             <!-- 左侧头像块 -->
             <div class="flex w-[120px] shrink-0 flex-col items-center gap-2 pt-2">
               <!-- 头像 -->
-              <div class="relative flex h-[80px] w-[80px] items-center justify-center overflow-hidden rounded-[20px] bg-gradient-to-br from-gray-200 to-gray-300 ring-1 ring-gray-200 dark:from-gray-600 dark:to-gray-700 dark:ring-gray-600 cursor-pointer" @click="showCareerModal = true">
+              <div
+                class="relative flex h-[80px] w-[80px] cursor-pointer items-center justify-center overflow-hidden rounded-[20px] bg-gradient-to-br from-gray-200 to-gray-300 ring-1 ring-gray-200 transition-transform hover:scale-[1.02] dark:from-gray-600 dark:to-gray-700 dark:ring-gray-600"
+                title="查看生涯统计"
+                @click="openCareerModal"
+              >
                 <img
                   v-if="currentAvatarSrc"
                   :src="currentAvatarSrc"
@@ -788,6 +914,103 @@ useIntervalFn(updateCountdowns, 1000)
     </div>
 
     <div class="flex flex-1 flex-col items-stretch gap-5 md:flex-row">
+      <!-- 倒计时圆环卡片 + 化肥容器（原 md:w-1/4，现放前面） -->
+      <div class="flex flex-col gap-5 md:w-1/4">
+        <div class="ui-card flex flex-col rounded-lg p-4">
+          <div class="mb-3 flex items-center justify-center gap-1.5 text-xs text-gray-400 font-medium">
+            <div class="i-carbon-hourglass" />
+            <span>下次检查倒计时</span>
+          </div>
+          <div class="flex items-center justify-around py-1">
+            <!-- 农场 -->
+            <div class="relative flex flex-col items-center gap-1.5">
+              <div class="relative flex items-center justify-center" style="width:78px;height:78px;">
+                <svg class="absolute inset-0 w-full h-full" viewBox="0 0 36 36" style="transform:rotate(-90deg);">
+                  <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(128,128,128,0.12)" stroke-width="4.5" />
+                  <circle cx="18" cy="18" r="15.5" fill="none" stroke="url(#violetGrad)" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="97.4" :stroke-dashoffset="(97.4 * (1 - farmPct)).toFixed(2)" style="transition: stroke-dashoffset 0.3s linear;" />
+                </svg>
+                <div class="flex flex-col items-center leading-none">
+                  <div class="text-xs font-bold tabular-nums" style="color:#a5b4fc;">{{ nextFarmCheck }}</div>
+                  <div class="text-[9px] text-gray-500 mt-0.5">农场</div>
+                </div>
+              </div>
+            </div>
+            <!-- 帮助 -->
+            <div class="relative flex flex-col items-center gap-1.5">
+              <div class="relative flex items-center justify-center" style="width:78px;height:78px;">
+                <svg class="absolute inset-0 w-full h-full" viewBox="0 0 36 36" style="transform:rotate(-90deg);">
+                  <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(128,128,128,0.12)" stroke-width="4.5" />
+                  <circle cx="18" cy="18" r="15.5" fill="none" stroke="url(#coralGrad)" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="97.4" :stroke-dashoffset="(97.4 * (1 - helpPct)).toFixed(2)" style="transition: stroke-dashoffset 0.3s linear;" />
+                </svg>
+                <div class="flex flex-col items-center leading-none">
+                  <div class="text-xs font-bold tabular-nums" style="color:#fdba74;">{{ nextHelpCheck }}</div>
+                  <div class="text-[9px] text-gray-500 mt-0.5">帮助</div>
+                </div>
+              </div>
+            </div>
+            <!-- 偷菜 -->
+            <div class="relative flex flex-col items-center gap-1.5">
+              <div class="relative flex items-center justify-center" style="width:78px;height:78px;">
+                <svg class="absolute inset-0 w-full h-full" viewBox="0 0 36 36" style="transform:rotate(-90deg);">
+                  <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(128,128,128,0.12)" stroke-width="4.5" />
+                  <circle cx="18" cy="18" r="15.5" fill="none" stroke="url(#emeraldGrad)" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="97.4" :stroke-dashoffset="(97.4 * (1 - stealPct)).toFixed(2)" style="transition: stroke-dashoffset 0.3s linear;" />
+                </svg>
+                <div class="flex flex-col items-center leading-none">
+                  <div class="text-xs font-bold tabular-nums" style="color:#6ee7b7;">{{ nextStealCheck }}</div>
+                  <div class="text-[9px] text-gray-500 mt-0.5">偷菜</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 化肥容器卡片（保留原样） -->
+        <div class="ui-card flex-1 rounded-lg p-5">
+          <div class="mb-2 flex items-center gap-1.5 text-sm text-gray-500">
+            <div class="i-fas-flask text-emerald-400" />
+            化肥容器
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <div class="flex items-center gap-1 text-xs text-gray-400">
+                <div class="i-fas-flask text-emerald-400" />
+                普通
+              </div>
+              <div class="font-bold">{{ formatBucketTime(fertilizerNormal) }}</div>
+            </div>
+            <div>
+              <div class="flex items-center gap-1 text-xs text-gray-400">
+                <div class="i-fas-vial text-emerald-400" />
+                有机
+              </div>
+              <div class="font-bold">{{ formatBucketTime(fertilizerOrganic) }}</div>
+            </div>
+          </div>
+          <div class="my-3 border-t border-gray-100/80 dark:border-gray-700/80" />
+          <div class="mb-1 flex items-center gap-1.5 text-sm text-gray-500">
+            <div class="i-fas-star text-emerald-400" />
+            收藏点
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <div class="flex items-center gap-1 text-xs text-gray-400">
+                <div class="i-fas-bookmark text-emerald-400" />
+                普通
+              </div>
+              <div class="font-bold">{{ collectionNormal?.count || 0 }}</div>
+            </div>
+            <div>
+              <div class="flex items-center gap-1 text-xs text-gray-400">
+                <div class="i-fas-gem text-emerald-400" />
+                典藏
+              </div>
+              <div class="font-bold">{{ collectionRare?.count || 0 }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 运行日志卡片（原 md:w-3/4，现放后面） -->
       <div class="flex flex-1 flex-col gap-5 md:w-3/4">
         <div class="ui-card-elevated flex flex-1 flex-col rounded-lg p-5 md:overflow-hidden">
           <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -866,97 +1089,43 @@ useIntervalFn(updateCountdowns, 1000)
           </div>
         </div>
       </div>
-
-      <div class="flex flex-col gap-5 md:w-1/4">
-        <div class="ui-card flex flex-col rounded-lg p-5">
-          <h3 class="mb-4 flex items-center gap-2 text-lg font-medium">
-            <div class="i-carbon-hourglass" />
-            <span>下次检查倒计时</span>
-          </h3>
-          <div class="flex flex-col justify-center gap-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                <div class="i-carbon-sprout text-lg text-green-500" />
-                <span>农场</span>
-              </div>
-              <div class="text-lg font-bold font-mono">
-                {{ nextFarmCheck }}
-              </div>
-            </div>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                <div class="i-carbon-user-multiple text-lg text-blue-500" />
-                <span>帮助</span>
-              </div>
-              <div class="text-lg font-bold font-mono">
-                {{ nextHelpCheck }}
-              </div>
-            </div>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                <div class="i-carbon-run text-lg text-orange-500" />
-                <span>偷菜</span>
-              </div>
-              <div class="text-lg font-bold font-mono">
-                {{ nextStealCheck }}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="ui-card flex-1 rounded-lg p-5">
-          <div class="mb-2 flex items-center gap-1.5 text-sm text-gray-500">
-            <div class="i-fas-flask text-emerald-400" />
-            化肥容器
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <div class="flex items-center gap-1 text-xs text-gray-400">
-                <div class="i-fas-flask text-emerald-400" />
-                普通
-              </div>
-              <div class="font-bold">{{ formatBucketTime(fertilizerNormal) }}</div>
-            </div>
-            <div>
-              <div class="flex items-center gap-1 text-xs text-gray-400">
-                <div class="i-fas-vial text-emerald-400" />
-                有机
-              </div>
-              <div class="font-bold">{{ formatBucketTime(fertilizerOrganic) }}</div>
-            </div>
-          </div>
-          <div class="my-3 border-t border-gray-100/80 dark:border-gray-700/80" />
-          <div class="mb-1 flex items-center gap-1.5 text-sm text-gray-500">
-            <div class="i-fas-star text-emerald-400" />
-            收藏点
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <div class="flex items-center gap-1 text-xs text-gray-400">
-                <div class="i-fas-bookmark text-emerald-400" />
-                普通
-              </div>
-              <div class="font-bold">{{ collectionNormal?.count || 0 }}</div>
-            </div>
-            <div>
-              <div class="flex items-center gap-1 text-xs text-gray-400">
-                <div class="i-fas-gem text-emerald-400" />
-                典藏
-              </div>
-              <div class="font-bold">{{ collectionRare?.count || 0 }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 
-  <CareerModal :show="showCareerModal" @close="showCareerModal = false" />
   <AccountModal
     :show="showAccountModal"
     :edit-data="accountToEdit"
     @close="showAccountModal = false; accountToEdit = null"
     @saved="handleAccountSaved"
   />
+  <CareerModal :show="showCareerModal" @close="showCareerModal = false" />
+
+  <!-- 一键启动结果弹窗 -->
+  <Teleport to="body">
+    <Transition name="fade">
+      <div v-if="showStartAllModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" @click.self="showStartAllModal = false">
+        <div class="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl dark:bg-gray-800">
+          <h3 class="mb-4 text-center text-base font-bold text-gray-800 dark:text-gray-100">🚀 一键启动结果</h3>
+          <div class="flex flex-col gap-2">
+            <div
+              v-for="(r, i) in startAllResults"
+              :key="i"
+              class="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm"
+              :class="r.ok ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300' : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300'"
+            >
+              <div class="flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold text-white" :class="r.ok ? 'bg-green-500' : 'bg-red-500'">
+                {{ r.ok ? '✓' : '✕' }}
+              </div>
+              <span class="font-medium">{{ r.name }}</span>
+              <span class="ml-auto text-xs opacity-75">{{ r.msg }}</span>
+            </div>
+          </div>
+          <button class="mt-4 w-full rounded-xl bg-blue-500 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-600" @click="showStartAllModal = false">
+            确定
+          </button>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
  

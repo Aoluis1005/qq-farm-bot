@@ -380,7 +380,7 @@ async function copyToken() {
 </script>
 
 <template>
-  <aside
+  <aside v-show="sidebarOpen" data-sidebar
     class="fixed inset-y-0 left-0 z-[1001] h-full w-72 flex flex-col border-r border-gray-200/50 p-3 transition-transform duration-300 lg:static lg:translate-x-0 dark:border-gray-700/50"
     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
     :style="{ background: 'color-mix(in srgb, var(--surface-1) 88%, transparent)', color: 'var(--theme-text)' }"
@@ -995,5 +995,7 @@ async function copyToken() {
     transparent 80%
   );
   border-radius: 0 0 12px 0;
+}@media (min-width: 1024px) {
+  aside[data-sidebar] { display: flex !important; }
 }
 </style>
