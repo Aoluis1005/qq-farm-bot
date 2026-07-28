@@ -295,6 +295,7 @@ async function getFriendsList(forceRefresh = false) {
           avatarUrl: String(friend.avatar_url || '').trim(),
           level: toNum(friend.level),
           gold: toNum(friend.gold),
+          open_id: friend.open_id || '',
           dogId: cachedDog ? cachedDog.dogId : 0,
           dogName: cachedDog ? cachedDog.dogName : '',
           plant: friend.plant

@@ -147,11 +147,3 @@ message FriendAddedNotify {
 }
 
 // ============ 主动申请加好友 (从 Telnix 反编译) ============
-message ApplyFriendRequest {
-    string host_gid = 1;
-    int32 reason = 2;
-    int32 host_type = 3;
-    string share_key = 4;
-}
-
-message ApplyFriendReply {}
