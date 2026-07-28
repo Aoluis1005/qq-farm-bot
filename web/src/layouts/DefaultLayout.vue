@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import MysteryMerchantBanner from '@/components/shop/MysteryMerchantBanner.vue'
 import FloatingDock from '@/components/FloatingDock.vue'
 import Sidebar from '@/components/Sidebar.vue'
@@ -8,6 +8,18 @@ import { useAccountStore } from '@/stores/account'
 
 const appStore = useAppStore()
 const accountStore = useAccountStore()
+
+// 右滑呼出侧边栏（触屏）
+const touchStartX = ref(0)
+function onTouchStart(e: TouchEvent) {
+  touchStartX.value = e.touches?.[0]?.clientX ?? 0
+}
+function onTouchMove(e: TouchEvent) {
+  const dx = (e.touches?.[0]?.clientX ?? 0) - touchStartX.value
+  if (touchStartX.value < 20 && dx > 60) {
+    appStore.openSidebar()
+  }
+}
 
 onMounted(() => {
   appStore.fetchLoginPageConfig()
@@ -18,7 +30,7 @@ onUnmounted(() => {})
 </script>
 
 <template>
-  <div class="w-screen flex overflow-hidden bg-gray-50 dark:bg-gray-900" style="height: 100dvh;">
+  <div class="w-screen flex overflow-hidden bg-gray-50 dark:bg-gray-900" style="height: 100dvh;" @touchstart="onTouchStart" @touchmove="onTouchMove">>
     <Sidebar />
     <main class="relative h-full min-h-0 min-w-0 flex flex-1 flex-col overflow-hidden">
       <div class="min-h-0 flex flex-1 flex-col overflow-hidden">
