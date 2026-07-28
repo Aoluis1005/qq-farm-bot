@@ -668,36 +668,6 @@ async function acceptFriends(gids) {
 }
 
 /** Delete a friend by GID. */
-async function applyFriend(openid, opts = {}) {
-  if (!openid || typeof openid !== "string") {
-    throw new Error("缺少有效的目标 openid");
-  }
-  const payload = types.ApplyFriendRequest.encode(
-    types.ApplyFriendRequest.fromObject({
-      host_gid: openid,
-      reason: Number(opts.reason ?? 0),
-      host_type: Number(opts.hostType ?? 0),
-      share_key: opts.shareKey || "",
-    })
-  ).finish();
-  const { body, meta } = await sendMsgAsync(
-    "gamepb.friendpb.FriendService",
-    "ApplyFriend",
-    payload
-  );
-  if (meta && Number(meta.error_code || 0) !== 0) {
-    throw new Error(`服务器拒绝: code=${meta.error_code} ${meta.error_message || ""}`);
-  }
-  const reply = types.ApplyFriendReply.decode(body);
-  log("好友", `已向 ${openid} 发起好友申请`, {
-    module: "friend",
-    event: "申请加好友",
-    result: "ok",
-    openid,
-  });
-  return reply;
-}
-
 async function delFriend(gid) {
   const numericGid = toNum(gid);
   if (!numericGid) throw new Error('无效的好友 GID');
@@ -738,8 +708,7 @@ async function delFriend(gid) {
  *        token = SHA256("<visit_token>:<gid>") + ":" + gid
  *      服务器用 Enter 登记的 visit_token 重算哈希做校验；业务体不含 openid。
  *
- * visit_token 从不由服务器下发（任何响应帧都没有），判定为客户端本地生成的随机 nonce，
- * 因此这里默认用 crypto.randomBytes(16) 生成；也可通过 opts.visitToken 指定。
+ * visit_token 来源：Enter 响应 field7（已逐字节验证）。外部可直接传入；缺省时由随机 nonce 走 Enter 拿服务器下发值。
  *
  * 加解密 / 密钥流由底层 TSDK 透明处理，我们只负责构造 protobuf 并调用 sendMsgAsync。
  *
@@ -755,22 +724,31 @@ async function applyFriend(gid, opts = {}) {
     throw new Error('ApplyFriend 接口类型未加载');
   }
 
-  // 会话 nonce：合法的 32-hex 则复用，否则随机生成
-  const visitToken = (typeof opts.visitToken === 'string' && /^[0-9a-f]{32}$/i.test(opts.visitToken))
-    ? opts.visitToken.toLowerCase()
-    : crypto.randomBytes(16).toString('hex');
+  // 会话 nonce：必须来自目标的新鲜分享卡片 share_key（32-hex）。
+  // 【2026-07-26 抓包逐字节验证】ApplyFriend token = SHA256(nonce:gid)，nonce 即卡片下发的 share_key；
+  // 服务器只认该值，自造随机 nonce 必被拒（1005024 凭证已过期/无效）。故缺失时直接报错，不再静默降级。
+  if (typeof opts.visitToken !== 'string' || !/^[0-9a-f]{32}$/i.test(opts.visitToken)) {
+    throw new Error('缺少有效的分享凭证 share_key（32 位十六进制）：请粘贴目标的新鲜分享卡片（uid=GID&share_key=...），不能只填 gid');
+  }
+  const visitToken = opts.visitToken.toLowerCase();
   const enterReason = opts.enterReason != null ? Number(opts.enterReason) : 5;
 
-  // 加好友协议必须先用 reason=5 进入农场并登记 visit_token（Enter），
-  // 服务器才能用登记的 nonce 校验 ApplyFriend 的 token。跳过 Enter 会导致 1005024（凭证无效）。
-  // 默认发送 Enter 前置流程；仅当显式传 skipEnter:true 时才跳过（不推荐）。
+  // 默认走第一种流程（skipEnter）：跳过 Enter 直接发 ApplyFriend，绕过 1002007 拜访开关校验。
+  // 仅当显式传 skipEnter:false 时才回到 Enter 前置流程。
   const skipEnter = opts.skipEnter === true;
 
   // 步骤 1：以 reason=5 进入目标农场并登记 visit_token
+  let effectiveNonce = visitToken;
+  console.log('[applyFriend start] gid=%s skipEnter=%s enterReason=%s visitTokenHead=%s', numericGid, skipEnter, enterReason, visitToken.slice(0,8));
   if (!skipEnter) {
     try {
-      await enterFriendFarm(numericGid, { reason: enterReason, visitToken });
+      const reply = await enterFriendFarm(numericGid, { reason: enterReason, visitToken });
+      console.log('[applyFriend enter done] gid=%s nonce=%s', numericGid, reply?.__nonce);
+      // 仅当响应 nonce 为合法 32hex 才覆盖；否则回退请求里 bot 生成的 nonce
+      // （客户端协议：Enter 请求 field7 携带客户端生成的 32hex nonce，ApplyFriend 复用同一 nonce 算 token）
+      if (reply && reply.__nonce && /^[0-9a-fA-F]{32}$/.test(reply.__nonce)) effectiveNonce = reply.__nonce;
     } catch (err) {
+      console.error('[applyFriend enter failed] gid=%s err=%s', numericGid, err?.message || err);
       logWarn('好友', `加好友前置进入农场失败(gid=${numericGid}): ${err.message}`, {
         module: 'friend',
         event: '发送好友申请',
@@ -788,9 +766,9 @@ async function applyFriend(gid, opts = {}) {
     });
   }
 
-  // 步骤 2：token = sha256(visit_token:gid) + ":" + gid
+  // 步骤 2：token = sha256(nonce:gid) + ":" + gid；nonce 取自 Enter 响应 field7（已逐字节验证）
   const gidStr = String(numericGid);
-  const digest = crypto.createHash('sha256').update(`${visitToken}:${gidStr}`).digest('hex');
+  const digest = crypto.createHash('sha256').update(`${effectiveNonce}:${gidStr}`).digest('hex');
   const token = `${digest}:${gidStr}`;
 
   const payload = types.ApplyFriendRequest.encode(
@@ -799,12 +777,20 @@ async function applyFriend(gid, opts = {}) {
       token,
     })
   ).finish();
+  console.error('[DIAG apply req] gid=%s effectiveNonce=%s token=%s payload=%s', gidStr, effectiveNonce, token, payload.toString('hex'));
 
-  const { body } = await sendMsgAsync(
-    'gamepb.friendpb.FriendService',
-    'ApplyFriend',
-    payload
-  );
+  let body;
+  try {
+    ({ body } = await sendMsgAsync(
+      'gamepb.friendpb.FriendService',
+      'ApplyFriend',
+      payload
+    ));
+  } catch (err) {
+    console.error('[applyFriend ApplyFriend error] gid=%s err=%s', gidStr, err?.message || err);
+    throw err;
+  }
+  console.log('[applyFriend ApplyFriend ok] gid=%s bodyLen=%d', gidStr, body?.length || 0);
   const reply = types.ApplyFriendReply.decode(body);
 
   log('好友', `已发送加好友申请: gid=${gidStr}`, {
@@ -822,6 +808,26 @@ async function applyFriend(gid, opts = {}) {
  * @param {{reason?:number, visitToken?:string}} [opts] reason 默认 2（偷菜访问）；
  *        加好友时传 reason=5 + visitToken(32hex)
  */
+// 从 Enter 响应的原始明文 bytes 中提取 field7 (string) nonce（抓包已验证：field7 = 32hex 会话 nonce）
+function extractEnterNonce(rawBytes) {
+  try {
+    const reader = require('protobufjs/minimal').Reader.create(Buffer.from(rawBytes || []));
+    while (reader.pos < reader.len) {
+      const key = reader.uint32();
+      const fno = key >> 3, wt = key & 7;
+      if (fno === 7 && wt === 2) {
+        const len = reader.uint32();
+        return reader.bytes(len).toString('latin1');
+      } else if (wt === 0) { reader.skip(); }
+      else if (wt === 1) { reader.skip(8); }
+      else if (wt === 5) { reader.skip(4); }
+      else if (wt === 2) { const l = reader.uint32(); reader.skip(l); }
+      else break;
+    }
+  } catch (_) {}
+  return null;
+}
+
 async function enterFriendFarm(gid, opts = {}) {
   const reason = opts.reason != null ? Number(opts.reason) : 2;
   const enterReq = { host_gid: toLong(gid), reason };
@@ -830,12 +836,15 @@ async function enterFriendFarm(gid, opts = {}) {
   const payload = types.VisitEnterRequest.encode(
     types.VisitEnterRequest.create(enterReq)
   ).finish();
+  console.error('[DIAG enter req] gid=%s reason=%s payload=%s', gid, reason, payload.toString('hex'));
   const { body } = await sendMsgAsync(
     'gamepb.visitpb.VisitService',
     'Enter',
     payload
   );
+  console.error('[DIAG enter resp] body=%s', Buffer.from(body).toString('hex'));
   const reply = types.VisitEnterReply.decode(body);
+  reply.__nonce = extractEnterNonce(body);
 
   // Extract dog info (try both parsed field and raw bytes)
   const dogInfo = parseBriefDogInfoBytes(reply.brief_dog_info) ||
