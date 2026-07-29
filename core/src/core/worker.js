@@ -97,7 +97,8 @@ const {
     stopNetwork,
     getWs,
     getUserState,
-    networkEvents
+    networkEvents,
+    sendMsgAsync
 } = require('../utils/network');
 const { loadProto } = require('../utils/proto');
 const { setLogHook, log, toNum } = require('../utils/utils');
@@ -938,6 +939,37 @@ async function handleApiCall(msg) {
             case 'getActivityShop': {
                 const { getNanguaShop } = require('../services/activity');
                 result = await getNanguaShop();
+                break;
+            }
+            case 'getActivityList': {
+                const { types } = require('../utils/proto');
+                const req = types.ActivityListRequest.encode(types.ActivityListRequest.create({})).finish();
+                const { body, meta } = await sendMsgAsync('gamepb.activitypb.ActivityService', 'List', req, 10000);
+                if (meta && Number(meta.error_code || 0) !== 0) throw new Error('code=' + meta.error_code);
+                const reply = types.ActivityListReply.decode(body);
+                result = (reply.activities || []).map(a => ({
+                    id: Number(a.id),
+                    title: a.title,
+                    start_time: a.start_time ? new Date(Number(a.start_time)*1000).toISOString() : null,
+                    end_time: a.end_time ? new Date(Number(a.end_time)*1000).toISOString() : null,
+                    visible: a.visible,
+                    status: a.status,
+                    type: a.type,
+                }));
+                break;
+            }
+            case 'getActivityGroupRaw': {
+                const { types } = require('../utils/proto');
+                const activityId = Number(args[0]) || 0;
+                if (!activityId) throw new Error('缺少 activityId');
+                const uid = String(args[1] || "");
+                const req = types.ActivityGetGroupRequest.encode(
+                    types.ActivityGetGroupRequest.create({ id: activityId, uid })
+                ).finish();
+                const { body, meta } = await sendMsgAsync('gamepb.activitypb.ActivityService', 'GetGroup', req, 10000);
+                if (meta && Number(meta.error_code || 0) !== 0) throw new Error('code=' + meta.error_code + ' ' + (meta.error_message || ''));
+                const reply = types.ActivityGetGroupReply.decode(body);
+                result = reply ? JSON.stringify(reply.toJSON ? reply.toJSON() : reply, null, 2) : null;
                 break;
             }
             case 'buyActivityShopItem': {

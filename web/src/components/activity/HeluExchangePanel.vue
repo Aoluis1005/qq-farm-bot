@@ -56,6 +56,8 @@ function hasImage(item: ExchangeItem) {
 
 function getCurrencyNameById(currencyId?: number) {
   const id = Number(currencyId || 0)
+  if (id === 1023)
+    return '星纱'
   if (id === 1018)
     return props.labels.helu
   if (id === 1002)
@@ -67,7 +69,7 @@ function getCurrencyNameById(currencyId?: number) {
 
 function getExchangeState(item: ExchangeItem): ExchangeState {
   const price = Number(item.price || 0)
-  const isHeluCurrency = Number(item.currencyId || 0) === 1018
+  const isHeluCurrency = Number(item.currencyId || 0) === 1023 || Number(item.currencyId || 0) === 1018
   const ownedBlocksExchange = item.ownedBlocksExchange !== false && item.owned === true && item.isRepeatable !== true
   const canExchange = isHeluCurrency && !ownedBlocksExchange && price > 0 && props.balance >= price
 

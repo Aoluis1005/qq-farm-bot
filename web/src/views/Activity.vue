@@ -25,9 +25,9 @@ const L: ActivityLabels = {
   empty: '\u6682\u65E0\u6570\u636E',
   warningTitle: '\u6D3B\u52A8\u63D0\u793A',
   heluTitle: '\u8377\u9732\u6D3B\u52A8',
-  giftLotusTab: '\u5947\u9047\u793C\u83B2',
-  shopTab: '\u8377\u9732\u5546\u5E97',
-  journeyTab: '\u8377\u98CE\u6E38\u8BB0',
+  giftLotusTab: '千星游记',
+  shopTab: '星纱商店',
+  journeyTab: '观星礼录',
   notesTab: '\u8282\u4EE4\u5C0F\u672D',
   pool: '\u5956\u6C60',
   recent: '\u6700\u8FD1\u7ED3\u679C',
@@ -35,8 +35,8 @@ const L: ActivityLabels = {
   paidRemain: '\u70B9\u5238\u5269\u4F59',
   dailyUsed: '\u4ECA\u65E5\u5DF2\u62BD',
   dailyRemain: '\u4ECA\u65E5\u5269\u4F59',
-  helu: '\u8377\u9732',
-  heluBalance: '\u8377\u9732\u4F59\u989D',
+  helu: '星纱',
+  heluBalance: '星纱余额',
   exchangeGoods: '\u5151\u6362\u5956\u52B1',
   drawOne: '\u62BD 1 \u6B21',
   drawBatch: '\u62BD\u591A\u6B21',
@@ -48,7 +48,7 @@ const L: ActivityLabels = {
   canExchange: '\u7ACB\u5373\u5151\u6362',
   unavailable: '\u6682\u4E0D\u53EF\u7528',
   owned: '\u5DF2\u62E5\u6709',
-  noHelu: '\u8377\u9732\u4E0D\u8DB3',
+  noHelu: '\u4F59\u989D\u4E0D\u8DB3',
   unsupportedCurrency: '\u6682\u4E0D\u652F\u6301\u8BE5\u8D27\u5E01',
   priceLabel: '\u4EF7\u683C',
   stateLabel: '\u72B6\u6001',
@@ -69,6 +69,8 @@ const L: ActivityLabels = {
 } as const
 
 const SHOW_QINGMEI_ACTIVITY = false
+// 荷风活动已于 2026-07 结束，隐藏入口（后端代码保留）
+const HELU_EXPIRED = false
 
 const accountStore = useAccountStore()
 const activityStore = useActivityStore()
@@ -101,7 +103,14 @@ const activityWarning = computed(() => String(heluActivity.value?.warning || '')
 const anyLoading = computed(() => heluLoading.value)
 const subActivities = computed(() => heluActivity.value?.subActivities || [])
 const passport = computed(() => heluActivity.value?.passport || null)
-const solarTerms = computed(() => heluActivity.value?.solarTerms || null)
+const solarTerms = computed(() => {
+  const raw = heluActivity.value?.solarTerms
+  if (!raw) return null
+  return {
+    ...raw,
+    terms: (raw.terms || []).filter((t: any) => t.statusLabel !== '已结束')
+  }
+})
 const qingmeiActivity = computed(() => heluActivity.value?.qingmei || null)
 
 const recentCostText = computed(() => {
@@ -112,9 +121,9 @@ const recentCostText = computed(() => {
 })
 
 const sectionTabs = computed<ActivitySection[]>(() => [
-  { key: 'giftLotus', label: L.giftLotusTab, icon: 'i-carbon-gift', count: rewardPool.value.length },
+  { key: 'giftLotus', label: L.giftLotusTab, icon: 'i-carbon-star', count: passport.value?.claimableLevels || 0 },
   { key: 'shop', label: L.shopTab, icon: 'i-carbon-store', count: heluExchangeItems.value.length },
-  { key: 'journey', label: L.journeyTab, icon: 'i-carbon-map', count: passport.value?.claimableLevels || 0 },
+  { key: 'journey', label: L.journeyTab, icon: 'i-carbon-observation', count: 0 },
   { key: 'notes', label: L.notesTab, icon: 'i-carbon-notebook', count: solarTerms.value?.claimableCount || 0 },
   ...(SHOW_QINGMEI_ACTIVITY
     ? [{ key: 'qingmei' as const, label: '青梅酿万金', icon: 'i-carbon-fruit-bowl', count: qingmeiActivity.value?.claimable ? 1 : 0 }]
@@ -132,12 +141,6 @@ const headerPills = computed(() => [
     value: formatNumber(heluBalance.value),
     icon: 'i-carbon-currency',
     class: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300',
-  },
-  {
-    label: L.dailyRemain,
-    value: drawInfo.value?.dailyRemaining || 0,
-    icon: 'i-carbon-time',
-    class: 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300',
   },
   {
     label: L.currentAccount,
@@ -159,6 +162,8 @@ function formatNumber(value?: number) {
 
 function getCurrencyNameById(currencyId?: number) {
   const id = Number(currencyId || 0)
+  if (id === 1023)
+    return '星纱'
   if (id === 1018)
     return L.helu
   if (id === 1002)
@@ -202,9 +207,9 @@ async function claimPassport() {
 
   const result = await activityStore.claimHeluPassport(currentAccountId.value)
   if (result?.ok)
-    toast.success('荷风游记奖励领取完成')
+    toast.success('千星游记奖励领取完成')
   else
-    toast.error(result?.error || '荷风游记领取失败')
+    toast.error(result?.error || '千星游记领取失败')
 }
 
 async function claimSolar(term: { id: number, title?: string }) {
@@ -321,7 +326,14 @@ onMounted(() => {
     </div>
 
     <template v-else>
-      <div class="min-w-0 space-y-4">
+      <!-- 荷风活动已过期 -->
+      <div v-if="HELU_EXPIRED" class="rounded-lg bg-white p-10 text-center text-sm text-gray-500 shadow dark:bg-gray-800 dark:text-gray-400">
+        <div class="i-carbon-calendar-mischeck mx-auto mb-3 text-3xl text-gray-300" />
+        <div class="text-base font-medium text-gray-700 dark:text-gray-200">荷风活动已结束</div>
+        <div class="mt-1 text-xs text-gray-400">新活动「千星游记」上线后敬请期待</div>
+      </div>
+
+      <div v-else class="min-w-0 space-y-4">
         <div
           v-if="activityWarning"
           class="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 shadow-sm dark:bg-amber-900/20 dark:text-amber-100"
@@ -348,17 +360,12 @@ onMounted(() => {
           {{ L.loading }}
         </div>
 
-        <HeluDrawPanel
+        <HeluPassportPanel
           v-if="activeSection === 'giftLotus'"
-          :title="activeSubActivity?.title || L.giftLotusTab"
-          :balance="heluBalance"
-          :draw-info="drawInfo"
-          :reward-pool="rewardPool"
-          :recent-rewards="recentRewards"
-          :recent-cost-text="recentCostText"
-          :draw-loading="drawLoading"
+          :passport="passport"
+          :loading="passportClaimLoading"
           :labels="L"
-          @draw="draw"
+          @claim="claimPassport"
         />
 
         <HeluExchangePanel
@@ -370,13 +377,15 @@ onMounted(() => {
           @exchange="exchange"
         />
 
-        <HeluPassportPanel
+        <!-- 观星礼录（占位，待抓包后实现） -->
+        <div
           v-else-if="activeSection === 'journey'"
-          :passport="passport"
-          :loading="passportClaimLoading"
-          :labels="L"
-          @claim="claimPassport"
-        />
+          class="rounded-lg bg-white p-10 text-center text-sm text-gray-500 shadow dark:bg-gray-800 dark:text-gray-400"
+        >
+          <div class="i-carbon-observation mx-auto mb-3 text-4xl text-gray-300" />
+          <div class="text-base font-medium text-gray-700 dark:text-gray-200">观星礼录</div>
+          <div class="mt-1 text-xs text-gray-400">28星宿逐日点亮，功能开发中</div>
+        </div>
 
         <HeluSolarTermsPanel
           v-else-if="activeSection === 'notes'"

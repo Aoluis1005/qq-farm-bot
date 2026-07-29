@@ -134,6 +134,8 @@ function createDataProvider(deps) {
         // ========== Friend API ==========
         getFriends: (ref, force = false) => callWorkerApi(resolveAccountId(ref), 'getFriends', force,
             force ? FRIEND_TIMEOUT : undefined),
+        getActivityList: (ref) => callWorkerApi(resolveAccountId(ref), 'getActivityList'),
+        getActivityGroupRaw: (ref, activityId, uid) => callWorkerApi(resolveAccountId(ref), 'getActivityGroupRaw', activityId, uid),
         clearFriendsCache: (ref) => callWorkerApi(resolveAccountId(ref), 'clearFriendsCache'),
         getInteractRecords: (ref) => callWorkerApi(resolveAccountId(ref), 'getInteractRecords'),
         getFriendLands: (ref, gid) => callWorkerApi(resolveAccountId(ref), 'getFriendLands', gid),

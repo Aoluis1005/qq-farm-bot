@@ -5,7 +5,7 @@ const {
 
 function isQingmeiClaimAlreadyHandledError(err) {
   const message = String(err?.message || err || "");
-  return message.includes("已领取")
+  return message.includes("已领�?")
     || message.includes("已经领取")
     || message.includes("重复领取")
     || message.includes("already");
@@ -14,7 +14,7 @@ function isQingmeiClaimAlreadyHandledError(err) {
 function isQingmeiWineBusinessError(err) {
   const message = String(err?.message || err || "");
   return !!err?.qingmeiWine
-    || message.includes("青梅酿")
+    || message.includes("青梅�?")
     || message.includes("ActivityService.Operate")
     || message.includes("ShareService");
 }
@@ -31,12 +31,35 @@ function registerAdminHeluActivityRoutes({
     canAccessAccount,
   };
 
+  app.get("/api/activity/list", async (req, res) => {
+    const accountId = getAuthorizedAccountId(req, res, routeContext);
+    if (!accountId) return;
+    try {
+      const data = await provider.getActivityList(accountId);
+      res.json({ ok: true, data });
+    } catch (error) {
+      sendProviderError(res, error);
+    }
+  });
+
+  app.get("/api/activity/group/:id", async (req, res) => {
+    const accountId = getAuthorizedAccountId(req, res, routeContext);
+    if (!accountId) return;
+    try {
+      const uid = req.query.uid || "";
+      const data = await provider.getActivityGroupRaw(accountId, Number(req.params.id), uid);
+      res.json({ ok: true, data });
+    } catch (error) {
+      sendProviderError(res, error);
+    }
+  });
+
   app.get("/api/activity/helu", async (req, res) => {
     const accountId = getAuthorizedAccountId(req, res, routeContext);
     if (!accountId) return;
 
     try {
-      if (!requireConnectedAccount(res, provider, accountId, "获取奇遇礼莲失败: 账号未运行"))
+      if (!requireConnectedAccount(res, provider, accountId, "获取奇遇礼莲失败: 账号未运�?"))
         return;
 
       const activity = await provider.getHeluActivity(accountId);
@@ -54,7 +77,7 @@ function registerAdminHeluActivityRoutes({
     if (!accountId) return;
 
     try {
-      if (!requireConnectedAccount(res, provider, accountId, "奇遇礼莲抽奖失败: 账号未运行"))
+      if (!requireConnectedAccount(res, provider, accountId, "奇遇礼莲抽奖失败: 账号未运�?"))
         return;
 
       const result = await provider.drawHeluGiftLotus(accountId, req.body || {});
@@ -72,7 +95,7 @@ function registerAdminHeluActivityRoutes({
     if (!accountId) return;
 
     try {
-      if (!requireConnectedAccount(res, provider, accountId, "荷风游记领取失败: 账号未运行"))
+      if (!requireConnectedAccount(res, provider, accountId, "荷风游记领取失败: 账号未运�?"))
         return;
 
       const result = await provider.claimSeasonPassportRewards(accountId);
@@ -92,7 +115,7 @@ function registerAdminHeluActivityRoutes({
     if (!accountId) return;
 
     try {
-      if (!requireConnectedAccount(res, provider, accountId, "节令小札领取失败: 账号未运行"))
+      if (!requireConnectedAccount(res, provider, accountId, "节令小札领取失败: 账号未运�?"))
         return;
 
       const termId = Number(req.body?.termId) || 0;
@@ -113,7 +136,7 @@ function registerAdminHeluActivityRoutes({
     if (!accountId) return;
 
     try {
-      if (!requireConnectedAccount(res, provider, accountId, "荷露商店兑换失败: 账号未运行"))
+      if (!requireConnectedAccount(res, provider, accountId, "荷露商店兑换失败: 账号未运�?"))
         return;
 
       const slotId = Number(req.body?.slotId) || 0;
@@ -136,7 +159,7 @@ function registerAdminHeluActivityRoutes({
     if (!accountId) return;
 
     try {
-      if (!requireConnectedAccount(res, provider, accountId, "领取青梅种子失败: 账号未运行"))
+      if (!requireConnectedAccount(res, provider, accountId, "领取青梅种子失败: 账号未运�?"))
         return;
 
       const result = await provider.claimQingmeiSeeds(accountId);
@@ -183,7 +206,7 @@ function registerAdminHeluActivityRoutes({
     if (!accountId) return;
 
     try {
-      if (!requireConnectedAccount(res, provider, accountId, "青梅酿售卖失败: 账号未运行"))
+      if (!requireConnectedAccount(res, provider, accountId, "青梅酿售卖失�?: 账号未运�?"))
         return;
 
       const result = await provider.brewAndSellQingmeiWine(accountId, req.body || {});
@@ -202,7 +225,7 @@ function registerAdminHeluActivityRoutes({
         res.json({
           ok: false,
           stage: err?.stage || '',
-          error: err?.message || '青梅酿售卖失败',
+          error: err?.message || '青梅酿售卖失�?',
           activity,
           qingmei: activity?.qingmei || null,
         });

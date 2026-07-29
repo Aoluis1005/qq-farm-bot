@@ -365,6 +365,8 @@ function startAdminServer(dataProvider) {
   configureCorsMiddleware(app);
   configureStaticAssets(app, webDist);
   app.use("/game-config", express.static(getResourcePath("gameConfig")));
+
+  // 游戏资源代理（从 CDN 拉取 seed_images / activity 等素材）
   const loginAssetsDir = getDataFile("login-assets");
   fs.mkdirSync(loginAssetsDir, { recursive: true });
   app.use(
