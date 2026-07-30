@@ -366,6 +366,42 @@ function startAdminServer(dataProvider) {
   configureStaticAssets(app, webDist);
   app.use("/game-config", express.static(getResourcePath("gameConfig")));
 
+  // 游戏 CDN 代理
+  const CDN_BASE = 'https://cdn-resource.nqf.qq.com';
+  const manifestPath = path.join(getResourcePath('gameConfig'), 'manifest.csv');
+  let seedCdnMap = new Map();
+  try {
+    if (fs.existsSync(manifestPath)) {
+      const lines = fs.readFileSync(manifestPath, 'utf-8').split('\n');
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].trim().split(',');
+        if (cols.length >= 5) {
+          const spriteName = cols[4];
+          const source = cols[1];
+          const match = spriteName && spriteName.match(/^Crop_(\d+)_Seed$/);
+          if (match && source) {
+            seedCdnMap.set(Number(match[1]), source);
+          }
+        }
+      }
+    }
+  } catch (e) { /* ignore */ }
+
+  app.get("/api/game-asset", async (req, res) => {
+    const seedId = Number(req.query.seedId || 0);
+    if (!seedId || !seedCdnMap.has(seedId)) return res.status(404).end();
+    const sourcePath = seedCdnMap.get(seedId);
+    try {
+      const url = `${CDN_BASE}/${sourcePath}`;
+      const response = await fetch(url);
+      if (!response.ok) return res.status(404).end();
+      const buffer = Buffer.from(await response.arrayBuffer());
+      res.set('Content-Type', 'image/png');
+      res.set('Cache-Control', 'public, max-age=86400');
+      res.end(buffer);
+    } catch { res.status(502).end(); }
+  });
+
   // 游戏资源代理（从 CDN 拉取 seed_images / activity 等素材）
   const loginAssetsDir = getDataFile("login-assets");
   fs.mkdirSync(loginAssetsDir, { recursive: true });
