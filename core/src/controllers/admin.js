@@ -384,7 +384,8 @@ function startAdminServer(dataProvider) {
     if (!seedId || !seedCdnMap.has(seedId)) return res.status(404).end();
     const sourcePath = seedCdnMap.get(seedId);
     try {
-      const url = `${CDN_BASE}/${sourcePath}`;
+      const pngPath = sourcePath.replace(/\.astc$/i, '.png');
+      const url = `${CDN_BASE}/${pngPath}`;
       const response = await fetch(url);
       if (!response.ok) return res.status(404).end();
       const buffer = Buffer.from(await response.arrayBuffer());
