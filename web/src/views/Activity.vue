@@ -4,7 +4,6 @@ import type { ActivityExchangeShopItem } from '@/stores/activity'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, watch } from 'vue'
 import ActivitySubActivityPanel from '@/components/activity/ActivitySubActivityPanel.vue'
-import HeluDrawPanel from '@/components/activity/HeluDrawPanel.vue'
 import HeluExchangePanel from '@/components/activity/HeluExchangePanel.vue'
 import HeluPassportPanel from '@/components/activity/HeluPassportPanel.vue'
 import HeluSolarTermsPanel from '@/components/activity/HeluSolarTermsPanel.vue'
@@ -80,7 +79,6 @@ const { currentAccountId, currentAccount } = storeToRefs(accountStore)
 const {
   heluActivity,
   heluLoading,
-  drawLoading,
   exchangeLoading,
   passportClaimLoading,
   solarClaimLoading,
@@ -91,12 +89,6 @@ const {
 
 const activeSection = ref<ActivitySectionKey>('giftLotus')
 
-const drawInfo = computed(() => heluActivity.value?.draw)
-const rewardPool = computed(() => drawInfo.value?.rewardPool || [])
-const recentRewards = computed(() => {
-  const result = heluActivity.value?.lastDrawResult
-  return [...(result?.rewards || []), ...(result?.items || [])]
-})
 const heluExchangeItems = computed(() => heluActivity.value?.exchangeShop || [])
 const heluBalance = computed(() => heluActivity.value?.heluBalance || 0)
 const activityWarning = computed(() => String(heluActivity.value?.warning || '').trim())
@@ -112,13 +104,6 @@ const solarTerms = computed(() => {
   }
 })
 const qingmeiActivity = computed(() => heluActivity.value?.qingmei || null)
-
-const recentCostText = computed(() => {
-  const cost = heluActivity.value?.lastDrawResult?.cost
-  if (!cost || !Number(cost.itemCount || 0))
-    return ''
-  return `${cost.itemCount} ${cost.itemName || getCurrencyNameById(cost.itemId)}`
-})
 
 const sectionTabs = computed<ActivitySection[]>(() => [
   { key: 'giftLotus', label: L.giftLotusTab, icon: 'i-carbon-star', count: passport.value?.claimableLevels || 0 },
@@ -160,34 +145,10 @@ function formatNumber(value?: number) {
   return Number(value || 0).toLocaleString()
 }
 
-function getCurrencyNameById(currencyId?: number) {
-  const id = Number(currencyId || 0)
-  if (id === 1023)
-    return '星纱'
-  if (id === 1018)
-    return L.helu
-  if (id === 1002)
-    return L.coupon
-  if (id === 1001)
-    return L.gold
-  return L.activityCurrency
-}
-
 async function refreshAll() {
   if (!currentAccountId.value)
     return
   await activityStore.fetchHeluActivity(currentAccountId.value)
-}
-
-async function draw(mode: 'one' | 'batch') {
-  if (!currentAccountId.value || drawLoading.value)
-    return
-
-  const result = await activityStore.drawHelu(currentAccountId.value, { mode })
-  if (result?.ok)
-    toast.success(mode === 'one' ? L.drawDone : L.batchDone)
-  else
-    toast.error(result?.error || L.drawFail)
 }
 
 async function exchange(item: ActivityExchangeShopItem, count: number) {
