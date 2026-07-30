@@ -335,9 +335,21 @@ function getMappedSeedImage(id) {
     // 再通过物品的 asset_name 查找
     const itemInfo = itemInfoMap.get(numericId);
     const assetName = itemInfo && itemInfo.asset_name ? String(itemInfo.asset_name).trim() : '';
-    if (!assetName) return '';
+    if (assetName) {
+        const assetImg = seedAssetImageMap.get(assetName);
+        if (assetImg) return assetImg;
+    }
 
-    return seedAssetImageMap.get(assetName) || '';
+    // 查 manifest CDN 映射（cropId 直接匹配）
+    if (seedCdnFallback.has(numericId)) return `/api/game-asset?seedId=${numericId}`;
+
+    // 查 fruitId → cropId 映射（fruitId = cropId + 40000）
+    if (numericId > 40000) {
+        const cropId = numericId - 40000;
+        if (seedCdnFallback.has(cropId)) return `/api/game-asset?seedId=${cropId}`;
+    }
+
+    return '';
 }
 
 /** 根据种子ID获取图片 */
