@@ -972,6 +972,17 @@ async function handleApiCall(msg) {
                 result = reply ? JSON.stringify(reply.toJSON ? reply.toJSON() : reply, null, 2) : null;
                 break;
             }
+            case 'getServerVersion': {
+                const { types } = require('../utils/proto');
+                const { body } = await sendMsgAsync('gamepb.gamepb.LoginService', 'GetLoginInfo', Buffer.alloc(0), 5000);
+                const reply = types.LoginReply.decode(body);
+                result = reply?.version_info ? {
+                    version_recommend: reply.version_info.version_recommend,
+                    version_force: reply.version_info.version_force,
+                    res_version: reply.version_info.res_version,
+                } : null;
+                break;
+            }
             case 'buyActivityShopItem': {
                 const { buyNanguaShopItem } = require('../services/activity');
                 result = await buyNanguaShopItem(args[0], args[1]);

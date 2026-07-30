@@ -54,6 +54,17 @@ function registerAdminHeluActivityRoutes({
     }
   });
 
+  app.get("/api/server-version", async (req, res) => {
+    const accountId = getAuthorizedAccountId(req, res, routeContext);
+    if (!accountId) return;
+    try {
+      const data = await provider.getServerVersion(accountId);
+      res.json({ ok: true, data });
+    } catch (error) {
+      sendProviderError(res, error);
+    }
+  });
+
   app.get("/api/activity/helu", async (req, res) => {
     const accountId = getAuthorizedAccountId(req, res, routeContext);
     if (!accountId) return;
