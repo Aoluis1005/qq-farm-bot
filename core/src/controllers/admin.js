@@ -102,7 +102,6 @@ const PUBLIC_API_PATHS = new Set([
   "/public/reset-password/verify",
   "/public/reset-password/confirm",
   "/health",
-  "/game-asset",
 ]);
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
 const ONE_MINUTE_MS = 60 * 1000;
