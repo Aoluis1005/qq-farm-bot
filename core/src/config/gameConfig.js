@@ -19,17 +19,7 @@ const seedItemMap = new Map();       // seedItemId → itemInfo
 const seedImageMap = new Map();      // seedId/itemId → imageUrl
 const seedAssetImageMap = new Map(); // assetName → imageUrl
 const skinDetailImageMap = new Map();// itemId → skinDetailImageUrl
-// 从 manifest.json 加载种子 CDN 映射
-const seedCdnFallback = new Map();
-try {
-    const manifestJson = path.join(getResourcePath('gameConfig'), 'manifest.json');
-    if (fs.existsSync(manifestJson)) {
-        const data = JSON.parse(fs.readFileSync(manifestJson, 'utf-8'));
-        for (const [cid, source] of Object.entries(data)) {
-            seedCdnFallback.set(Number(cid), source);
-        }
-    }
-} catch (e) { /* ignore */ }
+const seedCdnFallback = new Map();   // seedId → cdnSourcePath
 
 // 变异效果配置
 let mutantEffectConfig = null;
@@ -140,7 +130,28 @@ function loadConfigs() {
         console.warn('[配置] 加载 seed_images_named 失败:', err.message);
     }
 
-    // 6. 加载装扮道具图片映射
+    // 5.5 加载 manifest.csv 种子 CDN 映射
+    try {
+        const manifestCsv = path.join(basePath, 'manifest.csv');
+        seedCdnFallback.clear();
+        if (fs.existsSync(manifestCsv)) {
+            const lines = fs.readFileSync(manifestCsv, 'utf-8').split('\n');
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].trim().split(',');
+                if (cols.length >= 5) {
+                    const name = cols[4];
+                    const src = cols[1];
+                    const m = name && name.match(/^Crop_(\d+)_Seed$/);
+                    if (m && src) seedCdnFallback.set(Number(m[1]), src);
+                }
+            }
+            console.log(`[配置] 已加载 manifest 种子映射 (${seedCdnFallback.size} 项)`);
+        }
+    } catch (err) {
+        console.warn('[配置] 加载 manifest.csv 失败:', err.message);
+    }
+
+    // 5. 加载装扮道具图片映射
     try {
         const skinDetailPath = path.join(basePath, 'seed_images_named', 'skinDetail');
         skinDetailImageMap.clear();
@@ -377,15 +388,9 @@ function getItemImageById(itemId) {
     const skinImg = skinDetailImageMap.get(numericId);
     if (skinImg) return skinImg;
 
-    // 4. 查 manifest 种子 CDN 映射（直接 cropId）
+    // 5. 查 manifest 种子 CDN 映射
     const cdnSeed = seedCdnFallback.get(numericId);
     if (cdnSeed) return `/api/game-asset?seedId=${numericId}`;
-
-    // 5. 查 manifest 果实→crop 映射（fruitId = cropId + 40000）
-    if (numericId > 40000) {
-        const cropId = numericId - 40000;
-        if (seedCdnFallback.has(cropId)) return `/api/game-asset?seedId=${cropId}`;
-    }
 
     return '';
 }
