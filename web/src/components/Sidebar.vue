@@ -23,6 +23,18 @@ const shopStore = useShopStore()
 const router = useRouter()
 const route = useRoute()
 const { currentAccount, currentAccountId } = storeToRefs(accountStore)
+const { accounts } = storeToRefs(accountStore)
+const showAccountDropdown = ref(false)
+
+function selectAccount(acc: any) {
+  accountStore.setCurrentAccount(acc)
+  showAccountDropdown.value = false
+}
+
+function accountDisplayName(acc: any) {
+  if (!acc) return '选择账号'
+  return acc.nick || acc.name || acc.uin || acc.qq || acc.id || '选择账号'
+}
 const { status, realtimeConnected } = storeToRefs(statusStore)
 const { mysteryOffer, mysteryOfferAccountId } = storeToRefs(shopStore)
 const { loginPageConfig, sidebarOpen } = storeToRefs(appStore)
@@ -507,6 +519,39 @@ async function copyToken() {
 
     <!-- Navigation -->
     <nav class="flex-1 overflow-y-auto px-1 py-2 space-y-1.5">
+      <!-- 账号切换 -->
+      <div class="relative px-1 mb-1">
+        <button
+          class="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200 hover:translate-x-0.5 hover:bg-gray-100/70 dark:hover:bg-gray-700/50"
+          :style="{ color: 'var(--theme-text)', opacity: '0.8' }"
+          @click="showAccountDropdown = !showAccountDropdown"
+        >
+          <div class="i-carbon-user-switch text-lg" />
+          <span class="min-w-0 flex-1 truncate text-left">{{ currentAccount ? (currentAccount.nick || currentAccount.name || '账号') : '选择账号' }}</span>
+          <div
+            class="i-carbon-chevron-down text-gray-400 transition-transform duration-200"
+            :class="{ 'rotate-180': showAccountDropdown }"
+          />
+        </button>
+        <div
+          v-if="showAccountDropdown"
+          class="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-gray-200/70 bg-white/95 py-1 shadow-xl backdrop-blur-sm dark:border-gray-700/70 dark:bg-gray-900/95"
+        >
+          <div class="max-h-48 overflow-y-auto">
+            <button
+              v-for="acc in accounts"
+              :key="String(acc.id || acc.uin || '')"
+              class="flex w-full items-center gap-2 whitespace-nowrap px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100/60 dark:hover:bg-gray-700/50"
+              :style="{ backgroundColor: String(currentAccount?.id) === String(acc.id) ? 'color-mix(in srgb, var(--theme-primary) 10%, transparent)' : undefined }"
+              @click="selectAccount(acc)"
+            >
+              <span class="truncate">{{ accountDisplayName(acc) }}</span>
+              <div v-if="String(currentAccount?.id) === String(acc.id)" class="i-carbon-checkmark shrink-0 ml-auto" :style="{ color: 'var(--theme-primary)' }" />
+            </button>
+          </div>
+        </div>
+      </div>
+
       <router-link
         v-for="item in navItems"
         :key="item.path"
