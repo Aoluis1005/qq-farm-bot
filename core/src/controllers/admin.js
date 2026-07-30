@@ -368,21 +368,13 @@ function startAdminServer(dataProvider) {
 
   // 游戏 CDN 代理
   const CDN_BASE = 'https://cdn-resource.nqf.qq.com';
-  const manifestPath = path.join(getResourcePath('gameConfig'), 'manifest.csv');
+  const manifestJson = path.join(getResourcePath('gameConfig'), 'manifest.json');
   let seedCdnMap = new Map();
   try {
-    if (fs.existsSync(manifestPath)) {
-      const lines = fs.readFileSync(manifestPath, 'utf-8').split('\n');
-      for (let i = 1; i < lines.length; i++) {
-        const cols = lines[i].trim().split(',');
-        if (cols.length >= 5) {
-          const spriteName = cols[4];
-          const source = cols[1];
-          const match = spriteName && spriteName.match(/^Crop_(\d+)_Seed$/);
-          if (match && source) {
-            seedCdnMap.set(Number(match[1]), source);
-          }
-        }
+    if (fs.existsSync(manifestJson)) {
+      const data = JSON.parse(fs.readFileSync(manifestJson, 'utf-8'));
+      for (const [cid, source] of Object.entries(data)) {
+        seedCdnMap.set(Number(cid), source);
       }
     }
   } catch (e) { /* ignore */ }
