@@ -3,9 +3,9 @@ const process = require('node:process');
 // 默认系统配置
 const DEFAULT_SYSTEM_CONFIG = {
     serverUrl: 'wss://gate-obt.nqf.qq.com/prod/ws',
-    clientVersion: '1.12.5.29_20260721',
+    clientVersion: '1.13.0.5_20260723',
     platform: 'qq',
-    os: 'iOS'
+    os: 'Android'
 };
 
 // 运行时配置（可被系统配置覆盖）
