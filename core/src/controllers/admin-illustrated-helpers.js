@@ -1,7 +1,6 @@
 const {
   getFruitLayerByFruitId,
   getItemById,
-  getItemImageById,
   getPlantByFruitId,
   getSeedImageBySeedId,
 } = require("../config/gameConfig");
@@ -85,13 +84,6 @@ function buildIllustratedItem(rawItem, { seedGoodsMap, userLevel, adminLogger })
     userLevel >= seedLevel &&
     !!seedGoods;
 
-  // 图片：先用 getSeedImageBySeedId，没有则用 getItemImageById（含CDN回退）
-  const itemImage = getSeedImageBySeedId(fruitId) || getItemImageById(fruitId);
-  // 名称：从物品配置取，没有则从种子获取，最后才回退
-  const itemName = fruitConfig?.name
-    || (seedId > 0 ? getItemById(seedId)?.name : '')
-    || `种子 #${fruitId}`;
-
   if (!unlocked && seedId > 0) {
     adminLogger.info("图鉴可购买检查", {
       fruitId,
@@ -109,8 +101,8 @@ function buildIllustratedItem(rawItem, { seedGoodsMap, userLevel, adminLogger })
     unlocked,
     plantedCount: toNum(rawItem.planted_count) || 0,
     harvestCount: toNum(rawItem.harvest_count) || 0,
-    name: itemName,
-    image: itemImage,
+    name: fruitConfig?.name || `果实${  fruitId}`,
+    image: getSeedImageBySeedId(fruitId),
     level: Number(fruitConfig?.level) || 0,
     layer: getFruitLayerByFruitId(fruitId),
     canBuy,
@@ -147,7 +139,7 @@ function collectBuyableIllustratedItems(rawItems, { seedGoodsMap, userLevel }) {
       seedId,
       goodsId: seedGoods.goodsId,
       price: seedGoods.price,
-      name: getItemById(fruitId)?.name || getItemById(seedId)?.name || `种子 #${fruitId}`,
+      name: getItemById(fruitId)?.name || `果实${  fruitId}`,
     });
   }
 
