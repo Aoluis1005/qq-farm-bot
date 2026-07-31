@@ -2,6 +2,24 @@
 
 这里记录最近更新了什么。
 
+## 2026-07-31（Aoluis1005 维护分支）
+
+### 新增功能
+
+- **观星礼录（二十八星宿·每日馈赠）**：活动中心新增「观星」页签，展示 28 星宿每日进度、已解锁/已领取/可领取状态与奖励明细；支持一键领取全部已解锁星宿奖励，并带「自动领取」开关（localStorage 持久化，进入页签自动领一次）。后端新增 `GET /api/activity/guanxing`、`POST /api/activity/guanxing/claim`，解析活动 GetGroup/Operate 回包（星宿数据字段 110、扩展字段 119 贴合官方客户端）。
+- **星纱（SAIJI）商店 16 件商品图标**：14 件装扮（萤火/月光小屋、街道、狗屋、木牌、仓库、栅栏、围栏）与 2 个头像框（萤火星房 2156 / 月光营地 2157）接入 `skinDetail` 干净图标（`icon_skin_*` / `img_avatar_S2_*`），`getItemImageById` 按 itemId 前缀自动解析，`/api/activity/helu` 的 `exchangeShop.items[].image` 全部有图。
+- **植物数据表扩充**：`ItemInfo.json` 700 条（+101：星纱货币 1019/1021/1022/1023、头像框 2152-2157、新种子等）、`Plant.json` 255 条（+50 新植物）；新增 13 张 `Crop_*_Seed.png` 种子图标与 `scripts/extract_seed_icons.py` 提取脚本。
+- **种子/果实名称 Plant.json 兜底**：`getPlantNameOrNull` / `getPlantBySeedId` / `getPlantByFruitId` 加入 `gameConfig.js`；仓库、背包、图鉴、土地分析等在 `ItemInfo` 缺失时统一回退到 `Plant.json`（含变异果实 `1040xxx→1120xxx` 换算）。
+
+### Bug 修复
+
+- **活动图标名称优先级**：`HeluDrawPanel` 等面板的兜底首字优先取 `item.name`（中文真名），`itemName` 兜底。
+- **仓库种子判定统一**：`warehouse.js` 改为以 `Plant.json` 为唯一种子/果实判定依据，删除旧的启发式兜底路径，记录疑似漏配种子便于补表。
+
+### 优化
+
+- **月光营地滤镜**：萤火/月光两套皮肤共用同一张 `skinDetail` 图，`ActivityItemImage.vue` 对名称含「月光」的物品叠加冷色调滤镜（`hue-rotate-180 brightness-90 saturate-125`），视觉上区分两套装扮。
+
 ## 2026-07-27（Aoluis1005 维护分支）
 
 ### 新增功能

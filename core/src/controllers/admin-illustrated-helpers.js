@@ -1,6 +1,7 @@
 const {
   getFruitLayerByFruitId,
   getItemById,
+  getPlantNameOrNull,
   getPlantByFruitId,
   getSeedImageBySeedId,
 } = require("../config/gameConfig");
@@ -58,6 +59,24 @@ async function getSeedShopGoodsMap({
   }
 }
 
+/**
+ * ItemInfo 缺失时，用 Plant.json 中对应植物名兜底
+ * 普通作物：fruitId = seedId + 20000，plantId = seedId + 1000000
+ * 变异作物：fruitId = 1040000 + n，plantId = 1120000 + n
+ */
+function resolveFruitDisplayName(fruitId) {
+  const id = toNum(fruitId) || 0;
+  if (id <= 0) return null;
+  // 先直接按果实ID查 Plant.json（普通/变异果实均已收录）
+  const plant = getPlantByFruitId(id);
+  if (plant?.name) return plant.name;
+  if (id > 1000000) {
+    // 变异体：1040xxx → 1120xxx
+    return getPlantNameOrNull(id - 1040000 + 1120000);
+  }
+  return getPlantNameOrNull(id - 20000 + 1000000);
+}
+
 function getPlantSeedInfo(fruitId) {
   const plant = getPlantByFruitId(fruitId);
   const seedId = plant ? plant.seed_id || 0 : 0;
@@ -101,7 +120,7 @@ function buildIllustratedItem(rawItem, { seedGoodsMap, userLevel, adminLogger })
     unlocked,
     plantedCount: toNum(rawItem.planted_count) || 0,
     harvestCount: toNum(rawItem.harvest_count) || 0,
-    name: fruitConfig?.name || `果实${  fruitId}`,
+    name: fruitConfig?.name || resolveFruitDisplayName(fruitId) || `果实${  fruitId}`,
     image: getSeedImageBySeedId(fruitId),
     level: Number(fruitConfig?.level) || 0,
     layer: getFruitLayerByFruitId(fruitId),

@@ -4,6 +4,7 @@ import type { ActivityExchangeShopItem } from '@/stores/activity'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, watch } from 'vue'
 import ActivitySubActivityPanel from '@/components/activity/ActivitySubActivityPanel.vue'
+import GuanxingActivityPanel from '@/components/activity/GuanxingActivityPanel.vue'
 import HeluExchangePanel from '@/components/activity/HeluExchangePanel.vue'
 import HeluPassportPanel from '@/components/activity/HeluPassportPanel.vue'
 import HeluSolarTermsPanel from '@/components/activity/HeluSolarTermsPanel.vue'
@@ -85,7 +86,19 @@ const {
   qingmeiClaimLoading,
   qingmeiSellLoading,
   heluError,
+  guanxingActivity,
+  guanxingLoading,
+  guanxingClaimLoading,
+  guanxingError,
 } = storeToRefs(activityStore)
+
+// 自动领取开关：localStorage 持久化，默认开启
+const AUTO_CLAIM_KEY = 'guanxing_auto_claim'
+const autoClaim = ref(localStorage.getItem(AUTO_CLAIM_KEY) !== '0')
+let autoClaimRan = false
+watch(autoClaim, (value) => {
+  localStorage.setItem(AUTO_CLAIM_KEY, value ? '1' : '0')
+})
 
 const activeSection = ref<ActivitySectionKey>('giftLotus')
 
@@ -108,13 +121,13 @@ const qingmeiActivity = computed(() => heluActivity.value?.qingmei || null)
 const sectionTabs = computed<ActivitySection[]>(() => [
   { key: 'giftLotus', label: L.giftLotusTab, icon: 'i-carbon-star', count: passport.value?.claimableLevels || 0 },
   { key: 'shop', label: L.shopTab, icon: 'i-carbon-store', count: heluExchangeItems.value.length },
-  { key: 'journey', label: L.journeyTab, icon: 'i-carbon-observation', count: 0 },
+  { key: 'journey', label: L.journeyTab, icon: 'i-carbon-observation', count: guanxingActivity.value?.summary?.claimableCount || 0 },
   { key: 'notes', label: L.notesTab, icon: 'i-carbon-notebook', count: solarTerms.value?.claimableCount || 0 },
   ...(SHOW_QINGMEI_ACTIVITY
     ? [{ key: 'qingmei' as const, label: '青梅酿万金', icon: 'i-carbon-fruit-bowl', count: qingmeiActivity.value?.claimable ? 1 : 0 }]
     : []),
 ])
-const activeError = computed(() => heluError.value)
+const activeError = computed(() => heluError.value || (activeSection.value === 'journey' ? guanxingError.value : ''))
 const activeSubActivity = computed(() => {
   return subActivities.value.find(item => item.key === activeSection.value)
     || subActivities.value.find(item => item.key === 'giftLotus')
@@ -152,13 +165,50 @@ async function refreshAll() {
   await activityStore.fetchHeluActivity(currentAccountId.value)
 }
 
+async function refreshGuanxing() {
+  if (!currentAccountId.value)
+    return
+  await activityStore.fetchGuanxingActivity(currentAccountId.value)
+}
+
+async function claimGuanxing() {
+  if (!currentAccountId.value)
+    return
+
+  const result = await activityStore.claimGuanxingRewards(currentAccountId.value)
+  if (result?.ok) {
+    if (result.alreadyClaimed)
+      toast.success('今日观星礼录已全部领取')
+    else if (result.claimedNodes?.length)
+      toast.success(`观星礼录领取完成：${result.claimedNodes.map((node: any) => node.name).join('、')}`)
+    else
+      toast.success('观星礼录暂无可领取奖励')
+  }
+  else {
+    toast.error(result?.error || '观星礼录领取失败')
+  }
+}
+
+// 进入观星礼录页签时的自动领取：会话内仅自动执行一次（账号切换后重置）
+async function tryAutoClaimGuanxing() {
+  if (!autoClaim.value || autoClaimRan || !currentAccountId.value)
+    return
+  const result = await activityStore.claimGuanxingRewards(currentAccountId.value)
+  if (!result?.ok)
+    return
+  autoClaimRan = true
+  if (result.claimedNodes?.length)
+    toast.success(`观星礼录自动领取：${result.claimedNodes.map((node: any) => node.name).join('、')}`)
+  await activityStore.fetchGuanxingActivity(currentAccountId.value)
+}
+
 async function exchange(item: ActivityExchangeShopItem, count: number) {
   if (!currentAccountId.value)
     return
 
   const result = await activityStore.exchangeHelu(currentAccountId.value, item.id, count)
   if (result?.ok)
-    toast.success(`${L.exchangeDone}${item.itemName} x${count}`)
+    toast.success(`${L.exchangeDone}${item.name || item.itemName} x${count}`)
   else
     toast.error(result?.error || L.exchangeFail)
 }
@@ -217,13 +267,27 @@ watch(sectionTabs, (sections) => {
     activeSection.value = sections[0]?.key || 'giftLotus'
 }, { immediate: true })
 
+// 切到观星礼录页签时加载数据，并触发一次自动领取
+watch(activeSection, (section) => {
+  if (section !== 'journey')
+    return
+  refreshGuanxing()
+  // 等星宿数据返回后判断是否有可领奖励，再自动领取
+  setTimeout(tryAutoClaimGuanxing, 800)
+})
+
 watch(currentAccountId, () => {
   activityStore.clearActivityData()
+  autoClaimRan = false
   refreshAll()
+  if (activeSection.value === 'journey')
+    refreshGuanxing()
 })
 
 onMounted(() => {
   refreshAll()
+  if (activeSection.value === 'journey')
+    refreshGuanxing()
 })
 </script>
 
@@ -339,15 +403,15 @@ onMounted(() => {
           @exchange="exchange"
         />
 
-        <!-- 观星礼录（占位，待抓包后实现） -->
-        <div
+        <GuanxingActivityPanel
           v-else-if="activeSection === 'journey'"
-          class="rounded-lg bg-white p-10 text-center text-sm text-gray-500 shadow dark:bg-gray-800 dark:text-gray-400"
-        >
-          <div class="i-carbon-observation mx-auto mb-3 text-4xl text-gray-300" />
-          <div class="text-base font-medium text-gray-700 dark:text-gray-200">观星礼录</div>
-          <div class="mt-1 text-xs text-gray-400">28星宿逐日点亮，功能开发中</div>
-        </div>
+          :activity="guanxingActivity"
+          :loading="guanxingLoading"
+          :claim-loading="guanxingClaimLoading"
+          :auto-claim="autoClaim"
+          @claim="claimGuanxing"
+          @update:auto-claim="autoClaim = $event"
+        />
 
         <HeluSolarTermsPanel
           v-else-if="activeSection === 'notes'"

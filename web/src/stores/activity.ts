@@ -202,6 +202,45 @@ export interface HeluActivityData {
   }
 }
 
+// ========== 观星礼录 / 星砂商店 ==========
+
+export interface GuanxingNode {
+  id: number
+  day: number
+  name: string
+  category: string
+  explain: string
+  links: string
+  unlocked: boolean
+  claimed: boolean
+  claimable: boolean
+  statusLabel: string
+  rewards: HeluDrawReward[]
+}
+
+export interface GuanxingSummary {
+  totalDays: number
+  currentDay: number
+  unlockedCount: number
+  claimedCount: number
+  claimableCount: number
+  pendingRewards: HeluDrawReward[]
+}
+
+export interface GuanxingActivity {
+  activityId: number
+  title: string
+  seasonTitle: string
+  startTime: number
+  endTime: number
+  nowTime: number
+  currentDay: number
+  totalDays: number
+  nodes: GuanxingNode[]
+  summary: GuanxingSummary
+  warning?: string
+}
+
 export const useActivityStore = defineStore('activity', () => {
   const heluActivity = ref<HeluActivityData | null>(null)
 
@@ -215,6 +254,11 @@ export const useActivityStore = defineStore('activity', () => {
 
   const heluError = ref('')
 
+  const guanxingActivity = ref<GuanxingActivity | null>(null)
+  const guanxingLoading = ref(false)
+  const guanxingClaimLoading = ref(false)
+  const guanxingError = ref('')
+
   let heluRequestId = 0
 
   function clearActivityData() {
@@ -227,6 +271,10 @@ export const useActivityStore = defineStore('activity', () => {
     qingmeiClaimLoading.value = false
     qingmeiSellLoading.value = false
     heluError.value = ''
+    guanxingActivity.value = null
+    guanxingLoading.value = false
+    guanxingClaimLoading.value = false
+    guanxingError.value = ''
   }
 
   function isCurrentAccount(accountId: string) {
@@ -378,6 +426,52 @@ export const useActivityStore = defineStore('activity', () => {
     }
   }
 
+  async function fetchGuanxingActivity(accountId: string) {
+    if (!accountId)
+      return
+    const requestedId = String(accountId)
+    guanxingLoading.value = true
+    guanxingError.value = ''
+    try {
+      const { data } = await api.get('/api/activity/guanxing', {
+        headers: { 'x-account-id': accountId },
+      })
+      if (!isCurrentAccount(requestedId))
+        return
+      if (data.ok)
+        guanxingActivity.value = data.activity || null
+      else
+        guanxingError.value = data.error || '获取观星礼录失败'
+      return data
+    }
+    catch (err: any) {
+      if (isCurrentAccount(requestedId))
+        guanxingError.value = err.message || '获取观星礼录失败'
+    }
+    finally {
+      if (isCurrentAccount(requestedId))
+        guanxingLoading.value = false
+    }
+  }
+
+  async function claimGuanxingRewards(accountId: string) {
+    if (!accountId)
+      return
+    const requestedId = String(accountId)
+    guanxingClaimLoading.value = true
+    try {
+      const { data } = await api.post('/api/activity/guanxing/claim', {}, {
+        headers: { 'x-account-id': accountId },
+      })
+      if (isCurrentAccount(requestedId) && data.ok && data.activity)
+        guanxingActivity.value = data.activity
+      return data
+    }
+    finally {
+      guanxingClaimLoading.value = false
+    }
+  }
+
   return {
     heluActivity,
     heluLoading,
@@ -388,6 +482,10 @@ export const useActivityStore = defineStore('activity', () => {
     qingmeiClaimLoading,
     qingmeiSellLoading,
     heluError,
+    guanxingActivity,
+    guanxingLoading,
+    guanxingClaimLoading,
+    guanxingError,
     clearActivityData,
     fetchHeluActivity,
     drawHelu,
@@ -396,5 +494,7 @@ export const useActivityStore = defineStore('activity', () => {
     claimHeluSolar,
     claimQingmeiSeeds,
     brewAndSellQingmeiWine,
+    fetchGuanxingActivity,
+    claimGuanxingRewards,
   }
 })

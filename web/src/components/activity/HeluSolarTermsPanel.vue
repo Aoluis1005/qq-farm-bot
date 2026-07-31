@@ -2,6 +2,7 @@
 import type { ActivityLabels } from './types'
 import type { HeluDrawReward, HeluSolarTerm, HeluSolarTerms } from '@/stores/activity'
 import BaseButton from '@/components/ui/BaseButton.vue'
+import ActivityItemImage from './ActivityItemImage.vue'
 
 defineProps<{
   solarTerms?: HeluSolarTerms | null
@@ -36,7 +37,8 @@ function formatTime(value?: number) {
 }
 
 function rewardName(item: { itemName?: string, name?: string, itemId?: number }) {
-  return item.itemName || item.name || `${T.itemPrefix}${item.itemId || ''}`
+  // 优先用 item.name（中文真名，如「萤火星房小屋」），itemName 兜底（game 的「物品{id}」格式）
+  return item.name || item.itemName || `${T.itemPrefix}${item.itemId || ''}`
 }
 
 function rewardCount(item: { itemCount?: number, count?: number }) {
@@ -100,12 +102,10 @@ function previewRewards(items?: HeluDrawReward[]) {
           >
             {{ term.statusLabel }}
           </span>
-          <img
-            v-if="term.rewards?.[0]?.image"
-            :src="term.rewards[0].image"
-            :alt="rewardName(term.rewards[0])"
-            class="max-h-16 max-w-16 object-contain"
-          >
+          <ActivityItemImage v-if="term.rewards?.[0]?.image"
+            :item="term.rewards[0]"
+            img-class="max-h-16 max-w-16"
+          />
           <div v-else class="grid h-14 w-14 place-items-center rounded-lg bg-white text-sm text-gray-500 font-semibold dark:bg-gray-800">
             {{ (term.title || `${T.termPrefix}${term.id}`).slice(0, 1) }}
           </div>
@@ -125,13 +125,9 @@ function previewRewards(items?: HeluDrawReward[]) {
               :key="`${term.id}-${item.itemId}-${item.itemCount}`"
               class="grid h-6 w-6 place-items-center rounded-full bg-white ring-1 ring-gray-100 dark:bg-gray-800 dark:ring-gray-700"
             >
-              <img
-                v-if="item.image"
-                :src="item.image"
-                :alt="rewardName(item)"
-                class="h-4 w-4 object-contain"
-              >
-              <span v-else class="text-[10px] text-gray-500">{{ rewardName(item).slice(0, 1) }}</span>
+              <ActivityItemImage :item="item"
+                img-class="h-4 w-4"
+              />
             </span>
           </div>
 

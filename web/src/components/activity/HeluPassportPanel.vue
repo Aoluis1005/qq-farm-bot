@@ -2,6 +2,7 @@
 import type { ActivityLabels } from './types'
 import type { HeluDrawReward, HeluSeasonPassport, HeluSeasonRewardTier } from '@/stores/activity'
 import BaseButton from '@/components/ui/BaseButton.vue'
+import ActivityItemImage from './ActivityItemImage.vue'
 
 defineProps<{
   passport?: HeluSeasonPassport | null
@@ -40,7 +41,8 @@ function formatNumber(value?: number) {
 }
 
 function rewardName(item: { itemName?: string, name?: string, itemId?: number }) {
-  return item.itemName || item.name || `${T.itemPrefix}${item.itemId || ''}`
+  // 优先用 item.name（中文真名），itemName 兜底（game 的「物品{id}」格式）
+  return item.name || item.itemName || `${T.itemPrefix}${item.itemId || ''}`
 }
 
 function rewardCount(item: { itemCount?: number, count?: number }) {
@@ -169,12 +171,9 @@ function progressText(passport?: HeluSeasonPassport | null) {
           :key="`${item.itemId}-${item.itemCount}`"
           class="max-w-full min-w-0 inline-flex items-center gap-1.5 rounded-full bg-gray-50 px-2.5 py-1 text-xs text-gray-700 dark:bg-gray-900/40 dark:text-gray-200"
         >
-          <img
-            v-if="item.image"
-            :src="item.image"
-            :alt="rewardName(item)"
-            class="h-5 w-5 shrink-0 object-contain"
-          >
+          <ActivityItemImage :item="item"
+            img-class="h-5 w-5 shrink-0"
+          />
           <span class="truncate">{{ rewardName(item) }} x{{ rewardCount(item) }}</span>
         </span>
       </div>
@@ -211,12 +210,10 @@ function progressText(passport?: HeluSeasonPassport | null) {
           >
             {{ tierState(passport, tier.level) }}
           </span>
-          <img
-            v-if="tierThumb(tier)?.image"
-            :src="tierThumb(tier)?.image"
-            :alt="rewardName(tierThumb(tier)!)"
-            class="max-h-16 max-w-16 object-contain"
-          >
+          <ActivityItemImage v-if="tierThumb(tier)?.image"
+            :item="tierThumb(tier)!"
+            img-class="max-h-16 max-w-16"
+          />
           <div v-else class="grid h-14 w-14 place-items-center rounded-lg bg-white text-sm text-gray-500 font-semibold dark:bg-gray-800">
             Lv.{{ tier.level }}
           </div>
@@ -233,13 +230,9 @@ function progressText(passport?: HeluSeasonPassport | null) {
                 :key="`${tier.level}-${item.itemId}-${item.itemCount}`"
                 class="grid h-6 w-6 place-items-center rounded-full bg-white ring-1 ring-gray-100 dark:bg-gray-800 dark:ring-gray-700"
               >
-                <img
-                  v-if="item.image"
-                  :src="item.image"
-                  :alt="rewardName(item)"
-                  class="h-4 w-4 object-contain"
-                >
-                <span v-else class="text-[10px] text-gray-500">{{ rewardName(item).slice(0, 1) }}</span>
+                <ActivityItemImage :item="item"
+                  img-class="h-4 w-4"
+                />
               </span>
             </div>
           </div>

@@ -2,6 +2,7 @@
 import type { ActivityLabels, ExchangeItem, ExchangeState } from './types'
 import { ref } from 'vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
+import ActivityItemImage from './ActivityItemImage.vue'
 import { formatCurrencyAmountByLabel } from '@/utils/number-format'
 
 const props = defineProps<{
@@ -15,7 +16,6 @@ const emit = defineEmits<{
   (event: 'exchange', item: ExchangeItem, count: number): void
 }>()
 
-const imageErrors = ref<Record<string | number, boolean>>({})
 const exchangeCounts = ref<Record<string | number, number>>({})
 
 function getMaxExchangeCount(item: ExchangeItem) {
@@ -37,21 +37,6 @@ function setExchangeCount(item: ExchangeItem, value: number | string) {
 
 function formatPrice(item: ExchangeItem) {
   return formatCurrencyAmountByLabel(item.price * getExchangeCount(item), getCurrencyLabel(item))
-}
-
-function itemImage(item: { image?: string }) {
-  return item.image || ''
-}
-
-function itemFallbackText(item: { itemName?: string, name?: string, itemId?: number }) {
-  const name = String(item.itemName || item.name || '').trim()
-  if (name)
-    return name.slice(0, 1)
-  return String(item.itemId || '?')
-}
-
-function hasImage(item: ExchangeItem) {
-  return Boolean(itemImage(item)) && !imageErrors.value[item.id]
 }
 
 function getCurrencyNameById(currencyId?: number) {
@@ -86,8 +71,7 @@ function getExchangeState(item: ExchangeItem): ExchangeState {
 }
 
 function getCurrencyLabel(item: ExchangeItem) {
-  if ('currencyName' in item && item.currencyName)
-    return item.currencyName
+  // 优先用我们的硬编码映射（货币 ID → 中文名），比后端给的「物品{id}」格式更可读
   return getCurrencyNameById(item.currencyId)
 }
 </script>
@@ -108,22 +92,15 @@ function getCurrencyLabel(item: ExchangeItem) {
           <span class="absolute left-0 top-0 rounded-br-lg bg-white/90 px-2 py-0.5 text-[10px] text-gray-500 font-semibold dark:bg-gray-800/90 dark:text-gray-300">
             {{ getExchangeState(item).label }}
           </span>
-          <img
-            v-if="hasImage(item)"
-            :src="itemImage(item)"
-            :alt="item.itemName"
-            class="max-h-14 max-w-14 object-contain"
-            @error="imageErrors[item.id] = true"
-          >
-          <div v-else class="grid h-14 w-14 place-items-center rounded-lg bg-white text-sm text-gray-500 font-semibold dark:bg-gray-800">
-            {{ itemFallbackText(item) }}
-          </div>
+          <ActivityItemImage
+            :item="item"
+          />
         </div>
 
         <div class="min-h-[120px] flex flex-1 flex-col p-3">
           <div class="min-w-0 text-center">
             <div class="line-clamp-2 text-sm text-gray-900 font-semibold dark:text-gray-100">
-              {{ item.itemName }}
+              {{ item.name || item.itemName }}
             </div>
             <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
               {{ item.itemTypeLabel || labels.typeFallback }} / x{{ item.itemCount }}

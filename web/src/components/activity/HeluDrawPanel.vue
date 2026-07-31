@@ -30,14 +30,15 @@ function itemImage(item: { image?: string }) {
 }
 
 function itemFallbackText(item: { itemName?: string, name?: string, itemId?: number }) {
-  const name = String(item.itemName || item.name || '').trim()
+  // 优先用 item.name（中文真名），itemName 兜底
+  const name = String(item.name || item.itemName || '').trim()
   if (name)
     return name.slice(0, 1)
   return String(item.itemId || '?')
 }
 
 function keyOf(item: { itemId?: number, id?: number, itemName?: string, name?: string }) {
-  return [item.id || item.itemId || 0, item.itemName || item.name || 'item'].join('-')
+  return [item.id || item.itemId || 0, item.name || item.itemName || 'item'].join('-')
 }
 
 function hasImage(item: { image?: string, itemId?: number, id?: number, itemName?: string, name?: string }) {
@@ -143,7 +144,7 @@ function hasImage(item: { image?: string, itemId?: number, id?: number, itemName
               <img
                 v-if="hasImage(item)"
                 :src="itemImage(item)"
-                :alt="item.itemName"
+                :alt="item.name || item.itemName"
                 class="max-h-14 max-w-14 object-contain"
                 @error="imageErrors[keyOf(item)] = true"
               >
@@ -151,7 +152,7 @@ function hasImage(item: { image?: string, itemId?: number, id?: number, itemName
             </div>
             <div class="min-w-0 p-3">
               <div class="line-clamp-2 text-sm text-gray-900 font-semibold dark:text-gray-100">
-                {{ item.itemName }}
+                {{ item.name || item.itemName }}
               </div>
               <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 x{{ item.itemCount }}
@@ -188,7 +189,7 @@ function hasImage(item: { image?: string, itemId?: number, id?: number, itemName
               <img
                 v-if="hasImage(item)"
                 :src="itemImage(item)"
-                :alt="item.itemName"
+                :alt="item.name || item.itemName"
                 class="max-h-14 max-w-14 object-contain"
                 @error="imageErrors[keyOf(item)] = true"
               >
@@ -196,7 +197,7 @@ function hasImage(item: { image?: string, itemId?: number, id?: number, itemName
             </div>
             <div class="min-w-0 p-3">
               <div class="line-clamp-2 text-sm text-gray-900 font-semibold dark:text-gray-100">
-                {{ item.itemName }}
+                {{ item.name || item.itemName }}
               </div>
               <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 x{{ item.itemCount }}

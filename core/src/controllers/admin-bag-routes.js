@@ -1,4 +1,4 @@
-const { getItemById } = require("../config/gameConfig");
+const { getItemById, getPlantBySeedId, getPlantByFruitId } = require("../config/gameConfig");
 const { toNum } = require("../utils/utils");
 
 function wait(ms) {
@@ -30,7 +30,14 @@ function requireAccessibleAccount(
 }
 
 function getItemName(itemId) {
-  return getItemById(itemId)?.name || `物品${itemId}`;
+  const info = getItemById(itemId);
+  if (info?.name) return info.name;
+  // ItemInfo 缺失时统一回退到 Plant.json（种子 / 果实 / 变异果实均已收录）
+  const seedPlant = getPlantBySeedId(itemId);
+  if (seedPlant?.name) return `${seedPlant.name}种子`;
+  const fruitPlant = getPlantByFruitId(itemId);
+  if (fruitPlant?.name) return fruitPlant.name;
+  return `物品${itemId}`;
 }
 
 function getBagItemCountMap(bag) {

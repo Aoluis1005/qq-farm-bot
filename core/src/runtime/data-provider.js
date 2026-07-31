@@ -174,6 +174,10 @@ function createDataProvider(deps) {
         claimQingmeiSeeds: (ref) => callWorkerApi(resolveAccountId(ref), 'claimQingmeiSeeds'),
         brewAndSellQingmeiWine: (ref, options) => callWorkerApi(resolveAccountId(ref), 'brewAndSellQingmeiWine', options || {}),
 
+        // ========== 观星礼录 ==========
+        getGuanxingActivity: (ref) => callWorkerApi(resolveAccountId(ref), 'getGuanxingActivity'),
+        claimGuanxingRewards: (ref) => callWorkerApi(resolveAccountId(ref), 'claimGuanxingRewards'),
+
         // ========== Illustrated ==========
         getIllustratedList: (ref, type, level) => callWorkerApi(resolveAccountId(ref), 'getIllustratedList', type, level),
         claimIllustratedRewards: (ref, type) => callWorkerApi(resolveAccountId(ref), 'claimIllustratedRewards', type),

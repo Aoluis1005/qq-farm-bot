@@ -152,7 +152,8 @@ async function batchUseItems(entries) {
 // ---- 数据解析 ----
 
 function isFruitItemId(id) {
-  return !!getPlantByFruitId(Number(id));
+  // 统一以 Plant.json 为准：普通果实(4xxxx) 与变异果实(104xxxx) 均已收录
+  return Boolean(getPlantByFruitId(Number(id)));
 }
 
 /**
@@ -644,7 +645,7 @@ async function getBagSeeds() {
   const bag = await getBag();
   const items = getBagItems(bag);
   const seedMap = new Map();
-  const fallbackSeedIds = [];
+  const missingInPlantJson = [];
 
   for (const item of items || []) {
     const id = toNum(item && item.id);
@@ -654,17 +655,20 @@ async function getBagSeeds() {
     const plant = getPlantBySeedId(id);
     const info = getItemById(id) || null;
     const interactionType = String(info && info.interaction_type || '').toLowerCase();
-    const seedLike = !!plant || isSeedItem(id) || interactionType === 'plant';
-    if (!seedLike) continue;
 
-    if (!plant && fallbackSeedIds.length < 20) fallbackSeedIds.push(id);
+    // 统一以 Plant.json 为唯一判定依据
+    if (!plant) {
+      // ItemInfo 看着像种子却没进 Plant.json → 说明配置表落后了，记录出来便于补表
+      if (isSeedItem(id) || interactionType === 'plant') {
+        if (missingInPlantJson.length < 20) missingInPlantJson.push(id);
+      }
+      continue;
+    }
 
-    const rawName = plant && plant.name ? String(plant.name) : String(info && info.name || `??#${id}`);
+    const rawName = String(plant.name || `种子${id}`);
     const name = rawName.endsWith('??') ? rawName.slice(0, -2) : rawName;
-    const requiredLevel = plant
-      ? Math.max(0, Number(plant.land_level_need || 0))
-      : Math.max(0, Number(info && info.level || getSeedLevel(id) || 0));
-    const plantSize = plant ? Math.max(1, Number(plant.size || 1)) : 1;
+    const requiredLevel = Math.max(0, Number(plant.land_level_need || 0) || Number(info && info.level || getSeedLevel(id) || 0));
+    const plantSize = Math.max(1, Number(plant.size || 1));
 
     const existing = seedMap.get(id) || {
       seedId: id,
@@ -678,9 +682,9 @@ async function getBagSeeds() {
     seedMap.set(id, existing);
   }
 
-  if (fallbackSeedIds.length > 0) {
-    log('warehouse', `bag seed fallback detection: ${fallbackSeedIds.join(',')}`, {
-      module: 'warehouse', event: 'bag_seed_detect', result: 'fallback', count: fallbackSeedIds.length,
+  if (missingInPlantJson.length > 0) {
+    logWarn('仓库', `以下背包种子未收录进 Plant.json，已忽略: ${missingInPlantJson.join(',')}`, {
+      module: 'warehouse', event: 'bag_seed_detect', result: 'missing_in_plant_json', count: missingInPlantJson.length,
     });
   }
 

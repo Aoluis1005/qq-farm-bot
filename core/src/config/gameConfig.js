@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { getResourcePath } = require('./runtime-paths');
+const { getResourcePath, getDataFile, ensureDataDir } = require('./runtime-paths');
 
 // 等级经验配置
 let roleLevelConfig = null;
@@ -225,16 +225,25 @@ function getPlantBySeedId(seedId) {
     return seedToPlant.get(seedId);
 }
 
+/** 根据植物ID获取植物名（仅来自本地 Plant.json，缺失时返回 null，由调用方回退到服务端下发名称） */
+function getPlantNameOrNull(plantId) {
+    const plant = plantMap.get(plantId);
+    if (plant && plant.name) return plant.name;
+    return null;
+}
+
 /** 根据植物ID获取植物名 */
 function getPlantName(plantId) {
     const plant = plantMap.get(plantId);
-    return plant ? plant.name : `植物${  plantId}`;
+    if (plant) return plant.name;
+    return `植物${  plantId}`;
 }
 
 /** 根据种子ID获取植物名 */
 function getPlantNameBySeedId(seedId) {
     const plant = seedToPlant.get(seedId);
-    return plant ? plant.name : `种子${  seedId}`;
+    if (plant) return plant.name;
+    return `种子${  seedId}`;
 }
 
 /**
@@ -494,6 +503,7 @@ module.exports = {
     getPlantById,
     getPlantBySeedId,
     getPlantName,
+    getPlantNameOrNull,
     getPlantNameBySeedId,
     getPlantGrowTime,
     getPlantExp,

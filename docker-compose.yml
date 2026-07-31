@@ -31,7 +31,8 @@ services:
       - YYB_ADMIN_USER=${YYB_ADMIN_USER:-}
       - YYB_ADMIN_PASS=${YYB_ADMIN_PASS:-}
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3007/api/status"]
+      # /api/status 需要鉴权头，且容器内 localhost 解析到 ::1 而服务仅监听 IPv4，故用 127.0.0.1 探测根路径
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3007/"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -972,6 +972,16 @@ async function handleApiCall(msg) {
                 result = reply ? JSON.stringify(reply.toJSON ? reply.toJSON() : reply, null, 2) : null;
                 break;
             }
+            case 'getGuanxingActivity': {
+                const { getGuanxingActivity } = require('../services/activity');
+                result = await getGuanxingActivity();
+                break;
+            }
+            case 'claimGuanxingRewards': {
+                const { claimGuanxingRewards } = require('../services/activity');
+                result = await claimGuanxingRewards();
+                break;
+            }
             case 'getServerVersion': {
                 const { types } = require('../utils/proto');
                 const { body } = await sendMsgAsync('gamepb.gamepb.LoginService', 'GetLoginInfo', Buffer.alloc(0), 5000);

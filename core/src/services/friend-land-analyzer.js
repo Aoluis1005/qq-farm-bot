@@ -1,6 +1,7 @@
 const { PlantPhase, PHASE_NAMES } = require('../config/config');
 const {
   getPlantName,
+  getPlantNameOrNull,
   getPlantById,
   getPlantGrowTime,
   getSeedImageBySeedId,
@@ -90,7 +91,7 @@ function analyzeFriendLands(lands, myGid, friendName = '', options = {}) {
     if (phase === PlantPhase.MATURE) {
       if (plant.stealable) {
         const plantId = toNum(plant.id);
-        const plantName = getPlantName(plantId) || plant.name || '未知';
+        const plantName = getPlantNameOrNull(plantId) || plant.name || getPlantName(plantId) || '未知';
         const plantInfo = getPlantById(plantId);
         const seedId = plantInfo ? toNum(plantInfo.seed_id) : 0;
 
@@ -534,7 +535,7 @@ async function getFriendLandsDetail(gid) {
 
       const phase = currentPhase.phase;
       const plantId = toNum(targetPlant.id);
-      const plantName = getPlantName(plantId) || targetPlant.name || '未知';
+      const plantName = getPlantNameOrNull(plantId) || targetPlant.name || getPlantName(plantId) || '未知';
       const plantInfo = getPlantById(plantId);
       const seedId = toNum(plantInfo && plantInfo.seed_id);
       const seedImage = seedId > 0 ? getSeedImageBySeedId(seedId) : '';
@@ -570,6 +571,7 @@ async function getFriendLandsDetail(gid) {
         unlocked: true,
         status,
         plantName,
+        plantId,
         seedId,
         seedImage,
         phaseName,

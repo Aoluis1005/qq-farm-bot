@@ -11,7 +11,17 @@ const protobuf = require('protobufjs/minimal');
 const { sendMsgAsync, getUserState, isConnected } = require('../utils/network');
 const { types } = require('../utils/proto');
 const { toNum } = require('../utils/utils');
-const { getItemImageById, getItemById } = require('../config/gameConfig');
+const { getItemImageById, getItemById, getPlantBySeedId, getPlantByFruitId } = require('../config/gameConfig');
+
+/** 本地 ItemInfo 缺失时，统一回退 Plant.json（种子/果实/变异果实均已收录） */
+function resolveSeedItemName(itemId) {
+    const id = Number(itemId) || 0;
+    if (id <= 0) return null;
+    const seedPlant = getPlantBySeedId(id);
+    if (seedPlant?.name) return `${seedPlant.name}种子`;
+    const fruitPlant = getPlantByFruitId(id);
+    return fruitPlant?.name || null;
+}
 const { createModuleLogger } = require('./logger');
 const { getBag, getBagItems } = require('./warehouse');
 
@@ -94,6 +104,16 @@ const HELU_SUB_ACTIVITY_DEFS = [
   { key: HELU_SUB_ACTIVITY_KEYS.journey, title: '荷风游记', icon: 'i-carbon-map' },
   { key: HELU_SUB_ACTIVITY_KEYS.notes, title: '节令小札', icon: 'i-carbon-notebook' },
 ];
+
+// ---- 观星礼录（二十八星宿·每日馈赠）----
+// 赛季 2026072700「心许千灯星垂野」下的子活动，与旧荷风赛季复用同一段活动号
+const GUANXING_ACTIVITY_ID = 2026072701;       // 观星礼录本体（type=13）
+const GUANXING_TITLE = '观星礼录';
+const GUANXING_CLAIM_CMD = 21;                 // 一键领取全部已解锁星宿
+const GUANXING_NO_REWARD_CODE = 1034038;       // 当前无可领取的奖励节点（幂等信号）
+const GUANXING_OPERATE_EXT_FIELD = 119;        // 官方客户端点亮请求附带的空扩展字段
+const CONSTELLATION_DATA_FIELD = 110;          // ActivityData 中星宿数据所在字段号
+const STARSAND_ITEM_ID = 1023;                 // 星砂（活动通用货币 ID，与星砂商店数据源解耦）
 
 // 操作命令
 const NANGUA_SHOP_BUY_CMD = 2;     // 购买
@@ -209,7 +229,7 @@ function normalizeCoreItem(item) {
     itemId,
     itemCount: count,
     count,
-    itemName: info?.name || (itemId ? `物品#${itemId}` : ''),
+    itemName: info?.name || resolveSeedItemName(itemId) || (itemId ? `物品#${itemId}` : ''),
     image: getItemImageById(itemId) || '',
   };
 }
@@ -509,8 +529,8 @@ function parseActivityItemMessage(rawBytes) {
     itemId,
     itemCount: count,
     count,
-    itemName: (info && info.name) || `物品${itemId}`,
-    name: (info && info.name) || `物品${itemId}`,
+    itemName: (info && info.name) || resolveSeedItemName(itemId) || `物品${itemId}`,
+    name: (info && info.name) || resolveSeedItemName(itemId) || `物品${itemId}`,
     image: getItemImageById(itemId) || '',
   };
 }
@@ -605,7 +625,7 @@ function normalizeActivityItem(raw) {
   return {
     itemId,
     count,
-    name: (info && info.name) || `物品${itemId}`,
+    name: (info && info.name) || resolveSeedItemName(itemId) || `物品${itemId}`,
     image,
   };
 }
@@ -1959,6 +1979,283 @@ async function getNanguaShop() {
   return normalizeNanguaGroup(await getActivityGroup(NANGUA_SHOP_ACTIVITY_ID));
 }
 
+// ========== 观星礼录（二十八星宿·每日馈赠） ==========
+
+/**
+ * 提取星宿数据段
+ * GetGroup 与 Operate 的回包外层结构不同（前者 reply.1.2.110，后者 reply.3.110），
+ * 这里统一按字段号递归扫描并取最完整的一段，两种回包共用一套解析
+ */
+function findConstellationBytes(rawBody) {
+  const found = scanLengthDelimitedFields(rawBody, CONSTELLATION_DATA_FIELD, 5);
+  if (found.length === 0) return null;
+  return found.reduce((best, cur) => (cur.length > (best?.length || 0) ? cur : best), null);
+}
+
+/**
+ * 在活动回包中定位指定活动的 ActivityInfo 字段表
+ */
+function findActivityInfoEntries(rawBody, activityId) {
+  const targetId = Number(activityId) || 0;
+  for (const bytes of scanLengthDelimitedFields(rawBody, 1, 5)) {
+    const entries = readProtoFields(bytes);
+    if (getProtoNumber(entries, 1) !== targetId) continue;
+    if (!getProtoString(entries, 4, '')) continue;
+    return entries;
+  }
+  return null;
+}
+
+/** 合并同种奖励，便于展示"本次共获得" */
+function mergeRewardItems(items) {
+  const merged = new Map();
+  for (const item of items || []) {
+    if (!item || !item.itemId) continue;
+    const prev = merged.get(item.itemId);
+    if (prev) {
+      prev.count += item.count;
+      prev.itemCount = prev.count;
+      continue;
+    }
+    merged.set(item.itemId, { ...item });
+  }
+  return [...merged.values()];
+}
+
+/** 服务端未下发当前天数时，按活动开始时间推算 */
+function estimateConstellationDay(startTime, nowTime, totalDays) {
+  const start = Number(startTime) || 0;
+  const now = Number(nowTime) || Math.floor(Date.now() / 1000);
+  if (start <= 0 || now <= start) return 1;
+  const maxDay = Math.max(1, Number(totalDays) || 28);
+  return Math.min(Math.max(Math.floor((now - start) / 86400) + 1, 1), maxDay);
+}
+
+/** 星宿分组：名称、四象归类与释义 */
+function normalizeConstellationGroup(rawBytes) {
+  const entries = readProtoFields(rawBytes);
+  const id = getProtoNumber(entries, 1);
+  if (id <= 0) return null;
+
+  let category = '';
+  let explain = '';
+  const configText = getProtoString(entries, 5, '');
+  if (configText) {
+    try {
+      const config = JSON.parse(configText);
+      category = String(config?.category || '').trim();
+      explain = String(config?.explain || '').trim();
+    } catch {
+      // 配置串异常时保留空值，不影响星宿主体展示
+    }
+  }
+
+  return {
+    id,
+    name: getProtoString(entries, 3, ''),
+    category,
+    explain,
+    links: getProtoString(entries, 4, ''),
+  };
+}
+
+/**
+ * 星宿节点
+ * field2=已解锁 field3=已领取 field4=可领取（点亮后 field3 置 1、field4 归 0）
+ */
+function normalizeConstellationNode(rawBytes, groupMap) {
+  const entries = readProtoFields(rawBytes);
+  const id = getProtoNumber(entries, 1);
+  if (id <= 0) return null;
+
+  const group = groupMap.get(id) || null;
+  const unlocked = getProtoNumber(entries, 2) === 1;
+  const claimed = getProtoNumber(entries, 3) === 1;
+  const claimable = getProtoNumber(entries, 4) === 1;
+
+  let statusLabel = '未解锁';
+  if (claimed) statusLabel = '已领取';
+  else if (claimable) statusLabel = '可领取';
+  else if (unlocked) statusLabel = '已解锁';
+
+  return {
+    id,
+    day: id,
+    name: group?.name || `第${id}宿`,
+    category: group?.category || '',
+    explain: group?.explain || '',
+    links: group?.links || '',
+    unlocked,
+    claimed,
+    claimable,
+    statusLabel,
+    rewards: getProtoBytesAll(entries, 5).map(parseActivityItemMessage).filter(Boolean),
+  };
+}
+
+function buildEmptyGuanxingActivity(warning = '') {
+  return {
+    activityId: GUANXING_ACTIVITY_ID,
+    title: GUANXING_TITLE,
+    seasonTitle: '',
+    startTime: 0,
+    endTime: 0,
+    nowTime: Math.floor(Date.now() / 1000),
+    currentDay: 0,
+    totalDays: 0,
+    nodes: [],
+    summary: {
+      totalDays: 0,
+      currentDay: 0,
+      unlockedCount: 0,
+      claimedCount: 0,
+      claimableCount: 0,
+      pendingRewards: [],
+    },
+    warning,
+  };
+}
+
+function normalizeGuanxingActivity(rawBody) {
+  const infoEntries = findActivityInfoEntries(rawBody, GUANXING_ACTIVITY_ID);
+  const nowTime = Math.floor(Date.now() / 1000);
+  const base = {
+    activityId: GUANXING_ACTIVITY_ID,
+    title: infoEntries ? getProtoString(infoEntries, 4, GUANXING_TITLE) : GUANXING_TITLE,
+    seasonTitle: GUANXING_TITLE,
+    startTime: infoEntries ? getProtoNumber(infoEntries, 6) : 0,
+    endTime: infoEntries ? getProtoNumber(infoEntries, 7) : 0,
+    nowTime,
+  };
+
+  const constellationBytes = findConstellationBytes(rawBody);
+  if (!constellationBytes) {
+    return { ...buildEmptyGuanxingActivity('未解析到星宿数据'), ...base };
+  }
+
+  const entries = readProtoFields(constellationBytes);
+  const groups = getProtoBytesAll(entries, 5).map(normalizeConstellationGroup).filter(Boolean);
+  const groupMap = new Map(groups.map((group) => [group.id, group]));
+  const nodes = getProtoBytesAll(entries, 4)
+    .map((bytes) => normalizeConstellationNode(bytes, groupMap))
+    .filter(Boolean)
+    .sort((a, b) => a.id - b.id);
+
+  const serverDay = getProtoNumber(entries, 1);
+  const currentDay = serverDay > 0
+    ? serverDay
+    : estimateConstellationDay(base.startTime, nowTime, nodes.length);
+  const claimableNodes = nodes.filter((node) => node.claimable);
+
+  return {
+    ...base,
+    currentDay,
+    totalDays: nodes.length,
+    nodes,
+    summary: {
+      totalDays: nodes.length,
+      currentDay,
+      unlockedCount: nodes.filter((node) => node.unlocked).length,
+      claimedCount: nodes.filter((node) => node.claimed).length,
+      claimableCount: claimableNodes.length,
+      pendingRewards: mergeRewardItems(claimableNodes.flatMap((node) => node.rewards)),
+    },
+  };
+}
+
+async function getGuanxingRaw() {
+  const request = types.ActivityGetGroupRequest.encode(
+    types.ActivityGetGroupRequest.create({ id: GUANXING_ACTIVITY_ID, uid: '' })
+  ).finish();
+  const { body } = await sendMsgAsync('gamepb.activitypb.ActivityService', 'GetGroup', request);
+  return Buffer.from(body || []);
+}
+
+/**
+ * 点亮/领取请求
+ * 官方客户端会附带一个空的扩展字段（119），我们保持一致以贴合真实客户端行为
+ */
+async function operateGuanxingRaw(cmd) {
+  const writer = protobuf.Writer.create()
+    .uint32((1 << 3) | 0)
+    .uint64(GUANXING_ACTIVITY_ID)
+    .uint32((2 << 3) | 0)
+    .uint64(Number(cmd) || 0);
+  writer.uint32((GUANXING_OPERATE_EXT_FIELD << 3) | 2).bytes(Buffer.alloc(0));
+
+  activityLogger.info('观星礼录操作请求', {
+    event: 'guanxing_operate',
+    activityId: GUANXING_ACTIVITY_ID,
+    cmd: Number(cmd) || 0,
+  });
+
+  const { body } = await sendMsgAsync('gamepb.activitypb.ActivityService', 'Operate', writer.finish());
+  return Buffer.from(body || []);
+}
+
+/** 「当前无可领取的奖励节点」属于正常幂等结果，不当作失败 */
+function isGuanxingNoRewardError(err) {
+  const message = String(err?.message || '');
+  return message.includes(String(GUANXING_NO_REWARD_CODE)) || message.includes('无可领取');
+}
+
+async function getGuanxingActivity() {
+  if (!getUserState()) {
+    return buildEmptyGuanxingActivity('runtime connection is not open');
+  }
+  return normalizeGuanxingActivity(await getGuanxingRaw());
+}
+
+/**
+ * 一键领取全部已解锁星宿奖励
+ * 服务端一次调用即结算所有可领节点，实际所得通过前后状态差集还原
+ */
+async function claimGuanxingRewards() {
+  assertActivityConnection('观星礼录领取');
+
+  const before = await getGuanxingActivity();
+  const expectedNodes = (before.nodes || []).filter((node) => node.claimable);
+
+  let replyBody = null;
+  let noReward = false;
+  try {
+    replyBody = await operateGuanxingRaw(GUANXING_CLAIM_CMD);
+  } catch (err) {
+    if (!isGuanxingNoRewardError(err)) throw err;
+    noReward = true;
+  }
+
+  const after = replyBody ? normalizeGuanxingActivity(replyBody) : await getGuanxingActivity();
+  const claimedBefore = new Set((before.nodes || []).filter((node) => node.claimed).map((node) => node.id));
+  const claimedNodes = (after.nodes || []).filter((node) => node.claimed && !claimedBefore.has(node.id));
+  const rewards = mergeRewardItems(claimedNodes.flatMap((node) => node.rewards));
+
+  activityLogger.info('观星礼录领取完成', {
+    event: 'guanxing_claim',
+    currentDay: after.currentDay,
+    expectedCount: expectedNodes.length,
+    claimedCount: claimedNodes.length,
+    claimedNodes: claimedNodes.map((node) => node.name),
+    rewardCount: rewards.length,
+    noReward,
+  });
+
+  return {
+    ok: true,
+    claimed: claimedNodes.length > 0,
+    alreadyClaimed: noReward && claimedNodes.length === 0,
+    claimedNodes: claimedNodes.map((node) => ({ id: node.id, name: node.name })),
+    rewards,
+    activity: after,
+  };
+}
+
+// ========== 星砂商店 ==========
+// ⚠️ 观星礼录页签已统一使用 heluActivity.exchangeShop（即 shop 页签）作为唯一入口，
+// 本节独立的星砂商店查询/兑换链路已移除，避免重复数据源。
+// 历史参考：2026072702 + Operate{cmd=7 查询 / cmd=1 + exchangeShopOperate{id,count} 兑换}。
+
+
 module.exports = {
   NANGUA_ACTIVITY_UID,
   HELU_ACTIVITY_UID,
@@ -1971,6 +2268,9 @@ module.exports = {
   QINGMEI_ACTIVITY_ID,
   QINGMEI_SEED_CLAIM_ACTIVITY_ID,
   QINGMEI_WINE_ACTIVITY_ID,
+  GUANXING_ACTIVITY_ID,
+  GUANXING_CLAIM_CMD,
+  STARSAND_ITEM_ID,
   HELU_SUB_ACTIVITY_KEYS,
   NANGUA_SHOP_BUY_CMD,
   NANGUA_SHOP_REFRESH_CMD,
@@ -1992,4 +2292,7 @@ module.exports = {
   refreshNanguaShop,
   normalizeNanguaGroup,
   normalizeHeluGroup,
+  getGuanxingActivity,
+  claimGuanxingRewards,
+  normalizeGuanxingActivity,
 };

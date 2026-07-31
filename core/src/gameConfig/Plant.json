@@ -4,14 +4,15 @@
     "mutant_effect_plant": null,
     "name": "草莓",
     "fruit": {
-      "count": 200,
-      "id": 40001
+      "id": 40001,
+      "count": 200
     },
     "seed_id": 20001,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;开花:5760;成熟:0;",
     "exp": 784,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -46,14 +47,15 @@
     "mutant_effect_plant": null,
     "name": "白萝卜",
     "fruit": {
-      "count": 5,
-      "id": 40002
+      "id": 40002,
+      "count": 5
     },
     "seed_id": 20002,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:30;发芽:30;成熟:0;",
     "exp": 1,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -88,14 +90,15 @@
     "mutant_effect_plant": null,
     "name": "胡萝卜",
     "fruit": {
-      "count": 10,
-      "id": 40003
+      "id": 40003,
+      "count": 10
     },
     "seed_id": 20003,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:30;发芽:30;小叶子:30;大叶子:30;成熟:0;",
     "exp": 2,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -130,14 +133,15 @@
     "mutant_effect_plant": null,
     "name": "玉米",
     "fruit": {
-      "count": 40,
-      "id": 40004
+      "id": 40004,
+      "count": 40
     },
     "seed_id": 20004,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:960;发芽:960;小叶子:960;大叶子:960;开花:960;成熟:0;",
     "exp": 82,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -172,14 +176,15 @@
     "mutant_effect_plant": null,
     "name": "土豆",
     "fruit": {
-      "count": 60,
-      "id": 40005
+      "id": 40005,
+      "count": 60
     },
     "seed_id": 20005,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:1440;发芽:1440;小叶子:1440;大叶子:1440;初熟:1440;成熟:0;",
     "exp": 128,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -214,14 +219,15 @@
     "mutant_effect_plant": null,
     "name": "茄子",
     "fruit": {
-      "count": 200,
-      "id": 40006
+      "id": 40006,
+      "count": 200
     },
     "seed_id": 20006,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;开花:5760;成熟:0;",
     "exp": 544,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -256,14 +262,15 @@
     "mutant_effect_plant": null,
     "name": "番茄",
     "fruit": {
-      "count": 200,
-      "id": 40007
+      "id": 40007,
+      "count": 200
     },
     "seed_id": 20007,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;开花:5760;成熟:0;",
     "exp": 576,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -298,14 +305,15 @@
     "mutant_effect_plant": null,
     "name": "豌豆",
     "fruit": {
-      "count": 200,
-      "id": 40008
+      "id": 40008,
+      "count": 200
     },
     "seed_id": 20008,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;初熟:5760;成熟:0;",
     "exp": 608,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -340,14 +348,15 @@
     "mutant_effect_plant": null,
     "name": "辣椒",
     "fruit": {
-      "count": 200,
-      "id": 40009
+      "id": 40009,
+      "count": 200
     },
     "seed_id": 20009,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;初熟:5760;成熟:0;",
     "exp": 688,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -382,14 +391,15 @@
     "mutant_effect_plant": null,
     "name": "南瓜",
     "fruit": {
-      "count": 200,
-      "id": 40010
+      "id": 40010,
+      "count": 200
     },
     "seed_id": 20010,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;初熟:5760;成熟:0;",
     "exp": 736,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -424,14 +434,15 @@
     "mutant_effect_plant": null,
     "name": "苹果",
     "fruit": {
-      "count": 200,
-      "id": 40011
+      "id": 40011,
+      "count": 200
     },
     "seed_id": 20011,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
     "exp": 1176,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -466,14 +477,15 @@
     "mutant_effect_plant": null,
     "name": "葡萄",
     "fruit": {
-      "count": 200,
-      "id": 40013
+      "id": 40013,
+      "count": 200
     },
     "seed_id": 20013,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;开花:5760;成熟:0;",
     "exp": 1016,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -508,14 +520,15 @@
     "mutant_effect_plant": null,
     "name": "西瓜",
     "fruit": {
-      "count": 200,
-      "id": 40014
+      "id": 40014,
+      "count": 200
     },
     "seed_id": 20014,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;开花:5760;成熟:0;",
     "exp": 896,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -550,14 +563,15 @@
     "mutant_effect_plant": null,
     "name": "香蕉",
     "fruit": {
-      "count": 200,
-      "id": 40015
+      "id": 40015,
+      "count": 200
     },
     "seed_id": 20015,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:17280;发芽:17280;小叶子:17280;大叶子:17280;开花:17280;成熟:0;",
     "exp": 2688,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -592,14 +606,15 @@
     "mutant_effect_plant": null,
     "name": "桃子",
     "fruit": {
-      "count": 200,
-      "id": 40018
+      "id": 40018,
+      "count": 200
     },
     "seed_id": 20018,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:5760;发芽:5760;开花:5760;小叶子:5760;大叶子:5760;成熟:0;",
     "exp": 952,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -634,14 +649,15 @@
     "mutant_effect_plant": null,
     "name": "橙子",
     "fruit": {
-      "count": 200,
-      "id": 40019
+      "id": 40019,
+      "count": 200
     },
     "seed_id": 20019,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:17280;发芽:17280;小叶子:17280;大叶子:17280;开花:17280;成熟:0;",
     "exp": 2856,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -676,14 +692,15 @@
     "mutant_effect_plant": null,
     "name": "鳄梨",
     "fruit": {
-      "count": 200,
-      "id": 40022
+      "id": 40022,
+      "count": 200
     },
     "seed_id": 20022,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:7200;发芽:7200;小叶子:7200;大叶子:10800;开花:10800;成熟:0;",
     "exp": 2601,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -718,14 +735,15 @@
     "mutant_effect_plant": null,
     "name": "石榴",
     "fruit": {
-      "count": 200,
-      "id": 40023
+      "id": 40023,
+      "count": 200
     },
     "seed_id": 20023,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;开花:5760;成熟:0;",
     "exp": 1080,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -760,14 +778,15 @@
     "mutant_effect_plant": "5:1120025:1",
     "name": "银杏树苗",
     "fruit": {
-      "count": 24,
-      "id": 40025
+      "id": 40025,
+      "count": 24
     },
     "seed_id": 20025,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;长枝:7200;成苗:0;",
     "exp": 720,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -802,14 +821,15 @@
     "mutant_effect_plant": null,
     "name": "柚子",
     "fruit": {
-      "count": 200,
-      "id": 40026
+      "id": 40026,
+      "count": 200
     },
     "seed_id": 20026,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:17280;发芽:17280;小叶子:17280;大叶子:17280;开花:17280;成熟:0;",
     "exp": 3240,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -844,14 +864,15 @@
     "mutant_effect_plant": null,
     "name": "菠萝",
     "fruit": {
-      "count": 200,
-      "id": 40027
+      "id": 40027,
+      "count": 200
     },
     "seed_id": 20027,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;开花:7200;成熟:0;",
     "exp": 858,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -886,14 +907,15 @@
     "mutant_effect_plant": null,
     "name": "椰子",
     "fruit": {
-      "count": 200,
-      "id": 40029
+      "id": 40029,
+      "count": 200
     },
     "seed_id": 20029,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;初熟:3600;成熟:0;",
     "exp": 456,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -928,14 +950,15 @@
     "mutant_effect_plant": null,
     "name": "葫芦",
     "fruit": {
-      "count": 200,
-      "id": 40031
+      "id": 40031,
+      "count": 200
     },
     "seed_id": 20031,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:14400;发芽:14400;小叶子:14400;大叶子:21600;初熟:21600;成熟:0;",
     "exp": 2736,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -970,14 +993,15 @@
     "mutant_effect_plant": null,
     "name": "火龙果",
     "fruit": {
-      "count": 200,
-      "id": 40033
+      "id": 40033,
+      "count": 200
     },
     "seed_id": 20033,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:14400;发芽:14400;小叶子:14400;大叶子:21600;初熟:21600;成熟:0;",
     "exp": 2880,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1012,14 +1036,15 @@
     "mutant_effect_plant": null,
     "name": "樱桃",
     "fruit": {
-      "count": 200,
-      "id": 40034
+      "id": 40034,
+      "count": 200
     },
     "seed_id": 20034,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;开花:7200;成熟:0;",
     "exp": 1020,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1054,14 +1079,15 @@
     "mutant_effect_plant": null,
     "name": "荔枝",
     "fruit": {
-      "count": 200,
-      "id": 40035
+      "id": 40035,
+      "count": 200
     },
     "seed_id": 20035,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:14400;发芽:14400;小叶子:14400;大叶子:21600;开花:21600;成熟:0;",
     "exp": 3060,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1096,14 +1122,15 @@
     "mutant_effect_plant": null,
     "name": "箬竹",
     "fruit": {
-      "count": 200,
-      "id": 40036
+      "id": 40036,
+      "count": 200
     },
     "seed_id": 20036,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:7200;发芽:7200;小叶子:7200;大叶子:10800;初熟:10800;成熟:0;",
     "exp": 1287,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1138,14 +1165,15 @@
     "mutant_effect_plant": null,
     "name": "莲藕",
     "fruit": {
-      "count": 200,
-      "id": 40037
+      "id": 40037,
+      "count": 200
     },
     "seed_id": 20037,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
     "exp": 912,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1180,14 +1208,15 @@
     "mutant_effect_plant": null,
     "name": "木瓜",
     "fruit": {
-      "count": 200,
-      "id": 40038
+      "id": 40038,
+      "count": 200
     },
     "seed_id": 20038,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;开花:7200;成熟:0;",
     "exp": 1074,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1222,14 +1251,15 @@
     "mutant_effect_plant": null,
     "name": "杨桃",
     "fruit": {
-      "count": 200,
-      "id": 40039
+      "id": 40039,
+      "count": 200
     },
     "seed_id": 20039,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;开花:3600;成熟:0;",
     "exp": 567,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1264,14 +1294,15 @@
     "mutant_effect_plant": null,
     "name": "红玫瑰",
     "fruit": {
-      "count": 200,
-      "id": 40041
+      "id": 40041,
+      "count": 200
     },
     "seed_id": 20041,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:17280;发芽:17280;小叶子:17280;大叶子:17280;初熟:17280;成熟:0;",
     "exp": 1824,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1306,14 +1337,15 @@
     "mutant_effect_plant": null,
     "name": "柠檬",
     "fruit": {
-      "count": 200,
-      "id": 40042
+      "id": 40042,
+      "count": 200
     },
     "seed_id": 20042,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:14400;发芽:14400;小叶子:14400;大叶子:21600;初熟:21600;成熟:0;",
     "exp": 3402,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1348,14 +1380,15 @@
     "mutant_effect_plant": null,
     "name": "无花果",
     "fruit": {
-      "count": 200,
-      "id": 40043
+      "id": 40043,
+      "count": 200
     },
     "seed_id": 20043,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:14400;发芽:14400;小叶子:14400;大叶子:21600;开花:21600;成熟:0;",
     "exp": 2574,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1390,14 +1423,15 @@
     "mutant_effect_plant": null,
     "name": "丝瓜",
     "fruit": {
-      "count": 200,
-      "id": 40044
+      "id": 40044,
+      "count": 200
     },
     "seed_id": 20044,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;长枝:8640;开花:8640;小叶子:8640;大叶子:8640;结果:0;",
     "exp": 1524,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1432,14 +1466,15 @@
     "mutant_effect_plant": null,
     "name": "猕猴桃",
     "fruit": {
-      "count": 200,
-      "id": 40045
+      "id": 40045,
+      "count": 200
     },
     "seed_id": 20045,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;开花:3600;成熟:0;",
     "exp": 480,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1474,14 +1509,15 @@
     "mutant_effect_plant": "5:1120046:1",
     "name": "爱心果",
     "fruit": {
-      "count": 96,
-      "id": 40046
+      "id": 40046,
+      "count": 96
     },
     "seed_id": 20046,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;初熟:7200;成熟:0;",
     "exp": 3840,
+    "special_fruit": null,
     "size": 2,
     "offsetPosition": {
       "x": 95,
@@ -1516,14 +1552,15 @@
     "mutant_effect_plant": null,
     "name": "甘蔗",
     "fruit": {
-      "count": 200,
-      "id": 40047
+      "id": 40047,
+      "count": 200
     },
     "seed_id": 20047,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;幼苗:8640;分叶:8640;伸长:8640;成熟:0;",
     "exp": 1428,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1558,14 +1595,15 @@
     "mutant_effect_plant": null,
     "name": "杨梅",
     "fruit": {
-      "count": 200,
-      "id": 40048
+      "id": 40048,
+      "count": 200
     },
     "seed_id": 20048,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;开花:7200;成熟:0;",
     "exp": 1194,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1600,14 +1638,15 @@
     "mutant_effect_plant": null,
     "name": "花生",
     "fruit": {
-      "count": 200,
-      "id": 40049
+      "id": 40049,
+      "count": 200
     },
     "seed_id": 20049,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;初熟:7200;成熟:0;",
     "exp": 912,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1642,14 +1681,15 @@
     "mutant_effect_plant": null,
     "name": "蘑菇",
     "fruit": {
-      "count": 200,
-      "id": 40050
+      "id": 40050,
+      "count": 200
     },
     "seed_id": 20050,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:3600;发芽:3600;大叶子:3600;初熟:3600;成熟:0;",
     "exp": 429,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1684,14 +1724,15 @@
     "mutant_effect_plant": null,
     "name": "红枣",
     "fruit": {
-      "count": 200,
-      "id": 40051
+      "id": 40051,
+      "count": 200
     },
     "seed_id": 20051,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
     "exp": 816,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1726,14 +1767,15 @@
     "mutant_effect_plant": null,
     "name": "金针菇",
     "fruit": {
-      "count": 200,
-      "id": 40052
+      "id": 40052,
+      "count": 200
     },
     "seed_id": 20052,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:7200;发菌:7200;出菇:7200;幼菇:10800;初熟:10800;成熟:0;",
     "exp": 1368,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1768,14 +1810,15 @@
     "mutant_effect_plant": null,
     "name": "桂圆",
     "fruit": {
-      "count": 200,
-      "id": 40053
+      "id": 40053,
+      "count": 200
     },
     "seed_id": 20053,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:7200;发芽:7200;小叶子:7200;大叶子:10800;开花:10800;成熟:0;",
     "exp": 1611,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1810,14 +1853,15 @@
     "mutant_effect_plant": null,
     "name": "梨",
     "fruit": {
-      "count": 200,
-      "id": 40054
+      "id": 40054,
+      "count": 200
     },
     "seed_id": 20054,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;初熟:7200;成熟:0;",
     "exp": 960,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1852,14 +1896,15 @@
     "mutant_effect_plant": null,
     "name": "枇杷",
     "fruit": {
-      "count": 200,
-      "id": 40055
+      "id": 40055,
+      "count": 200
     },
     "seed_id": 20055,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;初熟:3600;成熟:0;",
     "exp": 510,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1894,14 +1939,15 @@
     "mutant_effect_plant": null,
     "name": "哈密瓜",
     "fruit": {
-      "count": 200,
-      "id": 40056
+      "id": 40056,
+      "count": 200
     },
     "seed_id": 20056,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;开花:7200;成熟:0;",
     "exp": 1134,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1936,14 +1982,15 @@
     "mutant_effect_plant": null,
     "name": "芒果",
     "fruit": {
-      "count": 200,
-      "id": 40057
+      "id": 40057,
+      "count": 200
     },
     "seed_id": 20057,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;初熟:3600;成熟:0;",
     "exp": 597,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -1978,14 +2025,15 @@
     "mutant_effect_plant": null,
     "name": "榴莲",
     "fruit": {
-      "count": 200,
-      "id": 40058
+      "id": 40058,
+      "count": 200
     },
     "seed_id": 20058,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:7200;发芽:7200;小叶子:7200;大叶子:10800;开花:10800;成熟:0;",
     "exp": 1791,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2020,14 +2068,15 @@
     "mutant_effect_plant": null,
     "name": "大白菜",
     "fruit": {
-      "count": 20,
-      "id": 40059
+      "id": 40059,
+      "count": 20
     },
     "seed_id": 20059,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:60;发芽:60;幼苗:60;成株:60;卷心:60;成熟:0;",
     "exp": 5,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2062,14 +2111,15 @@
     "mutant_effect_plant": null,
     "name": "水稻",
     "fruit": {
-      "count": 30,
-      "id": 40060
+      "id": 40060,
+      "count": 30
     },
     "seed_id": 20060,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:480;幼苗:480;秧苗:480;幼穗:480;开花:480;成熟:0;",
     "exp": 41,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2104,14 +2154,15 @@
     "mutant_effect_plant": null,
     "name": "小麦",
     "fruit": {
-      "count": 40,
-      "id": 40061
+      "id": 40061,
+      "count": 40
     },
     "seed_id": 20061,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:720;发芽:720;小叶子:720;大叶子:720;幼穗:720;成熟:0;",
     "exp": 62,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2146,14 +2197,15 @@
     "mutant_effect_plant": null,
     "name": "四叶草",
     "fruit": {
-      "count": 200,
-      "id": 40062
+      "id": 40062,
+      "count": 200
     },
     "seed_id": 20062,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:17280;发芽:17280;小叶子:17280;大叶子:17280;初熟:17280;成熟:0;",
     "exp": 2352,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2188,14 +2240,15 @@
     "mutant_effect_plant": null,
     "name": "苦瓜",
     "fruit": {
-      "count": 200,
-      "id": 40063
+      "id": 40063,
+      "count": 200
     },
     "seed_id": 20063,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:7200;发芽:7200;小叶子:7200;大叶子:10800;开花:10800;成熟:0;",
     "exp": 1980,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2230,14 +2283,15 @@
     "mutant_effect_plant": null,
     "name": "大葱",
     "fruit": {
-      "count": 30,
-      "id": 40064
+      "id": 40064,
+      "count": 30
     },
     "seed_id": 20064,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:300;发芽:300;小叶子:300;大叶子:300;成熟:0;",
     "exp": 20,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2272,14 +2326,15 @@
     "mutant_effect_plant": null,
     "name": "大蒜",
     "fruit": {
-      "count": 20,
-      "id": 40065
+      "id": 40065,
+      "count": 20
     },
     "seed_id": 20065,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:120;发芽:120;幼苗:120;伸长:120;初熟:120;成熟:0;",
     "exp": 10,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2314,14 +2369,15 @@
     "mutant_effect_plant": null,
     "name": "鲜姜",
     "fruit": {
-      "count": 60,
-      "id": 40066
+      "id": 40066,
+      "count": 60
     },
     "seed_id": 20066,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:1500;发芽:1500;小叶子:1500;大叶子:1500;成熟:0;",
     "exp": 106,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2356,14 +2412,15 @@
     "mutant_effect_plant": null,
     "name": "香瓜",
     "fruit": {
-      "count": 200,
-      "id": 40067
+      "id": 40067,
+      "count": 200
     },
     "seed_id": 20067,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;开花:3600;成熟:0;",
     "exp": 537,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2398,14 +2455,15 @@
     "mutant_effect_plant": null,
     "name": "冬瓜",
     "fruit": {
-      "count": 200,
-      "id": 40068
+      "id": 40068,
+      "count": 200
     },
     "seed_id": 20068,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;开花:3600;成熟:0;",
     "exp": 693,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2440,14 +2498,15 @@
     "mutant_effect_plant": null,
     "name": "莴笋",
     "fruit": {
-      "count": 200,
-      "id": 40069
+      "id": 40069,
+      "count": 200
     },
     "seed_id": 20069,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;幼苗:4800;莲座期:7200;成株期:7200;成熟:0;",
     "exp": 1452,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2482,14 +2541,15 @@
     "mutant_effect_plant": null,
     "name": "黄豆",
     "fruit": {
-      "count": 200,
-      "id": 40070
+      "id": 40070,
+      "count": 200
     },
     "seed_id": 20070,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;初熟:8640;成熟:0;",
     "exp": 1344,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2524,14 +2584,15 @@
     "mutant_effect_plant": null,
     "name": "小白菜",
     "fruit": {
-      "count": 80,
-      "id": 40071
+      "id": 40071,
+      "count": 80
     },
     "seed_id": 20071,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:2250;发芽:2250;小叶子:2250;大叶子:2250;成熟:0;",
     "exp": 160,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2566,14 +2627,15 @@
     "mutant_effect_plant": null,
     "name": "榛子",
     "fruit": {
-      "count": 200,
-      "id": 40072
+      "id": 40072,
+      "count": 200
     },
     "seed_id": 20072,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:17280;发芽:17280;开花:17280;小叶子:17280;大叶子:17280;成熟:0;",
     "exp": 3048,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2608,14 +2670,15 @@
     "mutant_effect_plant": null,
     "name": "菠菜",
     "fruit": {
-      "count": 200,
-      "id": 40073
+      "id": 40073,
+      "count": 200
     },
     "seed_id": 20073,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:2880;发芽:2880;小叶子:2880;大叶子:2880;初熟:2880;成熟:0;",
     "exp": 392,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2650,14 +2713,15 @@
     "mutant_effect_plant": null,
     "name": "金桔",
     "fruit": {
-      "count": 200,
-      "id": 40074
+      "id": 40074,
+      "count": 200
     },
     "seed_id": 20074,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:14400;发芽:14400;小叶子:14400;大叶子:21600;初熟:21600;成熟:0;",
     "exp": 4158,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2692,14 +2756,15 @@
     "mutant_effect_plant": null,
     "name": "桑葚",
     "fruit": {
-      "count": 200,
-      "id": 40075
+      "id": 40075,
+      "count": 200
     },
     "seed_id": 20075,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:7200;发芽:7200;小叶子:7200;大叶子:10800;开花:10800;成熟:0;",
     "exp": 1701,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2734,14 +2799,15 @@
     "mutant_effect_plant": null,
     "name": "山竹",
     "fruit": {
-      "count": 200,
-      "id": 40076
+      "id": 40076,
+      "count": 200
     },
     "seed_id": 20076,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:14400;发芽:14400;小叶子:14400;大叶子:21600;开花:21600;成熟:0;",
     "exp": 3762,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2776,14 +2842,15 @@
     "mutant_effect_plant": null,
     "name": "蓝莓",
     "fruit": {
-      "count": 200,
-      "id": 40077
+      "id": 40077,
+      "count": 200
     },
     "seed_id": 20077,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;初熟:7200;成熟:0;",
     "exp": 1254,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2818,14 +2885,15 @@
     "mutant_effect_plant": null,
     "name": "杏子",
     "fruit": {
-      "count": 200,
-      "id": 40078
+      "id": 40078,
+      "count": 200
     },
     "seed_id": 20078,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:7200;发芽:7200;小叶子:7200;大叶子:10800;初熟:10800;成熟:0;",
     "exp": 2079,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2860,14 +2928,15 @@
     "mutant_effect_plant": null,
     "name": "番石榴",
     "fruit": {
-      "count": 200,
-      "id": 40079
+      "id": 40079,
+      "count": 200
     },
     "seed_id": 20079,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:14400;发芽:14400;小叶子:14400;大叶子:21600;开花:21600;成熟:0;",
     "exp": 3582,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2902,14 +2971,15 @@
     "mutant_effect_plant": null,
     "name": "月柿",
     "fruit": {
-      "count": 200,
-      "id": 40080
+      "id": 40080,
+      "count": 200
     },
     "seed_id": 20080,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:14400;发芽:14400;小叶子:14400;大叶子:21600;开花:21600;成熟:0;",
     "exp": 3222,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2944,14 +3014,15 @@
     "mutant_effect_plant": null,
     "name": "红毛丹",
     "fruit": {
-      "count": 200,
-      "id": 40083
+      "id": 40083,
+      "count": 200
     },
     "seed_id": 20083,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;初熟:3600;成熟:0;",
     "exp": 726,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -2986,14 +3057,15 @@
     "mutant_effect_plant": null,
     "name": "芭蕉",
     "fruit": {
-      "count": 200,
-      "id": 40084
+      "id": 40084,
+      "count": 200
     },
     "seed_id": 20084,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:7200;发芽:7200;小叶子:7200;大叶子:10800;开花:10800;结果:0;",
     "exp": 2178,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3028,14 +3100,15 @@
     "mutant_effect_plant": null,
     "name": "番荔枝",
     "fruit": {
-      "count": 200,
-      "id": 40085
+      "id": 40085,
+      "count": 200
     },
     "seed_id": 20085,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;开花:3600;结果:0;",
     "exp": 762,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3070,14 +3143,15 @@
     "mutant_effect_plant": null,
     "name": "橄榄",
     "fruit": {
-      "count": 200,
-      "id": 40086
+      "id": 40086,
+      "count": 200
     },
     "seed_id": 20086,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:7200;发芽:7200;小叶子:7200;大叶子:10800;开花:10800;成熟:0;",
     "exp": 2286,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3112,14 +3186,15 @@
     "mutant_effect_plant": null,
     "name": "百香果",
     "fruit": {
-      "count": 200,
-      "id": 40087
+      "id": 40087,
+      "count": 200
     },
     "seed_id": 20087,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;开花:3600;结果:0;",
     "exp": 795,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3154,14 +3229,15 @@
     "mutant_effect_plant": null,
     "name": "灯笼果",
     "fruit": {
-      "count": 200,
-      "id": 40088
+      "id": 40088,
+      "count": 200
     },
     "seed_id": 20088,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:7200;发芽:7200;小叶子:7200;大叶子:10800;开花:10800;结果:0;",
     "exp": 2385,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3196,14 +3272,15 @@
     "mutant_effect_plant": null,
     "name": "芦荟",
     "fruit": {
-      "count": 200,
-      "id": 40089
+      "id": 40089,
+      "count": 200
     },
     "seed_id": 20089,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;开花:3600;成熟:0;",
     "exp": 831,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3238,14 +3315,15 @@
     "mutant_effect_plant": null,
     "name": "薄荷",
     "fruit": {
-      "count": 200,
-      "id": 40090
+      "id": 40090,
+      "count": 200
     },
     "seed_id": 20090,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:7200;发芽:7200;小叶子:7200;大叶子:10800;开花:10800;成熟:0;",
     "exp": 2493,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3280,14 +3358,15 @@
     "mutant_effect_plant": null,
     "name": "山楂",
     "fruit": {
-      "count": 200,
-      "id": 40091
+      "id": 40091,
+      "count": 200
     },
     "seed_id": 20091,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:14400;发芽:14400;小叶子:14400;大叶子:14400;开花:14400;初熟:14400;成熟:0;",
     "exp": 2208,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3322,14 +3401,15 @@
     "mutant_effect_plant": null,
     "name": "栗子",
     "fruit": {
-      "count": 200,
-      "id": 40095
+      "id": 40095,
+      "count": 200
     },
     "seed_id": 20095,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
     "exp": 1620,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3364,14 +3444,15 @@
     "mutant_effect_plant": null,
     "name": "生菜",
     "fruit": {
-      "count": 80,
-      "id": 40096
+      "id": 40096,
+      "count": 80
     },
     "seed_id": 20096,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:2160;发芽:2160;小叶子:2160;大叶子:2160;初熟:2160;成熟:0;",
     "exp": 192,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3406,14 +3487,15 @@
     "mutant_effect_plant": null,
     "name": "黄瓜",
     "fruit": {
-      "count": 200,
-      "id": 40097
+      "id": 40097,
+      "count": 200
     },
     "seed_id": 20097,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
     "exp": 1032,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3448,14 +3530,15 @@
     "mutant_effect_plant": null,
     "name": "花菜",
     "fruit": {
-      "count": 200,
-      "id": 40098
+      "id": 40098,
+      "count": 200
     },
     "seed_id": 20098,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;幼苗:8640;卷心:8640;初熟:8640;成熟:0;",
     "exp": 864,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3490,14 +3573,15 @@
     "mutant_effect_plant": null,
     "name": "油菜",
     "fruit": {
-      "count": 200,
-      "id": 40099
+      "id": 40099,
+      "count": 200
     },
     "seed_id": 20099,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:3600;发芽:3600;小叶子:3600;大叶子:3600;成熟:0;",
     "exp": 272,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3532,14 +3616,15 @@
     "mutant_effect_plant": null,
     "name": "竹笋",
     "fruit": {
-      "count": 200,
-      "id": 40100
+      "id": 40100,
+      "count": 200
     },
     "seed_id": 20100,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:2880;发芽:2880;幼苗:2880;伸长:2880;初熟:2880;成熟:0;",
     "exp": 476,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3574,14 +3659,15 @@
     "mutant_effect_plant": null,
     "name": "薰衣草",
     "fruit": {
-      "count": 200,
-      "id": 40101
+      "id": 40101,
+      "count": 200
     },
     "seed_id": 20101,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:7200;发芽:7200;小叶子:7200;大叶子:10800;花蕾:10800;盛开:0;",
     "exp": 2718,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3616,14 +3702,15 @@
     "mutant_effect_plant": null,
     "name": "马蹄莲",
     "fruit": {
-      "count": 200,
-      "id": 40102
+      "id": 40102,
+      "count": 200
     },
     "seed_id": 20102,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:14400;发芽:14400;小叶子:14400;大叶子:21600;初熟:21600;成熟:0;",
     "exp": 5436,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3658,14 +3745,15 @@
     "mutant_effect_plant": null,
     "name": "天香百合",
     "fruit": {
-      "count": 200,
-      "id": 40103
+      "id": 40103,
+      "count": 200
     },
     "seed_id": 20103,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:2880;发芽:2880;小叶子:2880;大叶子:2880;初熟:2880;成熟:0;",
     "exp": 368,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3700,14 +3788,15 @@
     "mutant_effect_plant": null,
     "name": "非洲菊",
     "fruit": {
-      "count": 200,
-      "id": 40104
+      "id": 40104,
+      "count": 200
     },
     "seed_id": 20104,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:2400;花蕾:2400;盛开:2400;成熟:0;",
     "exp": 420,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3742,14 +3831,15 @@
     "mutant_effect_plant": null,
     "name": "小雏菊",
     "fruit": {
-      "count": 200,
-      "id": 40105
+      "id": 40105,
+      "count": 200
     },
     "seed_id": 20105,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:2880;发芽:2880;小叶子:2880;大叶子:2880;初熟:2880;成熟:0;",
     "exp": 304,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3784,14 +3874,15 @@
     "mutant_effect_plant": null,
     "name": "郁金香",
     "fruit": {
-      "count": 200,
-      "id": 40106
+      "id": 40106,
+      "count": 200
     },
     "seed_id": 20106,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;花蕾:7200;盛开:0;",
     "exp": 1812,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3822,18 +3913,62 @@
     "fruit_alter": 0
   },
   {
+    "id": 1020108,
+    "mutant_effect_plant": "5:1120108:1",
+    "name": "铃兰",
+    "fruit": {
+      "id": 40108,
+      "count": 48
+    },
+    "seed_id": 20108,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;初熟:8640;成熟:0;",
+    "exp": 1440,
+    "special_fruit": "2026072700:1022:30",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_xiyou",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 850,
+    "fruit_root": 2,
+    "fruit_alter": 36
+  },
+  {
     "id": 1020109,
     "mutant_effect_plant": "5:1120109:1",
     "name": "蝴蝶兰",
     "fruit": {
-      "count": 24,
-      "id": 40109
+      "id": 40109,
+      "count": 24
     },
     "seed_id": 20109,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;花蕾:7200;盛开:0;",
     "exp": 720,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3868,14 +4003,15 @@
     "mutant_effect_plant": null,
     "name": "满天星",
     "fruit": {
-      "count": 200,
-      "id": 40110
+      "id": 40110,
+      "count": 200
     },
     "seed_id": 20110,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;花蕾:5760;盛开:0;",
     "exp": 648,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3910,14 +4046,15 @@
     "mutant_effect_plant": "5:1120112:1",
     "name": "风信子",
     "fruit": {
-      "count": 24,
-      "id": 40112
+      "id": 40112,
+      "count": 24
     },
     "seed_id": 20112,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;初熟:7200;成熟:0;",
     "exp": 720,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3952,14 +4089,15 @@
     "mutant_effect_plant": null,
     "name": "兰花",
     "fruit": {
-      "count": 200,
-      "id": 40115
+      "id": 40115,
+      "count": 200
     },
     "seed_id": 20115,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:14400;小叶子:14400;大叶子:14400;花蕾:21600;盛开:21600;成熟:0;",
     "exp": 5670,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -3994,14 +4132,15 @@
     "mutant_effect_plant": null,
     "name": "曼陀罗华",
     "fruit": {
-      "count": 200,
-      "id": 40116
+      "id": 40116,
+      "count": 200
     },
     "seed_id": 20116,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;花蕾:3600;盛开:0;",
     "exp": 660,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4036,14 +4175,15 @@
     "mutant_effect_plant": null,
     "name": "蒲公英",
     "fruit": {
-      "count": 200,
-      "id": 40120
+      "id": 40120,
+      "count": 200
     },
     "seed_id": 20120,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:17280;小叶子:17280;大叶子:17280;花蕾:17280;盛开:17280;成熟:0;",
     "exp": 1632,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4078,14 +4218,15 @@
     "mutant_effect_plant": "5:1120121:1",
     "name": "蔷薇",
     "fruit": {
-      "count": 24,
-      "id": 40121
+      "id": 40121,
+      "count": 24
     },
     "seed_id": 20121,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;初熟:7200;成熟:0;",
     "exp": 720,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4116,18 +4257,62 @@
     "fruit_alter": 18
   },
   {
+    "id": 1020122,
+    "mutant_effect_plant": "5:1120122:1",
+    "name": "丁香花",
+    "fruit": {
+      "id": 40122,
+      "count": 32
+    },
+    "seed_id": 20122,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;初熟:5760;成熟:0;",
+    "exp": 960,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_xiyou",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 566,
+    "fruit_root": 2,
+    "fruit_alter": 24
+  },
+  {
     "id": 1020124,
     "mutant_effect_plant": null,
     "name": "月季花",
     "fruit": {
-      "count": 200,
-      "id": 40124
+      "id": 40124,
+      "count": 200
     },
     "seed_id": 20124,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:7200;发芽:7200;小叶子:7200;大叶子:10800;花蕾:10800;盛开:0;",
     "exp": 2835,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4162,14 +4347,15 @@
     "mutant_effect_plant": null,
     "name": "曼珠沙华",
     "fruit": {
-      "count": 200,
-      "id": 40126
+      "id": 40126,
+      "count": 200
     },
     "seed_id": 20126,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;初熟:7200;成熟:0;",
     "exp": 1320,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4204,14 +4390,15 @@
     "mutant_effect_plant": null,
     "name": "茉莉花",
     "fruit": {
-      "count": 200,
-      "id": 40128
+      "id": 40128,
+      "count": 200
     },
     "seed_id": 20128,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:2880;发芽:2880;小叶子:2880;大叶子:2880;花蕾:2880;盛开:0;",
     "exp": 508,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4242,18 +4429,62 @@
     "fruit_alter": 0
   },
   {
+    "id": 1020129,
+    "mutant_effect_plant": "5:1120129:1",
+    "name": "勿忘我",
+    "fruit": {
+      "id": 40129,
+      "count": 48
+    },
+    "seed_id": 20129,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
+    "exp": 1680,
+    "special_fruit": "2026072700:1022:35",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_zhenpin",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 2,
+    "fruit_alter": 36
+  },
+  {
     "id": 1020131,
     "mutant_effect_plant": null,
     "name": "六月雪",
     "fruit": {
-      "count": 200,
-      "id": 40131
+      "id": 40131,
+      "count": 200
     },
     "seed_id": 20131,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;花蕾:7200;盛开:0;",
     "exp": 1962,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4288,14 +4519,15 @@
     "mutant_effect_plant": null,
     "name": "蓝铃花",
     "fruit": {
-      "count": 200,
-      "id": 40132
+      "id": 40132,
+      "count": 200
     },
     "seed_id": 20132,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:7200;发芽:7200;小叶子:7200;大叶子:10800;花蕾:10800;盛开:0;",
     "exp": 2943,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4330,14 +4562,15 @@
     "mutant_effect_plant": "5:1120133:1;8:1026109:1",
     "name": "凤仙花",
     "fruit": {
-      "count": 48,
-      "id": 40133
+      "id": 40133,
+      "count": 48
     },
     "seed_id": 20133,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
     "exp": 1440,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4368,18 +4601,62 @@
     "fruit_alter": 36
   },
   {
+    "id": 1020134,
+    "mutant_effect_plant": "5:1120134:1",
+    "name": "绿牡丹",
+    "fruit": {
+      "id": 40134,
+      "count": 32
+    },
+    "seed_id": 20134,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;花蕾:5760;盛开:0;",
+    "exp": 960,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_xiyou",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 566,
+    "fruit_root": 2,
+    "fruit_alter": 24
+  },
+  {
     "id": 1020135,
     "mutant_effect_plant": null,
     "name": "火绒草",
     "fruit": {
-      "count": 200,
-      "id": 40135
+      "id": 40135,
+      "count": 200
     },
     "seed_id": 20135,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;花蕾:5760;盛开:0;",
     "exp": 840,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4410,18 +4687,105 @@
     "fruit_alter": 0
   },
   {
+    "id": 1020139,
+    "mutant_effect_plant": "5:1120139:1",
+    "name": "糖槭树花",
+    "fruit": {
+      "id": 40139,
+      "count": 48
+    },
+    "seed_id": 20139,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
+    "exp": 1440,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_xiyou",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 852,
+    "fruit_root": 2,
+    "fruit_alter": 36
+  },
+  {
+    "id": 1020140,
+    "mutant_effect_plant": "5:1120140:1",
+    "name": "象牙红",
+    "fruit": {
+      "id": 40140,
+      "count": 48
+    },
+    "seed_id": 20140,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
+    "exp": 1440,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_xiyou",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 852,
+    "fruit_root": 2,
+    "fruit_alter": 36
+  },
+  {
     "id": 1020141,
     "mutant_effect_plant": null,
     "name": "花香根鸢尾",
     "fruit": {
-      "count": 200,
-      "id": 40141
+      "id": 40141,
+      "count": 200
     },
     "seed_id": 20141,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
     "exp": 1260,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4456,14 +4820,15 @@
     "mutant_effect_plant": null,
     "name": "虞美人",
     "fruit": {
-      "count": 200,
-      "id": 40142
+      "id": 40142,
+      "count": 200
     },
     "seed_id": 20142,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:17280;发芽:17280;小叶子:17280;大叶子:17280;花蕾:17280;盛开:0;",
     "exp": 2520,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4498,14 +4863,15 @@
     "mutant_effect_plant": null,
     "name": "含羞草",
     "fruit": {
-      "count": 200,
-      "id": 40143
+      "id": 40143,
+      "count": 200
     },
     "seed_id": 20143,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:7200;发芽:7200;小叶子:7200;大叶子:7200;花蕾:7200;盛开:7200;成熟:0;",
     "exp": 972,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4536,18 +4902,62 @@
     "fruit_alter": 0
   },
   {
+    "id": 1020144,
+    "mutant_effect_plant": "5:1120144:1",
+    "name": "七里香",
+    "fruit": {
+      "id": 40144,
+      "count": 12
+    },
+    "seed_id": 20144,
+    "land_level_need": 1,
+    "seasons": 2,
+    "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;初熟:3600;成熟:0;",
+    "exp": 360,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_xiyou",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 212,
+    "fruit_root": 2,
+    "fruit_alter": 9
+  },
+  {
     "id": 1020145,
     "mutant_effect_plant": null,
     "name": "向日葵",
     "fruit": {
-      "count": 200,
-      "id": 40145
+      "id": 40145,
+      "count": 200
     },
     "seed_id": 20145,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:2400;开花:2400;初熟:2400;成熟:0;",
     "exp": 448,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4582,14 +4992,15 @@
     "mutant_effect_plant": null,
     "name": "牵牛花",
     "fruit": {
-      "count": 200,
-      "id": 40147
+      "id": 40147,
+      "count": 200
     },
     "seed_id": 20147,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:17280;发芽:17280;小叶子:17280;大叶子:17280;花蕾:17280;盛开:0;",
     "exp": 1944,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4620,18 +5031,62 @@
     "fruit_alter": 0
   },
   {
+    "id": 1020154,
+    "mutant_effect_plant": "5:1120154:1",
+    "name": "月桂花",
+    "fruit": {
+      "id": 40154,
+      "count": 12
+    },
+    "seed_id": 20154,
+    "land_level_need": 1,
+    "seasons": 2,
+    "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;花蕾:3600;开花:0;",
+    "exp": 360,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_xiyou",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 212,
+    "fruit_root": 2,
+    "fruit_alter": 9
+  },
+  {
     "id": 1020161,
     "mutant_effect_plant": null,
     "name": "秋菊（黄色）",
     "fruit": {
-      "count": 200,
-      "id": 40161
+      "id": 40161,
+      "count": 200
     },
     "seed_id": 20161,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:2880;发芽:2880;小叶子:2880;大叶子:2880;花蕾:2880;盛开:0;",
     "exp": 324,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4666,14 +5121,15 @@
     "mutant_effect_plant": null,
     "name": "秋菊（红色）",
     "fruit": {
-      "count": 200,
-      "id": 40162
+      "id": 40162,
+      "count": 200
     },
     "seed_id": 20162,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:2880;发芽:2880;小叶子:2880;大叶子:2880;花蕾:2880;盛开:0;",
     "exp": 344,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4708,14 +5164,15 @@
     "mutant_effect_plant": "5:1120167:1;10:1020804:1",
     "name": "欢乐糖果",
     "fruit": {
-      "count": 32,
-      "id": 40167
+      "id": 40167,
+      "count": 32
     },
     "seed_id": 20167,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;开花:5760;成熟:0;",
     "exp": 960,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4750,14 +5207,15 @@
     "mutant_effect_plant": null,
     "name": "宋梅",
     "fruit": {
-      "count": 200,
-      "id": 40172
+      "id": 40172,
+      "count": 200
     },
     "seed_id": 20172,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:14400;发芽:14400;小叶子:14400;大叶子:21600;花蕾:21600;盛开:0;",
     "exp": 5886,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4792,14 +5250,15 @@
     "mutant_effect_plant": null,
     "name": "晚香玉",
     "fruit": {
-      "count": 200,
-      "id": 40174
+      "id": 40174,
+      "count": 200
     },
     "seed_id": 20174,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;花蕾:3600;盛开:0;",
     "exp": 867,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4834,14 +5293,15 @@
     "mutant_effect_plant": "5:1120176:1;8:1026109:1",
     "name": "金银花",
     "fruit": {
-      "count": 48,
-      "id": 40176
+      "id": 40176,
+      "count": 48
     },
     "seed_id": 20176,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
     "exp": 1440,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4876,14 +5336,15 @@
     "mutant_effect_plant": null,
     "name": "艳蝶兰",
     "fruit": {
-      "count": 200,
-      "id": 40182
+      "id": 40182,
+      "count": 200
     },
     "seed_id": 20182,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;花蕾:3600;盛开:0;",
     "exp": 945,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4918,14 +5379,15 @@
     "mutant_effect_plant": "5:1120184:1;6:1029001:1",
     "name": "卡特兰",
     "fruit": {
-      "count": 48,
-      "id": 40184
+      "id": 40184,
+      "count": 48
     },
     "seed_id": 20184,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶:8640;大叶:8640;花蕾:8640;开花:0;",
     "exp": 1440,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -4960,14 +5422,15 @@
     "mutant_effect_plant": "5:1120185:1;8:1026109:1",
     "name": "似何莲",
     "fruit": {
-      "count": 48,
-      "id": 40185
+      "id": 40185,
+      "count": 48
     },
     "seed_id": 20185,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
     "exp": 1440,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5002,14 +5465,15 @@
     "mutant_effect_plant": "5:1120186:1;8:1026109:1",
     "name": "米兰",
     "fruit": {
-      "count": 48,
-      "id": 40186
+      "id": 40186,
+      "count": 48
     },
     "seed_id": 20186,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
     "exp": 1440,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5044,14 +5508,15 @@
     "mutant_effect_plant": null,
     "name": "君子兰",
     "fruit": {
-      "count": 200,
-      "id": 40187
+      "id": 40187,
+      "count": 200
     },
     "seed_id": 20187,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;花蕾:3600;盛开:0;",
     "exp": 981,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5086,14 +5551,15 @@
     "mutant_effect_plant": null,
     "name": "文殊兰",
     "fruit": {
-      "count": 200,
-      "id": 40188
+      "id": 40188,
+      "count": 200
     },
     "seed_id": 20188,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;花蕾:3600;盛开:0;",
     "exp": 906,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5128,14 +5594,15 @@
     "mutant_effect_plant": "5:1120193:1;6:1029001:1",
     "name": "红云飞片",
     "fruit": {
-      "count": 48,
-      "id": 40193
+      "id": 40193,
+      "count": 48
     },
     "seed_id": 20193,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶:8640;大叶:8640;花蕾:8640;开花:0;",
     "exp": 1440,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5166,18 +5633,62 @@
     "fruit_alter": 36
   },
   {
+    "id": 1020199,
+    "mutant_effect_plant": "5:1120199:1",
+    "name": "石莲花",
+    "fruit": {
+      "id": 40199,
+      "count": 12
+    },
+    "seed_id": 20199,
+    "land_level_need": 1,
+    "seasons": 2,
+    "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;初熟:3600;成熟:0;",
+    "exp": 420,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_zhenpin",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 248,
+    "fruit_root": 2,
+    "fruit_alter": 9
+  },
+  {
     "id": 1020201,
     "mutant_effect_plant": null,
     "name": "天山雪莲",
     "fruit": {
-      "count": 200,
-      "id": 40201
+      "id": 40201,
+      "count": 200
     },
     "seed_id": 20201,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:14400;发芽:14400;小叶子:14400;大叶子:21600;幼株:21600;成熟:0;",
     "exp": 4770,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5212,14 +5723,15 @@
     "mutant_effect_plant": null,
     "name": "金边灵芝",
     "fruit": {
-      "count": 200,
-      "id": 40202
+      "id": 40202,
+      "count": 200
     },
     "seed_id": 20202,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;芝蕾:4800;幼芝:7200;初熟:7200;成熟:0;",
     "exp": 1662,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5254,14 +5766,15 @@
     "mutant_effect_plant": null,
     "name": "人参",
     "fruit": {
-      "count": 200,
-      "id": 40204
+      "id": 40204,
+      "count": 200
     },
     "seed_id": 20204,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;初熟:7200;成熟:0;",
     "exp": 1734,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5296,14 +5809,15 @@
     "mutant_effect_plant": null,
     "name": "瓶子树",
     "fruit": {
-      "count": 200,
-      "id": 40218
+      "id": 40218,
+      "count": 200
     },
     "seed_id": 20218,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:2400;长枝:2400;小叶子:2400;大叶子:3600;初熟:3600;成树:0;",
     "exp": 627,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5338,14 +5852,15 @@
     "mutant_effect_plant": null,
     "name": "猪笼草",
     "fruit": {
-      "count": 200,
-      "id": 40220
+      "id": 40220,
+      "count": 200
     },
     "seed_id": 20220,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:7200;发芽:7200;小叶子:7200;大叶子:10800;初熟:10800;成熟:0;",
     "exp": 1881,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5380,14 +5895,15 @@
     "mutant_effect_plant": null,
     "name": "天堂鸟",
     "fruit": {
-      "count": 200,
-      "id": 40221
+      "id": 40221,
+      "count": 200
     },
     "seed_id": 20221,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:14400;发芽:14400;小叶子:14400;大叶子:21600;花蕾:21600;盛开:0;",
     "exp": 3960,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5422,14 +5938,15 @@
     "mutant_effect_plant": null,
     "name": "豹皮花",
     "fruit": {
-      "count": 200,
-      "id": 40222
+      "id": 40222,
+      "count": 200
     },
     "seed_id": 20222,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;花蕾:7200;盛开:0;",
     "exp": 1386,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5460,18 +5977,62 @@
     "fruit_alter": 0
   },
   {
+    "id": 1020223,
+    "mutant_effect_plant": "5:1120223:1",
+    "name": "夏蜡梅",
+    "fruit": {
+      "id": 40223,
+      "count": 48
+    },
+    "seed_id": 20223,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
+    "exp": 1680,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_zhenpin",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 2,
+    "fruit_alter": 36
+  },
+  {
     "id": 1020224,
     "mutant_effect_plant": "5:1120224:1",
     "name": "昙花",
     "fruit": {
-      "count": 24,
-      "id": 40224
+      "id": 40224,
+      "count": 24
     },
     "seed_id": 20224,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;初熟:7200;成熟:0;",
     "exp": 840,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5506,14 +6067,15 @@
     "mutant_effect_plant": null,
     "name": "宝华玉兰",
     "fruit": {
-      "count": 200,
-      "id": 40225
+      "id": 40225,
+      "count": 200
     },
     "seed_id": 20225,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;花蕾:7200;盛开:0;",
     "exp": 1890,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5548,14 +6110,15 @@
     "mutant_effect_plant": null,
     "name": "依米花",
     "fruit": {
-      "count": 200,
-      "id": 40226
+      "id": 40226,
+      "count": 200
     },
     "seed_id": 20226,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:14400;发芽:14400;小叶子:14400;大叶子:21600;花蕾:21600;盛开:0;",
     "exp": 4356,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5590,14 +6153,15 @@
     "mutant_effect_plant": null,
     "name": "大王花",
     "fruit": {
-      "count": 200,
-      "id": 40227
+      "id": 40227,
+      "count": 200
     },
     "seed_id": 20227,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;幼蕾:4800;含苞:7200;初放:7200;盛开:0;",
     "exp": 1524,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5632,14 +6196,15 @@
     "mutant_effect_plant": null,
     "name": "人参果",
     "fruit": {
-      "count": 200,
-      "id": 40228
+      "id": 40228,
+      "count": 200
     },
     "seed_id": 20228,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:14400;发芽:14400;小叶子:14400;大叶子:21600;开花:21600;成熟:0;",
     "exp": 4572,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5674,14 +6239,15 @@
     "mutant_effect_plant": null,
     "name": "何首乌",
     "fruit": {
-      "count": 200,
-      "id": 40229
+      "id": 40229,
+      "count": 200
     },
     "seed_id": 20229,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:14400;发芽:14400;小叶子:14400;大叶子:21600;初熟:21600;成熟:0;",
     "exp": 4986,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5716,14 +6282,15 @@
     "mutant_effect_plant": null,
     "name": "金花茶",
     "fruit": {
-      "count": 200,
-      "id": 40235
+      "id": 40235,
+      "count": 200
     },
     "seed_id": 20235,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;花蕾:7200;盛开:0;",
     "exp": 1590,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5758,14 +6325,15 @@
     "mutant_effect_plant": null,
     "name": "似血杜鹃",
     "fruit": {
-      "count": 200,
-      "id": 40242
+      "id": 40242,
+      "count": 200
     },
     "seed_id": 20242,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:14400;发芽:14400;小叶子:14400;大叶子:21600;花蕾:21600;盛开:0;",
     "exp": 5202,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5800,14 +6368,15 @@
     "mutant_effect_plant": "5:1120243:1;8:1026109:1",
     "name": "芹叶铁线莲",
     "fruit": {
-      "count": 48,
-      "id": 40243
+      "id": 40243,
+      "count": 48
     },
     "seed_id": 20243,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
     "exp": 1680,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5842,14 +6411,15 @@
     "mutant_effect_plant": "5:1120249:1",
     "name": "荷包牡丹",
     "fruit": {
-      "count": 24,
-      "id": 40249
+      "id": 40249,
+      "count": 24
     },
     "seed_id": 20249,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;花蕾:7200;盛开:0;",
     "exp": 840,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5884,14 +6454,15 @@
     "mutant_effect_plant": "5:1120251:1;8:1026109:1",
     "name": "鹭草",
     "fruit": {
-      "count": 48,
-      "id": 40251
+      "id": 40251,
+      "count": 48
     },
     "seed_id": 20251,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
     "exp": 1440,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5926,14 +6497,15 @@
     "mutant_effect_plant": "5:1120256:1;6:1029001:1",
     "name": "石竹花",
     "fruit": {
-      "count": 48,
-      "id": 40256
+      "id": 40256,
+      "count": 48
     },
     "seed_id": 20256,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶:8640;大叶:8640;花蕾:8640;开花:0;",
     "exp": 1440,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -5968,14 +6540,15 @@
     "mutant_effect_plant": "5:1120257:1;6:1029001:1",
     "name": "孔雀草",
     "fruit": {
-      "count": 48,
-      "id": 40257
+      "id": 40257,
+      "count": 48
     },
     "seed_id": 20257,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
     "exp": 1680,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -6010,14 +6583,15 @@
     "mutant_effect_plant": "5:1120258:1;6:1029001:1",
     "name": "欧石楠",
     "fruit": {
-      "count": 48,
-      "id": 40258
+      "id": 40258,
+      "count": 48
     },
     "seed_id": 20258,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶:8640;大叶:8640;花蕾:8640;开花:0;",
     "exp": 1680,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -6052,14 +6626,15 @@
     "mutant_effect_plant": null,
     "name": "银莲花",
     "fruit": {
-      "count": 200,
-      "id": 40259
+      "id": 40259,
+      "count": 200
     },
     "seed_id": 20259,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:2880;发芽:2880;小叶:2880;大叶:2880;花蕾:2880;开花:0;",
     "exp": 288,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -6094,14 +6669,144 @@
     "mutant_effect_plant": "5:1120261:1;6:1029001:1",
     "name": "针垫花",
     "fruit": {
-      "count": 48,
-      "id": 40261
+      "id": 40261,
+      "count": 48
     },
     "seed_id": 20261,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶:8640;大叶:8640;花蕾:8640;开花:0;",
     "exp": 1440,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_xiyou",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 850,
+    "fruit_root": 2,
+    "fruit_alter": 36
+  },
+  {
+    "id": 1020262,
+    "mutant_effect_plant": "5:1120262:1",
+    "name": "帝王花",
+    "fruit": {
+      "id": 40262,
+      "count": 24
+    },
+    "seed_id": 20262,
+    "land_level_need": 1,
+    "seasons": 2,
+    "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;花蕾:7200;盛开:0;",
+    "exp": 840,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_zhenpin",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 496,
+    "fruit_root": 2,
+    "fruit_alter": 18
+  },
+  {
+    "id": 1020263,
+    "mutant_effect_plant": "5:1120263:1",
+    "name": "天竺葵",
+    "fruit": {
+      "id": 40263,
+      "count": 24
+    },
+    "seed_id": 20263,
+    "land_level_need": 1,
+    "seasons": 2,
+    "grow_phases": "种子:4800;发芽:4800;小叶:4800;大叶:7200;花蕾:7200;开花:0;",
+    "exp": 720,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_xiyou",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 425,
+    "fruit_root": 2,
+    "fruit_alter": 18
+  },
+  {
+    "id": 1020264,
+    "mutant_effect_plant": "5:1120264:1",
+    "name": "帝王血",
+    "fruit": {
+      "id": 40264,
+      "count": 48
+    },
+    "seed_id": 20264,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
+    "exp": 1440,
+    "special_fruit": "2026072700:1022:30",
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -6136,14 +6841,15 @@
     "mutant_effect_plant": "5:1120267:1;8:1026109:1",
     "name": "地涌金莲",
     "fruit": {
-      "count": 48,
-      "id": 40267
+      "id": 40267,
+      "count": 48
     },
     "seed_id": 20267,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
     "exp": 1680,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -6174,18 +6880,62 @@
     "fruit_alter": 36
   },
   {
+    "id": 1020269,
+    "mutant_effect_plant": "5:1120269:1",
+    "name": "桔梗花",
+    "fruit": {
+      "id": 40269,
+      "count": 24
+    },
+    "seed_id": 20269,
+    "land_level_need": 1,
+    "seasons": 2,
+    "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;开花:7200;成熟:0;",
+    "exp": 720,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_xiyou",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 425,
+    "fruit_root": 2,
+    "fruit_alter": 18
+  },
+  {
     "id": 1020304,
     "mutant_effect_plant": "5:1120304:1;6:1029001:1",
     "name": "黄金果",
     "fruit": {
-      "count": 48,
-      "id": 40304
+      "id": 40304,
+      "count": 48
     },
     "seed_id": 20304,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
     "exp": 1680,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -6220,14 +6970,15 @@
     "mutant_effect_plant": null,
     "name": "韭菜",
     "fruit": {
-      "count": 200,
-      "id": 40305
+      "id": 40305,
+      "count": 200
     },
     "seed_id": 20305,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:17280;发芽:17280;小叶子:17280;大叶子:17280;初熟:17280;成熟:0;",
     "exp": 1728,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -6262,14 +7013,15 @@
     "mutant_effect_plant": null,
     "name": "芹菜",
     "fruit": {
-      "count": 200,
-      "id": 40306
+      "id": 40306,
+      "count": 200
     },
     "seed_id": 20306,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:17280;发芽:17280;小叶子:17280;大叶子:17280;初熟:17280;成熟:0;",
     "exp": 2064,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -6304,14 +7056,15 @@
     "mutant_effect_plant": null,
     "name": "核桃",
     "fruit": {
-      "count": 200,
-      "id": 40308
+      "id": 40308,
+      "count": 200
     },
     "seed_id": 20308,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:10800;发芽:10800;小叶子:10800;大叶子:10800;成熟:0;",
     "exp": 1104,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -6342,18 +7095,105 @@
     "fruit_alter": 0
   },
   {
+    "id": 1020329,
+    "mutant_effect_plant": null,
+    "name": "发财红包",
+    "fruit": {
+      "id": 40329,
+      "count": 1
+    },
+    "seed_id": 20329,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;初熟:5760;成熟:0;",
+    "exp": 688,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_putong",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 0,
+    "exp_alter": 0,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1020375,
+    "mutant_effect_plant": "5:1120375:1",
+    "name": "木槿",
+    "fruit": {
+      "id": 40375,
+      "count": 48
+    },
+    "seed_id": 20375,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;开花:0;",
+    "exp": 1680,
+    "special_fruit": "2026072700:1022:35",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_zhenpin",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 2,
+    "fruit_alter": 36
+  },
+  {
     "id": 1020396,
     "mutant_effect_plant": null,
     "name": "迎春花",
     "fruit": {
-      "count": 200,
-      "id": 40396
+      "id": 40396,
+      "count": 200
     },
     "seed_id": 20396,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:2880;幼芽:2880;小叶:2880;大叶:2880;花蕾:2880;开花:0;",
     "exp": 540,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -6388,14 +7228,15 @@
     "mutant_effect_plant": null,
     "name": "李子",
     "fruit": {
-      "count": 200,
-      "id": 40413
+      "id": 40413,
+      "count": 200
     },
     "seed_id": 20413,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:7200;发芽:7200;小叶子:7200;大叶子:10800;开花:10800;成熟:0;",
     "exp": 1530,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -6430,14 +7271,15 @@
     "mutant_effect_plant": "5:1120416:1;7:1028001:1",
     "name": "哈哈南瓜",
     "fruit": {
-      "count": 10,
-      "id": 49002
+      "id": 49002,
+      "count": 10
     },
     "seed_id": 20416,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:17280;发芽:17280;小叶子:17280;大叶子:17280;开花:17280;成熟:0;",
     "exp": 15360,
+    "special_fruit": null,
     "size": 2,
     "offsetPosition": {
       "x": 95,
@@ -6472,14 +7314,15 @@
     "mutant_effect_plant": null,
     "name": "睡莲",
     "fruit": {
-      "count": 200,
-      "id": 40442
+      "id": 40442,
+      "count": 200
     },
     "seed_id": 20442,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:7200;发芽:7200;小叶子:7200;大叶子:10800;幼株:10800;成熟:0;",
     "exp": 1440,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -6510,18 +7353,62 @@
     "fruit_alter": 0
   },
   {
+    "id": 1020804,
+    "mutant_effect_plant": null,
+    "name": "绵绵糖果",
+    "fruit": {
+      "id": 40804,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;开花:5760;成熟:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_xiyou",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 566,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
     "id": 1021032,
     "mutant_effect_plant": "5:1121032:1;9:1028002:1",
     "name": "琉璃宝荷",
     "fruit": {
-      "count": 192,
-      "id": 41032
+      "id": 41032,
+      "count": 192
     },
     "seed_id": 21032,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
     "exp": 7680,
+    "special_fruit": "2026060100:1019:200",
     "size": 2,
     "offsetPosition": {
       "x": 95,
@@ -6552,18 +7439,62 @@
     "fruit_alter": 144
   },
   {
+    "id": 1021037,
+    "mutant_effect_plant": "5:1121037:1",
+    "name": "银星海棠",
+    "fruit": {
+      "id": 41037,
+      "count": 48
+    },
+    "seed_id": 21037,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;初熟:8640;成熟:0;",
+    "exp": 1680,
+    "special_fruit": "2026072700:1022:35",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_zhenpin",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 2,
+    "fruit_alter": 36
+  },
+  {
     "id": 1021038,
     "mutant_effect_plant": "5:1121038:1;8:1026109:1",
     "name": "香彩雀",
     "fruit": {
-      "count": 48,
-      "id": 41038
+      "id": 41038,
+      "count": 48
     },
     "seed_id": 21038,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
     "exp": 1680,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -6598,14 +7529,58 @@
     "mutant_effect_plant": "5:1121044:1;8:1026109:1",
     "name": "繁星花",
     "fruit": {
-      "count": 48,
-      "id": 41044
+      "id": 41044,
+      "count": 48
     },
     "seed_id": 21044,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
     "exp": 1680,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_zhenpin",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 2,
+    "fruit_alter": 36
+  },
+  {
+    "id": 1021050,
+    "mutant_effect_plant": "5:1121050:1",
+    "name": "萱草",
+    "fruit": {
+      "id": 41050,
+      "count": 48
+    },
+    "seed_id": 21050,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;初熟:8640;成熟:0;",
+    "exp": 1680,
+    "special_fruit": "2026072700:1022:35",
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -6640,14 +7615,15 @@
     "mutant_effect_plant": "5:1121134:1;8:1026109:1",
     "name": "菖蒲",
     "fruit": {
-      "count": 48,
-      "id": 41134
+      "id": 41134,
+      "count": 48
     },
     "seed_id": 21134,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
     "exp": 1680,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -6682,14 +7658,15 @@
     "mutant_effect_plant": "5:1121135:1",
     "name": "艾草",
     "fruit": {
-      "count": 24,
-      "id": 41135
+      "id": 41135,
+      "count": 24
     },
     "seed_id": 21135,
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;初熟:7200;成熟:0;",
     "exp": 720,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -6720,18 +7697,234 @@
     "fruit_alter": 18
   },
   {
+    "id": 1021221,
+    "mutant_effect_plant": "5:1121221:1",
+    "name": "青梅",
+    "fruit": {
+      "id": 41221,
+      "count": 48
+    },
+    "seed_id": 21221,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
+    "exp": 1440,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_xiyou",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 850,
+    "fruit_root": 2,
+    "fruit_alter": 36
+  },
+  {
+    "id": 1021251,
+    "mutant_effect_plant": "5:1121251:1",
+    "name": "紫茉莉",
+    "fruit": {
+      "id": 41251,
+      "count": 48
+    },
+    "seed_id": 21251,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;初熟:8640;成熟:0;",
+    "exp": 1440,
+    "special_fruit": "2026072700:1022:30",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_xiyou",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 850,
+    "fruit_root": 2,
+    "fruit_alter": 36
+  },
+  {
+    "id": 1021353,
+    "mutant_effect_plant": "5:1121353:1",
+    "name": "紫薇",
+    "fruit": {
+      "id": 41353,
+      "count": 48
+    },
+    "seed_id": 21353,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;初熟:8640;成熟:0;",
+    "exp": 1680,
+    "special_fruit": "2026072700:1022:35",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_zhenpin",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 2,
+    "fruit_alter": 36
+  },
+  {
+    "id": 1021380,
+    "mutant_effect_plant": "5:1121380:1",
+    "name": "梧桐",
+    "fruit": {
+      "id": 41380,
+      "count": 48
+    },
+    "seed_id": 21380,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;初熟:8640;成熟:0;",
+    "exp": 1680,
+    "special_fruit": "2026072700:1022:35",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_zhenpin",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 2,
+    "fruit_alter": 36
+  },
+  {
+    "id": 1021404,
+    "mutant_effect_plant": "5:1121404:1",
+    "name": "月光花",
+    "fruit": {
+      "id": 41404,
+      "count": 48
+    },
+    "seed_id": 21404,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
+    "exp": 1680,
+    "special_fruit": "2026072700:1022:35",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_zhenpin",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 2,
+    "fruit_alter": 36
+  },
+  {
     "id": 1021474,
     "mutant_effect_plant": "5:1121474:1;8:1026109:1",
     "name": "荷青花",
     "fruit": {
-      "count": 48,
-      "id": 41474
+      "id": 41474,
+      "count": 48
     },
     "seed_id": 21474,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
     "exp": 1680,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -6766,14 +7959,15 @@
     "mutant_effect_plant": null,
     "name": "新春红包",
     "fruit": {
-      "count": 20,
-      "id": 41542
+      "id": 41542,
+      "count": 20
     },
     "seed_id": 21542,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;初熟:5760;成熟:0;",
     "exp": 688,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -6804,18 +7998,105 @@
     "fruit_alter": 0
   },
   {
+    "id": 1026032,
+    "mutant_effect_plant": "5:1126032:1",
+    "name": "月见草",
+    "fruit": {
+      "id": 46032,
+      "count": 48
+    },
+    "seed_id": 26032,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;初熟:8640;成熟:0;",
+    "exp": 1440,
+    "special_fruit": "2026072700:1022:30",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_xiyou",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 850,
+    "fruit_root": 2,
+    "fruit_alter": 36
+  },
+  {
+    "id": 1026109,
+    "mutant_effect_plant": "5_8:1126109:1",
+    "name": "荷花",
+    "fruit": {
+      "id": 46109,
+      "count": 48
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
+    "exp": null,
+    "special_fruit": "2026060100:1019:200",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_zhenpin",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": null,
+    "exp_alter": null,
+    "fruit_root": 2,
+    "fruit_alter": 36
+  },
+  {
     "id": 1026127,
     "mutant_effect_plant": "5:1126127:1;8:1026109:1",
     "name": "凌霄花",
     "fruit": {
-      "count": 48,
-      "id": 46127
+      "id": 46127,
+      "count": 48
     },
     "seed_id": 26127,
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
     "exp": 1680,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -6846,55 +8127,9 @@
     "fruit_alter": 36
   },
   {
-    "id": 1026109,
-    "mutant_effect_plant": "5_8:1126109",
-    "mutant_id": "6015:1126109",
-    "name": "荷花",
-    "mutant": null,
-    "fruit": {
-      "id": 46109,
-      "count": 10
-    },
-    "seed_id": null,
-    "land_level_need": 1,
-    "seasons": 1,
-    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
-    "exp": 1680,
-    "size": null,
-    "offsetPosition": {
-      "x": 0,
-      "y": 0
-    },
-    "mutantEffectScale": {
-      "x": 1,
-      "y": 1
-    },
-    "harvestOffsetPosition": {
-      "x": -35,
-      "y": 5
-    },
-    "harvestRandom": null,
-    "harvestAllSpineRes": null,
-    "harvestAllOffsetPosition": null,
-    "harvestAniName": "anim_harvest_zhenpin",
-    "all_state_spine": "spine/v2/xiyouzhongzi/1026109",
-    "mature_effect": "effect/prefab/effect_plant_maturation",
-    "mature_effect_offset": {
-      "x": 0,
-      "y": 0
-    },
-    "rare_plant_light_pos": null,
-    "exp_root": 1.6,
-    "exp_alter": 991,
-    "fruit_root": 0,
-    "fruit_alter": 0
-  },
-  {
     "id": 1028001,
-    "mutant_effect_plant": "5_7:1128001",
-    "mutant_id": "6014:1128001",
+    "mutant_effect_plant": "5_7:1128001:1",
     "name": "哈哈南瓜塔",
-    "mutant": null,
     "fruit": {
       "id": 204002,
       "count": 1
@@ -6903,11 +8138,12 @@
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:17280;发芽:17280;小叶子:17280;大叶子:17280;开花:17280;成熟:0;",
-    "exp": 15360,
+    "exp": null,
+    "special_fruit": null,
     "size": 2,
     "offsetPosition": {
-      "x": 100,
-      "y": 0
+      "x": 95,
+      "y": 20
     },
     "mutantEffectScale": {
       "x": 1.75,
@@ -6928,17 +8164,15 @@
       "y": 95
     },
     "rare_plant_light_pos": "{\"x\":113,\"y\":125,\"rotation\":0,\"scale\":{\"x\":1,\"y\":1}}",
-    "exp_root": 1.6,
-    "exp_alter": 9062,
+    "exp_root": null,
+    "exp_alter": null,
     "fruit_root": 0,
     "fruit_alter": 0
   },
   {
     "id": 1028002,
-    "mutant_effect_plant": null,
-    "mutant_id": null,
+    "mutant_effect_plant": "5_9:1128002:1",
     "name": "月华宝荷",
-    "mutant": null,
     "fruit": {
       "id": 204004,
       "count": 1
@@ -6946,12 +8180,13 @@
     "seed_id": null,
     "land_level_need": 1,
     "seasons": 1,
-    "grow_phases": "种子:17280;发芽:17280;小叶子:17280;大叶子:17280;开花:17280;成熟:0;",
-    "exp": 15360,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
+    "exp": null,
+    "special_fruit": "2026060100:1019:200",
     "size": 2,
     "offsetPosition": {
-      "x": 100,
-      "y": 0
+      "x": 95,
+      "y": 20
     },
     "mutantEffectScale": {
       "x": 1.75,
@@ -6965,68 +8200,65 @@
     "harvestAllSpineRes": "spine/v2/shouge/Crop_sg_final",
     "harvestAllOffsetPosition": "0:0",
     "harvestAniName": "anim_harvest_tiangong",
-    "all_state_spine": "spine/v2/xiyouzhongzi/1028001",
+    "all_state_spine": "spine/v2/xiyouzhongzi/1028002",
     "mature_effect": "effect/prefab/effect_plant_maturation",
     "mature_effect_offset": {
       "x": 0,
-      "y": 95
+      "y": 20
     },
     "rare_plant_light_pos": "{\"x\":113,\"y\":125,\"rotation\":0,\"scale\":{\"x\":1,\"y\":1}}",
     "exp_root": 1.6,
-    "exp_alter": 9062,
+    "exp_alter": 4531.2,
     "fruit_root": 0,
     "fruit_alter": 0
   },
   {
-    "id": 1020804,
-    "mutant_effect_plant": null,
-    "mutant_id": null,
-    "name": "绵绵糖果",
-    "mutant": null,
+    "id": 1028003,
+    "mutant_effect_plant": "5_11:1128003:1",
+    "name": "蝶梦星铃",
     "fruit": {
-      "id": 40804,
-      "count": 10
+      "id": 204006,
+      "count": 1
     },
     "seed_id": null,
     "land_level_need": 1,
     "seasons": 1,
-    "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;开花:5760;成熟:0;",
-    "exp": 960,
-    "size": null,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
+    "exp": null,
+    "special_fruit": "2026072700:1022:160",
+    "size": 2,
     "offsetPosition": {
+      "x": 95,
+      "y": 20
+    },
+    "mutantEffectScale": {
+      "x": 1.75,
+      "y": 1.5
+    },
+    "harvestOffsetPosition": {
       "x": 0,
       "y": 0
     },
-    "mutantEffectScale": {
-      "x": 1,
-      "y": 1
-    },
-    "harvestOffsetPosition": {
-      "x": -35,
-      "y": 5
-    },
-    "harvestRandom": null,
-    "harvestAllSpineRes": null,
-    "harvestAllOffsetPosition": null,
-    "harvestAniName": "anim_harvest_zhenpin",
-    "all_state_spine": "spine/v2/xiyouzhongzi/1020804",
+    "harvestRandom": true,
+    "harvestAllSpineRes": "spine/v2/shouge/Crop_sg_final",
+    "harvestAllOffsetPosition": "0:0",
+    "harvestAniName": "anim_harvest_tiangong",
+    "all_state_spine": "spine/v2/xiyouzhongzi/xingyulinghua/1028003",
     "mature_effect": "effect/prefab/effect_plant_maturation",
     "mature_effect_offset": {
       "x": 0,
-      "y": 0
+      "y": 60
     },
-    "rare_plant_light_pos": null,
+    "rare_plant_light_pos": "{\"x\":113,\"y\":125,\"rotation\":0,\"scale\":{\"x\":1,\"y\":1}}",
     "exp_root": 1.6,
-    "exp_alter": 566,
+    "exp_alter": 4531.2,
     "fruit_root": 0,
     "fruit_alter": 0
   },
   {
     "id": 1029001,
-    "mutant_effect_plant": "5_6:1129001",
-    "mutant_id": "6013:1129001",
+    "mutant_effect_plant": "5_6:1129001:1",
     "name": "哈哈小南瓜",
-    "mutant": null,
     "fruit": {
       "id": 49001,
       "count": 10
@@ -7035,7 +8267,8 @@
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
-    "exp": 1680,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7060,17 +8293,58 @@
       "y": 0
     },
     "rare_plant_light_pos": null,
-    "exp_root": 1.6,
-    "exp_alter": 991,
+    "exp_root": null,
+    "exp_alter": null,
     "fruit_root": 0,
     "fruit_alter": 0
   },
   {
+    "id": 1029003,
+    "mutant_effect_plant": "5:1129003:1;11:1028003:1",
+    "name": "星语铃花",
+    "fruit": {
+      "id": 49003,
+      "count": 192
+    },
+    "seed_id": 29003,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
+    "exp": 7680,
+    "special_fruit": "2026072700:1022:160",
+    "size": 2,
+    "offsetPosition": {
+      "x": 95,
+      "y": 20
+    },
+    "mutantEffectScale": {
+      "x": 1.75,
+      "y": 1.5
+    },
+    "harvestOffsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "harvestRandom": true,
+    "harvestAllSpineRes": "spine/v2/shouge/Crop_sg_final",
+    "harvestAllOffsetPosition": "5:30;50:-30;150:-75;200:-25;150:-30",
+    "harvestAniName": "anim_harvest_tiangong",
+    "all_state_spine": "spine/v2/xiyouzhongzi/xingyulinghua/1029003",
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 60
+    },
+    "rare_plant_light_pos": "{\"x\":113,\"y\":125,\"rotation\":0,\"scale\":{\"x\":1,\"y\":1}}",
+    "exp_root": 1.6,
+    "exp_alter": 4531.2,
+    "fruit_root": 2,
+    "fruit_alter": 144
+  },
+  {
     "id": 1120025,
     "mutant_effect_plant": null,
-    "mutant_id": null,
     "name": "黄金·银杏树苗",
-    "mutant": null,
     "fruit": {
       "id": 1040025,
       "count": 10
@@ -7079,7 +8353,8 @@
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;长枝:7200;成苗:0;",
-    "exp": 720,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7112,9 +8387,7 @@
   {
     "id": 1120046,
     "mutant_effect_plant": null,
-    "mutant_id": null,
     "name": "黄金·爱心果",
-    "mutant": null,
     "fruit": {
       "id": 1040046,
       "count": 10
@@ -7123,11 +8396,12 @@
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;初熟:7200;成熟:0;",
-    "exp": 3840,
+    "exp": null,
+    "special_fruit": null,
     "size": 2,
     "offsetPosition": {
-      "x": 85,
-      "y": 0
+      "x": 95,
+      "y": 20
     },
     "mutantEffectScale": {
       "x": 1.75,
@@ -7154,11 +8428,52 @@
     "fruit_alter": 0
   },
   {
+    "id": 1120108,
+    "mutant_effect_plant": null,
+    "name": "黄金·铃兰",
+    "fruit": {
+      "id": 1040108,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;初熟:8640;成熟:0;",
+    "exp": null,
+    "special_fruit": "2026072700:1022:30",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 850,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
     "id": 1120109,
     "mutant_effect_plant": null,
-    "mutant_id": null,
     "name": "黄金·蝴蝶兰",
-    "mutant": null,
     "fruit": {
       "id": 1040109,
       "count": 10
@@ -7167,7 +8482,8 @@
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;花蕾:7200;盛开:0;",
-    "exp": 720,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7200,9 +8516,7 @@
   {
     "id": 1120112,
     "mutant_effect_plant": null,
-    "mutant_id": null,
     "name": "黄金·风信子",
-    "mutant": null,
     "fruit": {
       "id": 1040112,
       "count": 10
@@ -7211,7 +8525,8 @@
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;初熟:7200;成熟:0;",
-    "exp": 720,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7244,9 +8559,7 @@
   {
     "id": 1120121,
     "mutant_effect_plant": null,
-    "mutant_id": null,
     "name": "黄金·蔷薇",
-    "mutant": null,
     "fruit": {
       "id": 1040121,
       "count": 10
@@ -7255,7 +8568,8 @@
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;初熟:7200;成熟:0;",
-    "exp": 720,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7286,18 +8600,19 @@
     "fruit_alter": 0
   },
   {
-    "id": 1120133,
+    "id": 1120122,
     "mutant_effect_plant": null,
-    "name": "黄金·凤仙花",
+    "name": "黄金·丁香花",
     "fruit": {
-      "id": 1040133,
+      "id": 1040122,
       "count": 10
     },
     "seed_id": null,
     "land_level_need": 1,
     "seasons": 1,
-    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
-    "exp": 1440,
+    "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;初熟:5760;成熟:0;",
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7314,7 +8629,93 @@
     "harvestRandom": null,
     "harvestAllSpineRes": null,
     "harvestAllOffsetPosition": null,
-    "harvestAniName": "anim_harvest_xiyou",
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 566,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1120129,
+    "mutant_effect_plant": null,
+    "name": "黄金·勿忘我",
+    "fruit": {
+      "id": 1040129,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
+    "exp": null,
+    "special_fruit": "2026072700:1022:35",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1120133,
+    "mutant_effect_plant": "5_8:1126109:1",
+    "name": "黄金·凤仙花",
+    "fruit": {
+      "id": 1040133,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
     "all_state_spine": null,
     "mature_effect": "effect/prefab/effect_plant_maturation",
     "mature_effect_offset": {
@@ -7324,9 +8725,223 @@
     "rare_plant_light_pos": null,
     "exp_root": 1.6,
     "exp_alter": 850,
-    "fruit_root": 2,
-    "fruit_alter": 36,
-    "mutant_id": null
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1120134,
+    "mutant_effect_plant": null,
+    "name": "黄金·绿牡丹",
+    "fruit": {
+      "id": 1040134,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;花蕾:5760;盛开:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 566,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1120139,
+    "mutant_effect_plant": null,
+    "name": "黄金·糖槭树花",
+    "fruit": {
+      "id": 1040139,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 852,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1120140,
+    "mutant_effect_plant": null,
+    "name": "黄金·象牙红",
+    "fruit": {
+      "id": 1040140,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 852,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1120144,
+    "mutant_effect_plant": null,
+    "name": "黄金·七里香",
+    "fruit": {
+      "id": 1040144,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 2,
+    "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;初熟:3600;成熟:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 212,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1120154,
+    "mutant_effect_plant": null,
+    "name": "黄金·月桂花",
+    "fruit": {
+      "id": 1040154,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 2,
+    "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;花蕾:3600;开花:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 212,
+    "fruit_root": 0,
+    "fruit_alter": 0
   },
   {
     "id": 1120167,
@@ -7340,7 +8955,8 @@
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:5760;发芽:5760;小叶子:5760;大叶子:5760;开花:5760;成熟:0;",
-    "exp": 960,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7357,7 +8973,7 @@
     "harvestRandom": null,
     "harvestAllSpineRes": null,
     "harvestAllOffsetPosition": null,
-    "harvestAniName": "anim_harvest_xiyou",
+    "harvestAniName": "anim_harvest_gold",
     "all_state_spine": null,
     "mature_effect": "effect/prefab/effect_plant_maturation",
     "mature_effect_offset": {
@@ -7367,13 +8983,12 @@
     "rare_plant_light_pos": null,
     "exp_root": 1.6,
     "exp_alter": 566,
-    "fruit_root": 2,
-    "fruit_alter": 24,
-    "mutant_id": null
+    "fruit_root": 0,
+    "fruit_alter": 0
   },
   {
     "id": 1120176,
-    "mutant_effect_plant": null,
+    "mutant_effect_plant": "5_8:1126109:1",
     "name": "黄金·金银花",
     "fruit": {
       "id": 1040176,
@@ -7383,7 +8998,8 @@
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
-    "exp": 1440,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7400,7 +9016,7 @@
     "harvestRandom": null,
     "harvestAllSpineRes": null,
     "harvestAllOffsetPosition": null,
-    "harvestAniName": "anim_harvest_xiyou",
+    "harvestAniName": "anim_harvest_gold",
     "all_state_spine": null,
     "mature_effect": "effect/prefab/effect_plant_maturation",
     "mature_effect_offset": {
@@ -7410,16 +9026,13 @@
     "rare_plant_light_pos": null,
     "exp_root": 1.6,
     "exp_alter": 850,
-    "fruit_root": 2,
-    "fruit_alter": 36,
-    "mutant_id": null
+    "fruit_root": 0,
+    "fruit_alter": 0
   },
   {
     "id": 1120184,
-    "mutant_effect_plant": "5_6:1129001",
-    "mutant_id": "6013:1129001",
+    "mutant_effect_plant": "5_6:1129001:1",
     "name": "黄金·卡特兰",
-    "mutant": null,
     "fruit": {
       "id": 1040184,
       "count": 10
@@ -7428,7 +9041,8 @@
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶:8640;大叶:8640;花蕾:8640;开花:0;",
-    "exp": 1440,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7455,12 +9069,12 @@
     "rare_plant_light_pos": null,
     "exp_root": 1.6,
     "exp_alter": 850,
-    "fruit_root": 2,
-    "fruit_alter": 36
+    "fruit_root": 0,
+    "fruit_alter": 0
   },
   {
     "id": 1120185,
-    "mutant_effect_plant": null,
+    "mutant_effect_plant": "5_8:1126109:1",
     "name": "黄金·似何莲",
     "fruit": {
       "id": 1040185,
@@ -7470,7 +9084,8 @@
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
-    "exp": 1440,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7487,7 +9102,7 @@
     "harvestRandom": null,
     "harvestAllSpineRes": null,
     "harvestAllOffsetPosition": null,
-    "harvestAniName": "anim_harvest_xiyou",
+    "harvestAniName": "anim_harvest_gold",
     "all_state_spine": null,
     "mature_effect": "effect/prefab/effect_plant_maturation",
     "mature_effect_offset": {
@@ -7497,13 +9112,12 @@
     "rare_plant_light_pos": null,
     "exp_root": 1.6,
     "exp_alter": 850,
-    "fruit_root": 2,
-    "fruit_alter": 36,
-    "mutant_id": null
+    "fruit_root": 0,
+    "fruit_alter": 0
   },
   {
     "id": 1120186,
-    "mutant_effect_plant": null,
+    "mutant_effect_plant": "5_8:1126109:1",
     "name": "黄金·米兰",
     "fruit": {
       "id": 1040186,
@@ -7513,7 +9127,8 @@
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
-    "exp": 1440,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7530,7 +9145,7 @@
     "harvestRandom": null,
     "harvestAllSpineRes": null,
     "harvestAllOffsetPosition": null,
-    "harvestAniName": "anim_harvest_xiyou",
+    "harvestAniName": "anim_harvest_gold",
     "all_state_spine": null,
     "mature_effect": "effect/prefab/effect_plant_maturation",
     "mature_effect_offset": {
@@ -7540,16 +9155,13 @@
     "rare_plant_light_pos": null,
     "exp_root": 1.6,
     "exp_alter": 850,
-    "fruit_root": 2,
-    "fruit_alter": 36,
-    "mutant_id": null
+    "fruit_root": 0,
+    "fruit_alter": 0
   },
   {
     "id": 1120193,
-    "mutant_effect_plant": "5_6:1129001",
-    "mutant_id": "6013:1129001",
+    "mutant_effect_plant": "5_6:1129001:1",
     "name": "黄金·红云飞片",
-    "mutant": null,
     "fruit": {
       "id": 1040193,
       "count": 10
@@ -7558,7 +9170,8 @@
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶:8640;大叶:8640;花蕾:8640;开花:0;",
-    "exp": 1440,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7585,15 +9198,99 @@
     "rare_plant_light_pos": null,
     "exp_root": 1.6,
     "exp_alter": 850,
-    "fruit_root": 2,
-    "fruit_alter": 36
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1120199,
+    "mutant_effect_plant": null,
+    "name": "黄金·石莲花",
+    "fruit": {
+      "id": 1040199,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 2,
+    "grow_phases": "种子:2400;发芽:2400;小叶子:2400;大叶子:3600;初熟:3600;成熟:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 248,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1120223,
+    "mutant_effect_plant": null,
+    "name": "黄金·夏蜡梅",
+    "fruit": {
+      "id": 1040223,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 0,
+    "fruit_alter": 0
   },
   {
     "id": 1120224,
     "mutant_effect_plant": null,
-    "mutant_id": null,
     "name": "黄金·昙花",
-    "mutant": null,
     "fruit": {
       "id": 1040224,
       "count": 10
@@ -7602,7 +9299,8 @@
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;初熟:7200;成熟:0;",
-    "exp": 840,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7634,7 +9332,7 @@
   },
   {
     "id": 1120243,
-    "mutant_effect_plant": null,
+    "mutant_effect_plant": "5_8:1126109:1",
     "name": "黄金·芹叶铁线莲",
     "fruit": {
       "id": 1040243,
@@ -7644,7 +9342,8 @@
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
-    "exp": 1680,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7661,7 +9360,7 @@
     "harvestRandom": null,
     "harvestAllSpineRes": null,
     "harvestAllOffsetPosition": null,
-    "harvestAniName": "anim_harvest_zhenpin",
+    "harvestAniName": "anim_harvest_gold",
     "all_state_spine": null,
     "mature_effect": "effect/prefab/effect_plant_maturation",
     "mature_effect_offset": {
@@ -7671,16 +9370,13 @@
     "rare_plant_light_pos": null,
     "exp_root": 1.6,
     "exp_alter": 991,
-    "fruit_root": 2,
-    "fruit_alter": 36,
-    "mutant_id": null
+    "fruit_root": 0,
+    "fruit_alter": 0
   },
   {
     "id": 1120249,
     "mutant_effect_plant": null,
-    "mutant_id": null,
     "name": "黄金·荷包牡丹",
-    "mutant": null,
     "fruit": {
       "id": 1040249,
       "count": 10
@@ -7689,7 +9385,8 @@
     "land_level_need": 1,
     "seasons": 2,
     "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;花蕾:7200;盛开:0;",
-    "exp": 840,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7721,7 +9418,7 @@
   },
   {
     "id": 1120251,
-    "mutant_effect_plant": null,
+    "mutant_effect_plant": "5_8:1126109:1",
     "name": "黄金·鹭草",
     "fruit": {
       "id": 1040251,
@@ -7731,7 +9428,8 @@
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
-    "exp": 1440,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7748,7 +9446,7 @@
     "harvestRandom": null,
     "harvestAllSpineRes": null,
     "harvestAllOffsetPosition": null,
-    "harvestAniName": "anim_harvest_xiyou",
+    "harvestAniName": "anim_harvest_gold",
     "all_state_spine": null,
     "mature_effect": "effect/prefab/effect_plant_maturation",
     "mature_effect_offset": {
@@ -7758,16 +9456,13 @@
     "rare_plant_light_pos": null,
     "exp_root": 1.6,
     "exp_alter": 850,
-    "fruit_root": 2,
-    "fruit_alter": 36,
-    "mutant_id": null
+    "fruit_root": 0,
+    "fruit_alter": 0
   },
   {
     "id": 1120256,
-    "mutant_effect_plant": "5_6:1129001",
-    "mutant_id": "6013:1129001",
+    "mutant_effect_plant": "5_6:1129001:1",
     "name": "黄金·石竹花",
-    "mutant": null,
     "fruit": {
       "id": 1040256,
       "count": 10
@@ -7776,7 +9471,8 @@
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶:8640;大叶:8640;花蕾:8640;开花:0;",
-    "exp": 1440,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7803,15 +9499,13 @@
     "rare_plant_light_pos": null,
     "exp_root": 1.6,
     "exp_alter": 850,
-    "fruit_root": 2,
-    "fruit_alter": 36
+    "fruit_root": 0,
+    "fruit_alter": 0
   },
   {
     "id": 1120257,
-    "mutant_effect_plant": "5_6:1129001",
-    "mutant_id": "6013:1129001",
+    "mutant_effect_plant": "5_6:1129001:1",
     "name": "黄金·孔雀草",
-    "mutant": null,
     "fruit": {
       "id": 1040257,
       "count": 10
@@ -7820,7 +9514,8 @@
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
-    "exp": 1680,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7847,15 +9542,13 @@
     "rare_plant_light_pos": null,
     "exp_root": 1.6,
     "exp_alter": 991,
-    "fruit_root": 2,
-    "fruit_alter": 36
+    "fruit_root": 0,
+    "fruit_alter": 0
   },
   {
     "id": 1120258,
-    "mutant_effect_plant": "5_6:1129001",
-    "mutant_id": "6013:1129001",
+    "mutant_effect_plant": "5_6:1129001:1",
     "name": "黄金·欧石楠",
-    "mutant": null,
     "fruit": {
       "id": 1040258,
       "count": 10
@@ -7864,7 +9557,8 @@
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶:8640;大叶:8640;花蕾:8640;开花:0;",
-    "exp": 1680,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7891,15 +9585,13 @@
     "rare_plant_light_pos": null,
     "exp_root": 1.6,
     "exp_alter": 991,
-    "fruit_root": 2,
-    "fruit_alter": 36
+    "fruit_root": 0,
+    "fruit_alter": 0
   },
   {
     "id": 1120261,
-    "mutant_effect_plant": "5_6:1129001",
-    "mutant_id": "6013:1129001",
+    "mutant_effect_plant": "5_6:1129001:1",
     "name": "黄金·针垫花",
-    "mutant": null,
     "fruit": {
       "id": 1040261,
       "count": 10
@@ -7908,7 +9600,8 @@
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶:8640;大叶:8640;花蕾:8640;开花:0;",
-    "exp": 1440,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -7935,327 +9628,66 @@
     "rare_plant_light_pos": null,
     "exp_root": 1.6,
     "exp_alter": 850,
-    "fruit_root": 2,
-    "fruit_alter": 36
-  },
-  {
-    "id": 1120267,
-    "mutant_effect_plant": null,
-    "name": "黄金·地涌金莲",
-    "fruit": {
-      "id": 1040267,
-      "count": 10
-    },
-    "seed_id": null,
-    "land_level_need": 1,
-    "seasons": 1,
-    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
-    "exp": 1680,
-    "size": null,
-    "offsetPosition": {
-      "x": 0,
-      "y": 0
-    },
-    "mutantEffectScale": {
-      "x": 1,
-      "y": 1
-    },
-    "harvestOffsetPosition": {
-      "x": -35,
-      "y": 5
-    },
-    "harvestRandom": null,
-    "harvestAllSpineRes": null,
-    "harvestAllOffsetPosition": null,
-    "harvestAniName": "anim_harvest_zhenpin",
-    "all_state_spine": null,
-    "mature_effect": "effect/prefab/effect_plant_maturation",
-    "mature_effect_offset": {
-      "x": 0,
-      "y": 0
-    },
-    "rare_plant_light_pos": null,
-    "exp_root": 1.6,
-    "exp_alter": 991,
-    "fruit_root": 2,
-    "fruit_alter": 36,
-    "mutant_id": null
-  },
-  {
-    "id": 1120304,
-    "mutant_effect_plant": "5_6:1129001",
-    "mutant_id": "6013:1129001",
-    "name": "黄金·黄金果",
-    "mutant": null,
-    "fruit": {
-      "id": 1040304,
-      "count": 10
-    },
-    "seed_id": null,
-    "land_level_need": 1,
-    "seasons": 1,
-    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
-    "exp": 1680,
-    "size": null,
-    "offsetPosition": {
-      "x": 0,
-      "y": 0
-    },
-    "mutantEffectScale": {
-      "x": 1,
-      "y": 1
-    },
-    "harvestOffsetPosition": {
-      "x": -35,
-      "y": 5
-    },
-    "harvestRandom": null,
-    "harvestAllSpineRes": null,
-    "harvestAllOffsetPosition": null,
-    "harvestAniName": "anim_harvest_zhenpin",
-    "all_state_spine": null,
-    "mature_effect": "effect/prefab/effect_plant_maturation",
-    "mature_effect_offset": {
-      "x": 0,
-      "y": 0
-    },
-    "rare_plant_light_pos": null,
-    "exp_root": 1.6,
-    "exp_alter": 991,
-    "fruit_root": 2,
-    "fruit_alter": 36
-  },
-  {
-    "id": 1120416,
-    "mutant_effect_plant": "5_7:1128001",
-    "mutant_id": "6014:1128001",
-    "name": "黄金·哈哈南瓜",
-    "mutant": null,
-    "fruit": {
-      "id": 1040416,
-      "count": 10
-    },
-    "seed_id": null,
-    "land_level_need": 1,
-    "seasons": 1,
-    "grow_phases": "种子:17280;发芽:17280;小叶子:17280;大叶子:17280;开花:17280;成熟:0;",
-    "exp": 15360,
-    "size": 2,
-    "offsetPosition": {
-      "x": 100,
-      "y": 0
-    },
-    "mutantEffectScale": {
-      "x": 1.75,
-      "y": 1.5
-    },
-    "harvestOffsetPosition": {
-      "x": 0,
-      "y": 0
-    },
-    "harvestRandom": true,
-    "harvestAllSpineRes": "spine/v2/shouge/Crop_sg_final",
-    "harvestAllOffsetPosition": "5:30;50:-30;150:-75;200:-25;150:-30",
-    "harvestAniName": "anim_harvest_gold",
-    "all_state_spine": "spine/v2/xiyouzhongzi/gold/1120416",
-    "mature_effect": "effect/prefab/effect_plant_maturation",
-    "mature_effect_offset": {
-      "x": 0,
-      "y": 60
-    },
-    "rare_plant_light_pos": "{\"x\":113,\"y\":125,\"rotation\":0,\"scale\":{\"x\":1,\"y\":1}}",
-    "exp_root": 1.6,
-    "exp_alter": 9062,
     "fruit_root": 0,
     "fruit_alter": 0
   },
   {
-    "id": 1121032,
+    "id": 1120262,
     "mutant_effect_plant": null,
-    "name": "黄金·琉璃宝荷",
+    "name": "黄金·帝王花",
     "fruit": {
-      "id": 1041032,
-      "count": 10
-    },
-    "seed_id": null,
-    "land_level_need": 1,
-    "seasons": 1,
-    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
-    "exp": 7680,
-    "size": 2,
-    "offsetPosition": {
-      "x": 95,
-      "y": 20
-    },
-    "mutantEffectScale": {
-      "x": 1.75,
-      "y": 1.5
-    },
-    "harvestOffsetPosition": {
-      "x": 0,
-      "y": 0
-    },
-    "harvestRandom": true,
-    "harvestAllSpineRes": "spine/v2/shouge/Crop_sg_final",
-    "harvestAllOffsetPosition": "5:30;50:-30;150:-75;200:-25;150:-30",
-    "harvestAniName": "anim_harvest_gold",
-    "all_state_spine": "spine/v2/xiyouzhongzi/1021032",
-    "mature_effect": "effect/prefab/effect_plant_maturation",
-    "mature_effect_offset": {
-      "x": 0,
-      "y": 20
-    },
-    "rare_plant_light_pos": "{\"x\":113,\"y\":125,\"rotation\":0,\"scale\":{\"x\":1,\"y\":1}}",
-    "exp_root": 1.6,
-    "exp_alter": 4531.2,
-    "fruit_root": 2,
-    "fruit_alter": 144,
-    "mutant_id": null
-  },
-  {
-    "id": 1121038,
-    "mutant_effect_plant": null,
-    "name": "黄金·香彩雀",
-    "fruit": {
-      "id": 1041038,
-      "count": 10
-    },
-    "seed_id": null,
-    "land_level_need": 1,
-    "seasons": 1,
-    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
-    "exp": 1680,
-    "size": null,
-    "offsetPosition": {
-      "x": 0,
-      "y": 0
-    },
-    "mutantEffectScale": {
-      "x": 1,
-      "y": 1
-    },
-    "harvestOffsetPosition": {
-      "x": -35,
-      "y": 5
-    },
-    "harvestRandom": null,
-    "harvestAllSpineRes": null,
-    "harvestAllOffsetPosition": null,
-    "harvestAniName": "anim_harvest_zhenpin",
-    "all_state_spine": null,
-    "mature_effect": "effect/prefab/effect_plant_maturation",
-    "mature_effect_offset": {
-      "x": 0,
-      "y": 0
-    },
-    "rare_plant_light_pos": null,
-    "exp_root": 1.6,
-    "exp_alter": 991,
-    "fruit_root": 2,
-    "fruit_alter": 36,
-    "mutant_id": null
-  },
-  {
-    "id": 1121044,
-    "mutant_effect_plant": null,
-    "name": "黄金·繁星花",
-    "fruit": {
-      "id": 1041044,
-      "count": 10
-    },
-    "seed_id": null,
-    "land_level_need": 1,
-    "seasons": 1,
-    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
-    "exp": 1680,
-    "size": null,
-    "offsetPosition": {
-      "x": 0,
-      "y": 0
-    },
-    "mutantEffectScale": {
-      "x": 1,
-      "y": 1
-    },
-    "harvestOffsetPosition": {
-      "x": -35,
-      "y": 5
-    },
-    "harvestRandom": null,
-    "harvestAllSpineRes": null,
-    "harvestAllOffsetPosition": null,
-    "harvestAniName": "anim_harvest_zhenpin",
-    "all_state_spine": null,
-    "mature_effect": "effect/prefab/effect_plant_maturation",
-    "mature_effect_offset": {
-      "x": 0,
-      "y": 0
-    },
-    "rare_plant_light_pos": null,
-    "exp_root": 1.6,
-    "exp_alter": 991,
-    "fruit_root": 2,
-    "fruit_alter": 36,
-    "mutant_id": null
-  },
-  {
-    "id": 1121134,
-    "mutant_effect_plant": null,
-    "name": "黄金·菖蒲",
-    "fruit": {
-      "id": 1041134,
-      "count": 10
-    },
-    "seed_id": null,
-    "land_level_need": 1,
-    "seasons": 1,
-    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
-    "exp": 1680,
-    "size": null,
-    "offsetPosition": {
-      "x": 0,
-      "y": 0
-    },
-    "mutantEffectScale": {
-      "x": 1,
-      "y": 1
-    },
-    "harvestOffsetPosition": {
-      "x": -35,
-      "y": 5
-    },
-    "harvestRandom": null,
-    "harvestAllSpineRes": null,
-    "harvestAllOffsetPosition": null,
-    "harvestAniName": "anim_harvest_zhenpin",
-    "all_state_spine": null,
-    "mature_effect": "effect/prefab/effect_plant_maturation",
-    "mature_effect_offset": {
-      "x": 0,
-      "y": 0
-    },
-    "rare_plant_light_pos": null,
-    "exp_root": 1.6,
-    "exp_alter": 991,
-    "fruit_root": 2,
-    "fruit_alter": 36,
-    "mutant_id": null
-  },
-  {
-    "id": 1121135,
-    "mutant_effect_plant": null,
-    "mutant_id": null,
-    "name": "黄金·艾草",
-    "mutant": null,
-    "fruit": {
-      "id": 1041135,
+      "id": 1040262,
       "count": 10
     },
     "seed_id": null,
     "land_level_need": 1,
     "seasons": 2,
-    "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;初熟:7200;成熟:0;",
-    "exp": 720,
+    "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;花蕾:7200;盛开:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 496,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1120263,
+    "mutant_effect_plant": null,
+    "name": "黄金·天竺葵",
+    "fruit": {
+      "id": 1040263,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 2,
+    "grow_phases": "种子:4800;发芽:4800;小叶:4800;大叶:7200;花蕾:7200;开花:0;",
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -8286,8 +9718,782 @@
     "fruit_alter": 0
   },
   {
-    "id": 1121474,
+    "id": 1120264,
     "mutant_effect_plant": null,
+    "name": "黄金·帝王血",
+    "fruit": {
+      "id": 1040264,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
+    "exp": null,
+    "special_fruit": "2026072700:1022:30",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 850,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1120267,
+    "mutant_effect_plant": "5_8:1126109:1",
+    "name": "黄金·地涌金莲",
+    "fruit": {
+      "id": 1040267,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1120269,
+    "mutant_effect_plant": null,
+    "name": "黄金·桔梗花",
+    "fruit": {
+      "id": 1040269,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 2,
+    "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;开花:7200;成熟:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 425,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1120304,
+    "mutant_effect_plant": "5_6:1129001:1",
+    "name": "黄金·黄金果",
+    "fruit": {
+      "id": 1040304,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_zhenpin",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1120375,
+    "mutant_effect_plant": null,
+    "name": "黄金·木槿",
+    "fruit": {
+      "id": 1040375,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;开花:0;",
+    "exp": null,
+    "special_fruit": "2026072700:1022:35",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1120416,
+    "mutant_effect_plant": "5_7:1128001:1",
+    "name": "黄金·哈哈南瓜",
+    "fruit": {
+      "id": 1040416,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:17280;发芽:17280;小叶子:17280;大叶子:17280;开花:17280;成熟:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": 2,
+    "offsetPosition": {
+      "x": 95,
+      "y": 20
+    },
+    "mutantEffectScale": {
+      "x": 1.75,
+      "y": 1.5
+    },
+    "harvestOffsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "harvestRandom": true,
+    "harvestAllSpineRes": "spine/v2/shouge/Crop_sg_final",
+    "harvestAllOffsetPosition": "5:30;50:-30;150:-75;200:-25;150:-30",
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": "spine/v2/xiyouzhongzi/gold/1120416",
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 60
+    },
+    "rare_plant_light_pos": "{\"x\":113,\"y\":125,\"rotation\":0,\"scale\":{\"x\":1,\"y\":1}}",
+    "exp_root": 1.6,
+    "exp_alter": 9062,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1121032,
+    "mutant_effect_plant": "5_9:1128002:1",
+    "name": "黄金·琉璃宝荷",
+    "fruit": {
+      "id": 1041032,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
+    "exp": null,
+    "special_fruit": "2026060100:1019:200",
+    "size": 2,
+    "offsetPosition": {
+      "x": 95,
+      "y": 20
+    },
+    "mutantEffectScale": {
+      "x": 1.75,
+      "y": 1.5
+    },
+    "harvestOffsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "harvestRandom": true,
+    "harvestAllSpineRes": "spine/v2/shouge/Crop_sg_final",
+    "harvestAllOffsetPosition": "5:30;50:-30;150:-75;200:-25;150:-30",
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": "spine/v2/xiyouzhongzi/gold/1121032",
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 20
+    },
+    "rare_plant_light_pos": "{\"x\":113,\"y\":125,\"rotation\":0,\"scale\":{\"x\":1,\"y\":1}}",
+    "exp_root": 1.6,
+    "exp_alter": 4531.2,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1121037,
+    "mutant_effect_plant": null,
+    "name": "黄金·银星海棠",
+    "fruit": {
+      "id": 1041037,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;初熟:8640;成熟:0;",
+    "exp": null,
+    "special_fruit": "2026072700:1022:35",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1121038,
+    "mutant_effect_plant": "5_8:1126109:1",
+    "name": "黄金·香彩雀",
+    "fruit": {
+      "id": 1041038,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1121044,
+    "mutant_effect_plant": "5_8:1126109:1",
+    "name": "黄金·繁星花",
+    "fruit": {
+      "id": 1041044,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1121050,
+    "mutant_effect_plant": null,
+    "name": "黄金·萱草",
+    "fruit": {
+      "id": 1041050,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;初熟:8640;成熟:0;",
+    "exp": null,
+    "special_fruit": "2026072700:1022:35",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1121134,
+    "mutant_effect_plant": "5_8:1126109:1",
+    "name": "黄金·菖蒲",
+    "fruit": {
+      "id": 1041134,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1121135,
+    "mutant_effect_plant": null,
+    "name": "黄金·艾草",
+    "fruit": {
+      "id": 1041135,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 2,
+    "grow_phases": "种子:4800;发芽:4800;小叶子:4800;大叶子:7200;初熟:7200;成熟:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 425,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1121221,
+    "mutant_effect_plant": null,
+    "name": "黄金·青梅",
+    "fruit": {
+      "id": 1041221,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": null,
+    "exp_alter": null,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1121251,
+    "mutant_effect_plant": null,
+    "name": "黄金·紫茉莉",
+    "fruit": {
+      "id": 1041251,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;初熟:8640;成熟:0;",
+    "exp": null,
+    "special_fruit": "2026072700:1022:30",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 850,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1121353,
+    "mutant_effect_plant": null,
+    "name": "黄金·紫薇",
+    "fruit": {
+      "id": 1041353,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;初熟:8640;成熟:0;",
+    "exp": null,
+    "special_fruit": "2026072700:1022:35",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1121380,
+    "mutant_effect_plant": null,
+    "name": "黄金·梧桐",
+    "fruit": {
+      "id": 1041380,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;初熟:8640;成熟:0;",
+    "exp": null,
+    "special_fruit": "2026072700:1022:35",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1121404,
+    "mutant_effect_plant": null,
+    "name": "黄金·月光花",
+    "fruit": {
+      "id": 1041404,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
+    "exp": null,
+    "special_fruit": "2026072700:1022:35",
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1121474,
+    "mutant_effect_plant": "5_8:1126109:1",
     "name": "黄金·荷青花",
     "fruit": {
       "id": 1041474,
@@ -8297,7 +10503,8 @@
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
-    "exp": 1680,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -8314,7 +10521,7 @@
     "harvestRandom": null,
     "harvestAllSpineRes": null,
     "harvestAllOffsetPosition": null,
-    "harvestAniName": "anim_harvest_zhenpin",
+    "harvestAniName": "anim_harvest_gold",
     "all_state_spine": null,
     "mature_effect": "effect/prefab/effect_plant_maturation",
     "mature_effect_offset": {
@@ -8324,23 +10531,23 @@
     "rare_plant_light_pos": null,
     "exp_root": 1.6,
     "exp_alter": 991,
-    "fruit_root": 2,
-    "fruit_alter": 36,
-    "mutant_id": null
+    "fruit_root": 0,
+    "fruit_alter": 0
   },
   {
-    "id": 1126127,
+    "id": 1126032,
     "mutant_effect_plant": null,
-    "name": "黄金·凌霄花",
+    "name": "黄金·月见草",
     "fruit": {
-      "id": 1046127,
+      "id": 1046032,
       "count": 10
     },
     "seed_id": null,
     "land_level_need": 1,
     "seasons": 1,
-    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
-    "exp": 1680,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;初熟:8640;成熟:0;",
+    "exp": null,
+    "special_fruit": "2026072700:1022:30",
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -8357,7 +10564,7 @@
     "harvestRandom": null,
     "harvestAllSpineRes": null,
     "harvestAllOffsetPosition": null,
-    "harvestAniName": "anim_harvest_zhenpin",
+    "harvestAniName": "anim_harvest_gold",
     "all_state_spine": null,
     "mature_effect": "effect/prefab/effect_plant_maturation",
     "mature_effect_offset": {
@@ -8366,10 +10573,9 @@
     },
     "rare_plant_light_pos": null,
     "exp_root": 1.6,
-    "exp_alter": 991,
-    "fruit_root": 2,
-    "fruit_alter": 36,
-    "mutant_id": null
+    "exp_alter": 850,
+    "fruit_root": 0,
+    "fruit_alter": 0
   },
   {
     "id": 1126109,
@@ -8383,7 +10589,8 @@
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
-    "exp": 1680,
+    "exp": null,
+    "special_fruit": "2026060100:1019:200",
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -8400,7 +10607,7 @@
     "harvestRandom": null,
     "harvestAllSpineRes": null,
     "harvestAllOffsetPosition": null,
-    "harvestAniName": "anim_harvest_zhenpin",
+    "harvestAniName": "anim_harvest_gold",
     "all_state_spine": null,
     "mature_effect": "effect/prefab/effect_plant_maturation",
     "mature_effect_offset": {
@@ -8410,16 +10617,56 @@
     "rare_plant_light_pos": null,
     "exp_root": 1.6,
     "exp_alter": 991,
-    "fruit_root": 2,
-    "fruit_alter": 36,
-    "mutant_id": null
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1126127,
+    "mutant_effect_plant": "5_8:1126109:1",
+    "name": "黄金·凌霄花",
+    "fruit": {
+      "id": 1046127,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
+    "exp": null,
+    "special_fruit": null,
+    "size": null,
+    "offsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "mutantEffectScale": {
+      "x": 1,
+      "y": 1
+    },
+    "harvestOffsetPosition": {
+      "x": -35,
+      "y": 5
+    },
+    "harvestRandom": null,
+    "harvestAllSpineRes": null,
+    "harvestAllOffsetPosition": null,
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": null,
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 0
+    },
+    "rare_plant_light_pos": null,
+    "exp_root": 1.6,
+    "exp_alter": 991,
+    "fruit_root": 0,
+    "fruit_alter": 0
   },
   {
     "id": 1128001,
     "mutant_effect_plant": null,
-    "mutant_id": null,
     "name": "黄金·哈哈南瓜塔",
-    "mutant": null,
     "fruit": {
       "id": 204003,
       "count": 1
@@ -8428,11 +10675,12 @@
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:17280;发芽:17280;小叶子:17280;大叶子:17280;开花:17280;成熟:0;",
-    "exp": 15360,
+    "exp": null,
+    "special_fruit": null,
     "size": 2,
     "offsetPosition": {
-      "x": 100,
-      "y": 0
+      "x": 95,
+      "y": 20
     },
     "mutantEffectScale": {
       "x": 1.75,
@@ -8461,22 +10709,21 @@
   {
     "id": 1128002,
     "mutant_effect_plant": null,
-    "mutant_id": null,
     "name": "黄金·月华宝荷",
-    "mutant": null,
     "fruit": {
       "id": 204005,
-      "count": 10
+      "count": 1
     },
     "seed_id": null,
     "land_level_need": 1,
     "seasons": 1,
-    "grow_phases": "种子:17280;发芽:17280;小叶子:17280;大叶子:17280;开花:17280;成熟:0;",
-    "exp": 15360,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;花蕾:8640;盛开:0;",
+    "exp": null,
+    "special_fruit": "2026060100:1019:200",
     "size": 2,
     "offsetPosition": {
-      "x": 100,
-      "y": 0
+      "x": 95,
+      "y": 20
     },
     "mutantEffectScale": {
       "x": 1.75,
@@ -8490,24 +10737,65 @@
     "harvestAllSpineRes": "spine/v2/shouge/Crop_sg_final",
     "harvestAllOffsetPosition": "0:0",
     "harvestAniName": "anim_harvest_gold",
-    "all_state_spine": "spine/v2/xiyouzhongzi/gold/1128001",
+    "all_state_spine": "spine/v2/xiyouzhongzi/gold/1128002",
     "mature_effect": "effect/prefab/effect_plant_maturation",
     "mature_effect_offset": {
       "x": 0,
-      "y": 95
+      "y": 20
     },
     "rare_plant_light_pos": "{\"x\":113,\"y\":125,\"rotation\":0,\"scale\":{\"x\":1,\"y\":1}}",
     "exp_root": 1.6,
-    "exp_alter": 9062,
+    "exp_alter": 4531.2,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
+    "id": 1128003,
+    "mutant_effect_plant": null,
+    "name": "黄金·蝶梦星铃",
+    "fruit": {
+      "id": 204007,
+      "count": 1
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
+    "exp": null,
+    "special_fruit": "2026072700:1022:160",
+    "size": 2,
+    "offsetPosition": {
+      "x": 95,
+      "y": 20
+    },
+    "mutantEffectScale": {
+      "x": 1.75,
+      "y": 1.5
+    },
+    "harvestOffsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "harvestRandom": true,
+    "harvestAllSpineRes": "spine/v2/shouge/Crop_sg_final",
+    "harvestAllOffsetPosition": "0:0",
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": "spine/v2/xiyouzhongzi/xingyulinghua/1128003",
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 60
+    },
+    "rare_plant_light_pos": "{\"x\":113,\"y\":125,\"rotation\":0,\"scale\":{\"x\":1,\"y\":1}}",
+    "exp_root": 1.6,
+    "exp_alter": 4531.2,
     "fruit_root": 0,
     "fruit_alter": 0
   },
   {
     "id": 1129001,
     "mutant_effect_plant": null,
-    "mutant_id": null,
     "name": "黄金·哈哈小南瓜",
-    "mutant": null,
     "fruit": {
       "id": 1049001,
       "count": 10
@@ -8516,7 +10804,8 @@
     "land_level_need": 1,
     "seasons": 1,
     "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
-    "exp": 1680,
+    "exp": null,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -8547,11 +10836,52 @@
     "fruit_alter": 0
   },
   {
+    "id": 1129003,
+    "mutant_effect_plant": "5_11:1128003:1",
+    "name": "黄金·星语铃花",
+    "fruit": {
+      "id": 1049003,
+      "count": 10
+    },
+    "seed_id": null,
+    "land_level_need": 1,
+    "seasons": 1,
+    "grow_phases": "种子:8640;发芽:8640;小叶子:8640;大叶子:8640;开花:8640;成熟:0;",
+    "exp": null,
+    "special_fruit": "2026072700:1022:160",
+    "size": 2,
+    "offsetPosition": {
+      "x": 95,
+      "y": 20
+    },
+    "mutantEffectScale": {
+      "x": 1.75,
+      "y": 1.5
+    },
+    "harvestOffsetPosition": {
+      "x": 0,
+      "y": 0
+    },
+    "harvestRandom": true,
+    "harvestAllSpineRes": "spine/v2/shouge/Crop_sg_final",
+    "harvestAllOffsetPosition": "5:30;50:-30;150:-75;200:-25;150:-30",
+    "harvestAniName": "anim_harvest_gold",
+    "all_state_spine": "spine/v2/xiyouzhongzi/xingyulinghua/1129003",
+    "mature_effect": "effect/prefab/effect_plant_maturation",
+    "mature_effect_offset": {
+      "x": 0,
+      "y": 60
+    },
+    "rare_plant_light_pos": "{\"x\":113,\"y\":125,\"rotation\":0,\"scale\":{\"x\":1,\"y\":1}}",
+    "exp_root": 1.6,
+    "exp_alter": 4531.2,
+    "fruit_root": 0,
+    "fruit_alter": 0
+  },
+  {
     "id": 2020002,
     "mutant_effect_plant": null,
-    "mutant_id": null,
     "name": "白萝卜",
-    "mutant": null,
     "fruit": {
       "id": 40002,
       "count": 5
@@ -8559,8 +10889,9 @@
     "seed_id": 29999,
     "land_level_need": 1,
     "seasons": 1,
-    "grow_phases": "种子:1;发芽:1;成熟:0;",
+    "grow_phases": "种子:30;发芽:30;成熟:0;",
     "exp": 1,
+    "special_fruit": null,
     "size": null,
     "offsetPosition": {
       "x": 0,
@@ -8593,9 +10924,7 @@
   {
     "id": 2029998,
     "mutant_effect_plant": null,
-    "mutant_id": null,
     "name": "哈哈南瓜",
-    "mutant": null,
     "fruit": {
       "id": 40416,
       "count": 50
@@ -8605,10 +10934,11 @@
     "seasons": 1,
     "grow_phases": "种子:14400;发芽:14400;小叶子:14400;大叶子:21600;初熟:21600;成熟:0;",
     "exp": 1,
+    "special_fruit": null,
     "size": 2,
     "offsetPosition": {
-      "x": 100,
-      "y": 0
+      "x": 95,
+      "y": 20
     },
     "mutantEffectScale": {
       "x": 1.75,
@@ -8631,50 +10961,6 @@
     "rare_plant_light_pos": "{\"x\":113,\"y\":125,\"rotation\":0,\"scale\":{\"x\":1,\"y\":1}}",
     "exp_root": 0,
     "exp_alter": 0,
-    "fruit_root": 0,
-    "fruit_alter": 0
-  },
-  {
-    "id": 1021221,
-    "mutant_effect_plant": "5_8:1121221",
-    "mutant_id": "6015:1121221",
-    "name": "青梅",
-    "mutant": null,
-    "fruit": {
-      "id": 41221,
-      "count": 10
-    },
-    "seed_id": 21221,
-    "land_level_need": 1,
-    "seasons": 1,
-    "grow_phases": "种子:2880;发芽:2880;小叶子:2880;大叶子:2880;开花:2880;成熟:0;",
-    "exp": 1680,
-    "size": null,
-    "offsetPosition": {
-      "x": 0,
-      "y": 0
-    },
-    "mutantEffectScale": {
-      "x": 1,
-      "y": 1
-    },
-    "harvestOffsetPosition": {
-      "x": -35,
-      "y": 5
-    },
-    "harvestRandom": null,
-    "harvestAllSpineRes": null,
-    "harvestAllOffsetPosition": null,
-    "harvestAniName": "anim_harvest_zhenpin",
-    "all_state_spine": "spine/v2/xiyouzhongzi/1021221",
-    "mature_effect": "effect/prefab/effect_plant_maturation",
-    "mature_effect_offset": {
-      "x": 0,
-      "y": 0
-    },
-    "rare_plant_light_pos": null,
-    "exp_root": 1.6,
-    "exp_alter": 991,
     "fruit_root": 0,
     "fruit_alter": 0
   }

@@ -22,3 +22,7 @@ temp/
 .env
 .env.*
 *.log
+
+# Python
+__pycache__/
+*.pyc
