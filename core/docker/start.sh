@@ -28,14 +28,11 @@ elif [ -z "${YYB_API_TOKEN:-}" ]; then
   printf '%s' "$YYB_API_TOKEN" > "$YYB_TOKEN_FILE"
   chmod 600 "$YYB_TOKEN_FILE"
 fi
-export YYB_API_TOKEN
-export YYB_API_KEY="$YYB_API_TOKEN"
-
 # 后台启动应用宝 Go 服务
-yyb-go \
+YYB_API_TOKEN="$YYB_API_TOKEN" YYB_API_KEY="$YYB_API_TOKEN" yyb-go \
   -host "${YYB_HOST}" \
   -port "${YYB_PORT}" \
   -resource-root "${YYB_RESOURCE_ROOT}" &
 
 # 前台启动 Node 主服务（exec 替换当前 shell，接收 tini 转发的退出信号）
-exec node client.js
+exec env YYB_API_TOKEN="$YYB_API_TOKEN" YYB_API_KEY="$YYB_API_TOKEN" node client.js
