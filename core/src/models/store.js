@@ -1447,6 +1447,45 @@ function normalizeAccountsData(data) {
     return { accounts, nextId };
 }
 
+// 第三方应用宝配置脱敏哨兵：API 响应中 token 被替换为该值，
+// 更新时若传入该值（或空），则沿用已存储的真实 token，避免被误清空。
+const THIRDPARTY_TOKEN_MASK = "***";
+function isThirdpartyTokenKeep(value) {
+    return !value || value === THIRDPARTY_TOKEN_MASK || value === "__KEEP__";
+}
+
+/**
+ * 规范化第三方应用宝配置对象。
+ * @param {object} input 入站 thirdparty 配置
+ * @param {object|null} existing 已存储的 thirdparty 配置（更新时用于保留原 token）
+ */
+function sanitizeThirdparty(input, existing) {
+    if (input === null) return null;
+    if (!input || typeof input !== "object") return existing || null;
+    const apiToken = input.apiToken;
+    const keep = isThirdpartyTokenKeep(apiToken);
+    // 账号级离线重连配置：undefined 表示“不修改”（更新时保留原值），否则用传入值或默认。
+    const autoReconnect = input.autoReconnect === undefined
+        ? (existing && existing.autoReconnect !== undefined ? existing.autoReconnect : true)
+        : input.autoReconnect === true;
+    const reconnectDelayMin = input.reconnectDelayMin === undefined || input.reconnectDelayMin === null || input.reconnectDelayMin === ''
+        ? (existing && existing.reconnectDelayMin !== undefined ? existing.reconnectDelayMin : 5)
+        : Math.max(1, Number(input.reconnectDelayMin) || 5);
+    const reconnectMaxAttempts = input.reconnectMaxAttempts === undefined || input.reconnectMaxAttempts === null || input.reconnectMaxAttempts === ''
+        ? (existing && existing.reconnectMaxAttempts !== undefined ? existing.reconnectMaxAttempts : 3)
+        : Math.max(1, Number(input.reconnectMaxAttempts) || 3);
+    return {
+        apiBase: String(input.apiBase || "").trim(),
+        apiToken: keep
+            ? (existing && existing.apiToken ? existing.apiToken : "")
+            : String(apiToken).trim(),
+        openid: String(input.openid || "").trim(),
+        autoReconnect,
+        reconnectDelayMin,
+        reconnectMaxAttempts,
+    };
+}
+
 function addOrUpdateAccount(account) {
     const data = normalizeAccountsData(loadAccounts());
     let accountId = '';
@@ -1458,12 +1497,21 @@ function addOrUpdateAccount(account) {
         // 更新已有账号
         const idx = data.accounts.findIndex(a => a.id === account.id);
         if (idx >= 0) {
+            const mergedThirdparty = account.thirdparty !== undefined
+                ? (account.thirdparty === null
+                    ? null
+                    : sanitizeThirdparty(account.thirdparty, data.accounts[idx].thirdparty))
+                : data.accounts[idx].thirdparty;
             data.accounts[idx] = {
                 ...data.accounts[idx],
                 ...account,
                 name: account.name !== undefined ? account.name : data.accounts[idx].name,
                 ...(nextAvatar !== undefined ? { avatar: nextAvatar } : {}),
                 ...(nextOpenId !== undefined ? { openId: nextOpenId } : {}),
+                ...(account.provider === 'thirdparty' || account.provider === 'builtin'
+                    ? { provider: account.provider }
+                    : {}),
+                thirdparty: mergedThirdparty,
                 updatedAt: Date.now()
             };
             accountId = String(data.accounts[idx].id || '');
@@ -1479,6 +1527,10 @@ function addOrUpdateAccount(account) {
             code: account.code || '',
             platform: account.platform || 'qq',
             loginType: account.loginType || 'manual',
+            provider: account.provider === 'thirdparty' ? 'thirdparty' : 'builtin',
+            thirdparty: account.provider === 'thirdparty' && account.thirdparty
+                ? sanitizeThirdparty(account.thirdparty, null)
+                : null,
             wxid: account.wxid ? String(account.wxid) : '',
             uin: account.uin ? String(account.uin) : '',
             qq: account.qq ? String(account.qq) : (account.uin ? String(account.uin) : ''),

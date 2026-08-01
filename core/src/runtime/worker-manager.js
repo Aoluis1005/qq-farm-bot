@@ -157,6 +157,29 @@ function createWorkerManager(deps) {
     async function refreshYybCodeIfNeeded(account) {
         if (!account || account.loginType !== 'yyb' || !account.yybOpenid) return;
         try {
+            // 第三方 YYB：直接调第三方接口换 code（与内置 yyb-go 同协议、可刷新）
+            if (account.provider === 'thirdparty' && account.thirdparty
+                && account.thirdparty.apiBase && account.thirdparty.apiToken) {
+                const { getThirdpartyYybCode } = require('../utils/thirdpartyYyb');
+                const result = await getThirdpartyYybCode({
+                    apiBase: account.thirdparty.apiBase,
+                    apiToken: account.thirdparty.apiToken,
+                    openid: account.thirdparty.openid || account.yybOpenid,
+                    forceRefresh: false,
+                });
+                if (result.ok && result.code) {
+                    account.code = result.code;
+                    log('系统', `账号 ${account.name} 第三方应用宝 code 已自动刷新`, {
+                        accountId: String(account.id),
+                    });
+                } else {
+                    log('系统', `账号 ${account.name} 第三方应用宝 code 刷新失败: ${result.error}`, {
+                        accountId: String(account.id),
+                    });
+                }
+                return;
+            }
+            // 内置 YYB（走 yyb-go）
             const store = require('../models/store');
             const wxConfig = store.getGlobalWxConfig ? store.getGlobalWxConfig() : null;
             if (!wxConfig || !wxConfig.apiBase || !wxConfig.apiKey) {
@@ -399,6 +422,133 @@ function createWorkerManager(deps) {
     }
 
     /**
+     * 统一的应用宝离线重连调度
+     * 由 ws_reconnect_failed（连接中断）/ account_kicked（被踢下线）/ ws_error 400（登录失效/异地登录）
+     * 三种场景共用，避免某些场景“永不重连”。
+     * 受（账号级优先、全局兜底）autoReconnect + reconnectDelayMin + maxAttempts 控制；重连前由 startWorker →
+     * refreshYybCodeIfNeeded 自动刷新 code（内置 YYB 走 yyb-go；第三方 tab 接入时按 provider 分流）。
+     */
+
+    /**
+     * 解析某账号的离线重连配置。
+     * 第三方账号（provider==='thirdparty'）优先使用账号级独立配置（thirdparty.*），
+     * 未设置账号级配置时回退到全局 wxConfig（与内置 YYB 一致）。
+     */
+    function resolveReconnectConfig(account) {
+        const store = require('../models/store');
+        const wxConfig = store.getGlobalWxConfig ? store.getGlobalWxConfig() : null;
+        const globalCfg = {
+            autoReconnect: !!(wxConfig && wxConfig.autoReconnect),
+            reconnectDelayMin: wxConfig ? wxConfig.reconnectDelayMin : 5,
+            reconnectMaxAttempts: wxConfig ? wxConfig.reconnectMaxAttempts : 3,
+        };
+
+        if (account && account.provider === 'thirdparty' && account.thirdparty) {
+            const tp = account.thirdparty;
+            const hasAccountLevel =
+                tp.autoReconnect !== undefined ||
+                tp.reconnectDelayMin !== undefined ||
+                tp.reconnectMaxAttempts !== undefined;
+            if (hasAccountLevel) {
+                return {
+                    autoReconnect: tp.autoReconnect === undefined
+                        ? globalCfg.autoReconnect
+                        : tp.autoReconnect === true,
+                    reconnectDelayMin: (tp.reconnectDelayMin === undefined || tp.reconnectDelayMin === null || tp.reconnectDelayMin === '')
+                        ? globalCfg.reconnectDelayMin
+                        : Math.max(1, Number(tp.reconnectDelayMin) || globalCfg.reconnectDelayMin),
+                    reconnectMaxAttempts: (tp.reconnectMaxAttempts === undefined || tp.reconnectMaxAttempts === null || tp.reconnectMaxAttempts === '')
+                        ? globalCfg.reconnectMaxAttempts
+                        : Math.max(1, Number(tp.reconnectMaxAttempts) || globalCfg.reconnectMaxAttempts),
+                    source: 'account',
+                };
+            }
+        }
+        return { ...globalCfg, source: 'global' };
+    }
+
+    async function scheduleReconnect(accountId, reason) {
+        const wrk = workers[accountId];
+        const name = wrk ? wrk.name : accountId;
+
+        log('系统', `账号 ${name} 触发离线重连调度 (${reason})`, {
+            accountId: String(accountId),
+            accountName: name,
+            reason,
+        });
+
+        // 先停止当前 worker（清理进程）；自动重连流程内【不】清零计数，
+        // 否则每次断线都被清零，maxAttempts 永不触发、无限重连。
+        stopWorker(accountId, { resetReconnect: false });
+
+        try {
+            const store = require('../models/store');
+            // 取完整账号（含第三方真实 token 与账号级离线重连配置）
+            const accountsData = store.getAccounts();
+            const account = (accountsData.accounts || []).find(a => a.id === accountId);
+            const cfg = resolveReconnectConfig(account);
+
+            if (!cfg.autoReconnect || !(cfg.reconnectDelayMin > 0)) {
+                log('系统', `账号 ${name} 未启用应用宝离线重连，已停止`);
+                return;
+            }
+
+            const attemptKey = `reconnect_attempt_${accountId}`;
+            // 从独立计数 Map 读取（不受 startWorker 清零影响，保证 maxAttempts 生效）
+            const currentAttempt = reconnectAttemptsMap.get(accountId) || 0;
+            const maxAttempts = cfg.reconnectMaxAttempts;
+
+            if (currentAttempt >= maxAttempts) {
+                log('系统', `账号 ${name} 自动重连已达上限(${maxAttempts}次)，停止重连`, {
+                    accountId: String(accountId),
+                    attempts: currentAttempt,
+                });
+                reconnectAttemptsMap.delete(accountId);
+                return;
+            }
+
+            // 记录重连计数（先自增，作为下一次判断基准）
+            const nextAttempt = currentAttempt + 1;
+            reconnectAttemptsMap.set(accountId, nextAttempt);
+
+            const delayMs = cfg.reconnectDelayMin * 60 * 1000;
+            log('系统', `账号 ${name} 将在 ${cfg.reconnectDelayMin} 分钟后自动重连 (${nextAttempt}/${maxAttempts})${cfg.source === 'account' ? ' [账号级配置]' : ' [全局配置]'}`, {
+                accountId: String(accountId),
+                delayMin: cfg.reconnectDelayMin,
+                attempt: nextAttempt,
+                maxAttempts,
+            });
+
+            scheduler.setTimeoutTask(attemptKey, delayMs, async () => {
+                // 重连前检查账号是否还存在、是否已有 worker 在跑（无需重复重连）
+                const currentWrk = workers[accountId];
+                if (currentWrk) return;
+
+                try {
+                    const accountsData2 = store.getAccounts();
+                    const account2 = (accountsData2.accounts || []).find(a => a.id === accountId);
+                    if (!account2) {
+                        log('系统', `账号 ${name} 已被删除，取消自动重连`);
+                        reconnectAttemptsMap.delete(accountId);
+                        return;
+                    }
+                    log('系统', `账号 ${name} 开始自动重连 (${nextAttempt}/${cfg.reconnectMaxAttempts})`);
+                    const started = await startWorker(account2);
+                    if (started) {
+                        addAccountLog('reconnect_success',
+                            `账号 ${name} 已通过应用宝离线重连恢复在线 (${nextAttempt}/${cfg.reconnectMaxAttempts})`,
+                            accountId, name, { attempt: nextAttempt, maxAttempts: cfg.reconnectMaxAttempts });
+                    }
+                } catch (e) {
+                    log('系统', `账号 ${name} 自动重连启动失败: ${e.message}`);
+                }
+            });
+        } catch (e) {
+            log('系统', `账号 ${name} 自动重连逻辑异常: ${e.message}`);
+        }
+    }
+
+    /**
      * 处理 Worker 消息
      */
     function handleWorkerMessage(accountId, msg) {
@@ -520,37 +670,40 @@ function createWorkerManager(deps) {
             const message = msg.message || '';
             wrk.wsError = { code, message, at: Date.now() };
 
-            // Code 400 = 登录失效
+            // Code 400 = 登录失效（code 过期 / 异地登录）。纳入离线重连调度，
+            // 由 startWorker 在重连前自动刷新 code，而不是永久停止。
             if (code === 400) {
-                addAccountLog('ws_400', `账号 ${  wrk.name  } 登录失效，请更新 Code`,
+                triggerOfflineReminder({
+                    accountId,
+                    accountName: wrk.name,
+                    reason: 'ws_400',
+                    offlineMs: 0
+                });
+                addAccountLog('ws_400',
+                    `账号 ${  wrk.name  } 登录失效，尝试自动重连并刷新 Code`,
+                    accountId, wrk.name);
+                scheduleReconnect(accountId, 'ws_400');
+            } else {
+                addAccountLog('ws_error',
+                    `账号 ${  wrk.name  } 连接错误 (code=${  code  })`,
                     accountId, wrk.name);
             }
         } else if (msg.type === 'account_kicked') {
-            // 被踢下线
+            // 被踢下线：纳入离线重连调度（受 autoReconnect + maxAttempts 控制），
+            // 不再直接 stopWorker 永久停止。重连前 startWorker 会刷新 code 尝试恢复。
             const reason = msg.reason || '未知';
-            log('系统', `账号 ${  wrk.name  } 被踢下线，已自动停止账号`, {
-                accountId: String(accountId),
-                accountName: wrk.name
-            });
-
             triggerOfflineReminder({
                 accountId,
                 accountName: wrk.name,
                 reason: `kickout:${  reason}`,
                 offlineMs: 0
             });
-            addAccountLog('kickout_stop',
-                `账号 ${  wrk.name  } 被踢下线，已自动停止`,
+            addAccountLog('kickout_reconnect',
+                `账号 ${  wrk.name  } 被踢下线，已加入自动重连队列`,
                 accountId, wrk.name, { reason });
-
-            stopWorker(accountId);
+            scheduleReconnect(accountId, `kickout:${  reason}`);
         } else if (msg.type === 'ws_reconnect_failed') {
             const reason = msg.reason || '未知';
-            log('系统', `账号 ${  wrk.name  } 连接中断，交由应用宝离线重连处理`, {
-                accountId: String(accountId),
-                accountName: wrk.name
-            });
-
             triggerOfflineReminder({
                 accountId,
                 accountName: wrk.name,
@@ -560,74 +713,7 @@ function createWorkerManager(deps) {
             addAccountLog('ws_reconnect_failed',
                 `账号 ${  wrk.name  } 连接中断，交由应用宝离线重连处理`,
                 accountId, wrk.name, { reason });
-
-            // 先停止当前 worker（清理进程）；注意：自动重连流程内【不】清零计数，
-            // 否则每次断线都被清零，maxAttempts 永不触发、无限重连。
-            stopWorker(accountId, { resetReconnect: false });
-
-            // 应用宝离线重连：仅当全局配置开启时执行。Worker 内已无自动重连，
-            // 此处是唯一的重连入口，按 reconnectDelayMin 延迟重启 Worker 并刷新 code。
-            try {
-                const store = require('../models/store');
-                const wxConfig = store.getGlobalWxConfig ? store.getGlobalWxConfig() : null;
-                if (wxConfig && wxConfig.autoReconnect && wxConfig.reconnectDelayMin > 0) {
-                    const attemptKey = `reconnect_attempt_${accountId}`;
-                    // 从独立计数 Map 读取（不受 startWorker 清零影响，保证 maxAttempts 生效）
-                    const currentAttempt = reconnectAttemptsMap.get(accountId) || 0;
-                    const maxAttempts = wxConfig.reconnectMaxAttempts || 3;
-
-                    if (currentAttempt >= maxAttempts) {
-                        log('系统', `账号 ${wrk.name} 自动重连已达上限(${maxAttempts}次)，停止重连`, {
-                            accountId: String(accountId),
-                            attempts: currentAttempt,
-                        });
-                        reconnectAttemptsMap.delete(accountId);
-                        return;
-                    }
-
-                    // 记录重连计数（先自增，作为下一次判断基准）
-                    const nextAttempt = currentAttempt + 1;
-                    reconnectAttemptsMap.set(accountId, nextAttempt);
-
-                    const delayMs = wxConfig.reconnectDelayMin * 60 * 1000;
-                    log('系统', `账号 ${wrk.name} 将在 ${wxConfig.reconnectDelayMin} 分钟后自动重连 (${nextAttempt}/${maxAttempts})`, {
-                        accountId: String(accountId),
-                        delayMin: wxConfig.reconnectDelayMin,
-                        attempt: nextAttempt,
-                        maxAttempts,
-                    });
-
-                    scheduler.setTimeoutTask(attemptKey, delayMs, async () => {
-                        // 重连前检查账号是否还存在、是否已被手动停止
-                        const currentWrk = workers[accountId];
-                        if (currentWrk) {
-                            // 已经有 worker 在跑，不需要重连
-                            return;
-                        }
-                        try {
-                            const accountsData = store.getAccounts();
-                            const account = (accountsData.accounts || []).find(a => a.id === accountId);
-                            if (!account) {
-                                log('系统', `账号 ${wrk.name} 已被删除，取消自动重连`);
-                                reconnectAttemptsMap.delete(accountId);
-                                return;
-                            }
-                            log('系统', `账号 ${wrk.name} 开始自动重连 (${nextAttempt}/${maxAttempts})`);
-                            await startWorker(account);
-                            addAccountLog('reconnect_success',
-                                `账号 ${wrk.name} 已通过应用宝离线重连恢复在线 (${nextAttempt}/${maxAttempts})`,
-                                accountId, wrk.name, { attempt: nextAttempt, maxAttempts });
-                        } catch (e) {
-                            log('系统', `账号 ${wrk.name} 自动重连启动失败: ${e.message}`);
-                        }
-                    });
-                } else {
-                    // 未启用自动重连，保持停止状态
-                    log('系统', `账号 ${wrk.name} 未启用应用宝离线重连，已停止`);
-                }
-            } catch (e) {
-                log('系统', `账号 ${wrk.name} 自动重连逻辑异常: ${e.message}`);
-            }
+            scheduleReconnect(accountId, `ws_reconnect_failed:${  reason}`);
         } else if (msg.type === 'automation_patch') {
             const patch = msg.patch && typeof msg.patch === 'object' ? msg.patch : {};
             if ((patch.automation && typeof patch.automation === 'object')

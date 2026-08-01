@@ -35,7 +35,7 @@ interface CaptureFlowState {
   }
 }
 
-const activeTab = ref<'capture' | 'manual' | 'yyb' | 'yybqr'>('manual')
+const activeTab = ref<'capture' | 'manual' | 'yyb' | 'yybqr' | 'yyb3rd'>('manual')
 const loading = ref(false)
 const errorMessage = ref('')
 const captureEnabled = ref(false)
@@ -331,16 +331,37 @@ watch(() => props.show, (newVal) => {
     if (activeTab.value === 'yyb' || activeTab.value === 'yybqr')
       void loadYybConfig()
     if (props.editData) {
-      activeTab.value = 'manual'
-      form.name = props.editData.name || ''
-      form.code = props.editData.code || ''
-      form.platform = props.editData.platform || 'qq'
+      if (props.editData.provider === 'thirdparty') {
+        activeTab.value = 'yyb3rd'
+        yyb3rdApiBase.value = props.editData.thirdparty?.apiBase || ''
+        yyb3rdOpenid.value = props.editData.thirdparty?.openid || ''
+        yyb3rdApiToken.value = '' // 不明文回显，留空表示不修改
+        yyb3rdTokenMasked.value = props.editData.thirdparty?.apiToken || ''
+        yyb3rdAccountName.value = props.editData.name || ''
+        // 账号级离线重连配置回填
+        yyb3rdAutoReconnect.value = props.editData.thirdparty?.autoReconnect !== false
+        yyb3rdReconnectDelayMin.value = props.editData.thirdparty?.reconnectDelayMin || 5
+        yyb3rdReconnectMaxAttempts.value = props.editData.thirdparty?.reconnectMaxAttempts || 3
+      } else {
+        activeTab.value = 'manual'
+        form.name = props.editData.name || ''
+        form.code = props.editData.code || ''
+        form.platform = props.editData.platform || 'qq'
+      }
     }
     else {
       activeTab.value = 'manual'
       form.name = ''
       form.code = ''
       form.platform = 'qq'
+      yyb3rdApiBase.value = ''
+      yyb3rdApiToken.value = ''
+      yyb3rdOpenid.value = ''
+      yyb3rdAccountName.value = ''
+      yyb3rdTokenMasked.value = ''
+      yyb3rdAutoReconnect.value = true
+      yyb3rdReconnectDelayMin.value = 5
+      yyb3rdReconnectMaxAttempts.value = 3
     }
   }
   else {
@@ -355,6 +376,89 @@ watch(activeTab, (tab) => {
   if (tab === 'yyb' || tab === 'yybqr')
     loadYybConfig()
 })
+
+// ==================== 第三方应用宝登录（tab） ====================
+// 直接填 接口地址 + APITOKEN + OPENID 拿 code 自动登录，与内置 YYB 重连互不冲突
+const yyb3rdApiBase = ref('')
+const yyb3rdApiToken = ref('')
+const yyb3rdOpenid = ref('')
+const yyb3rdAccountName = ref('')
+const yyb3rdLoading = ref(false)
+const yyb3rdError = ref('')
+// 编辑时展示已存 token 的脱敏提示（不回显明文）
+const yyb3rdTokenMasked = ref('')
+// 账号级离线重连配置
+const yyb3rdAutoReconnect = ref(true)
+const yyb3rdReconnectDelayMin = ref(5)
+const yyb3rdReconnectMaxAttempts = ref(3)
+
+async function submitYyb3rdLogin() {
+  yyb3rdError.value = ''
+  const isEdit = !!props.editData
+  const baseOk = !!yyb3rdApiBase.value.trim()
+  const openidOk = !!yyb3rdOpenid.value.trim()
+  const tokenOk = !!yyb3rdApiToken.value.trim()
+  // 新建必须三项都填；编辑时 APITOKEN 可留空（表示不修改，保留原 Token）
+  if (!baseOk || !openidOk || (!isEdit && !tokenOk)) {
+    yyb3rdError.value = isEdit
+      ? '请填写接口地址和 OPENID'
+      : '请填写接口地址、APITOKEN 和 OPENID'
+    return
+  }
+  yyb3rdLoading.value = true
+  try {
+    let code = props.editData?.code
+    // 新建，或编辑且修改了 APITOKEN → 需重新向第三方换取 code；
+    // 编辑且未改 APITOKEN → 直接沿用原 code
+    if (!isEdit || tokenOk) {
+      const { data } = await api.post('/api/yyb/thirdparty-code', {
+        apiBase: yyb3rdApiBase.value.trim(),
+        apiToken: yyb3rdApiToken.value.trim(),
+        openid: yyb3rdOpenid.value.trim(),
+        name: yyb3rdAccountName.value.trim(),
+      })
+      if (!data?.ok || !data?.data?.code) {
+        yyb3rdError.value = data?.error || '获取登录 code 失败'
+        return
+      }
+      code = data.data.code
+    }
+    const name = yyb3rdAccountName.value.trim() || `第三方应用宝${yyb3rdOpenid.value.trim().slice(-4)}`
+    const thirdparty = {
+      apiBase: yyb3rdApiBase.value.trim(),
+      apiToken: yyb3rdApiToken.value.trim(),
+      openid: yyb3rdOpenid.value.trim(),
+      autoReconnect: yyb3rdAutoReconnect.value === true,
+      reconnectDelayMin: Math.max(1, Number(yyb3rdReconnectDelayMin.value) || 5),
+      reconnectMaxAttempts: Math.max(1, Number(yyb3rdReconnectMaxAttempts.value) || 3),
+    }
+    const payload = isEdit
+      ? {
+          id: props.editData.id,
+          name,
+          code,
+          platform: 'wx',
+          loginType: 'yyb',
+          provider: 'thirdparty',
+          yybOpenid: yyb3rdOpenid.value.trim(),
+          thirdparty,
+        }
+      : {
+          name,
+          code,
+          platform: 'wx',
+          loginType: 'yyb',
+          provider: 'thirdparty',
+          yybOpenid: yyb3rdOpenid.value.trim(),
+          thirdparty,
+        }
+    await addAccount(payload)
+  } catch (e: any) {
+    yyb3rdError.value = e?.response?.data?.error || e?.message || '第三方应用宝登录失败'
+  } finally {
+    yyb3rdLoading.value = false
+  }
+}
 
 // ==================== 应用宝登录 ====================
 // 接口地址与 API Token 均不写死：默认空，由用户自行填写（已配置后从后端回填）
@@ -681,6 +785,17 @@ function resetYybQr() {
             @click="activeTab = 'yybqr'"
           >
             应用宝扫码
+          </button>
+          <button
+            class="flex-1 py-2 text-center text-sm font-medium transition-colors"
+            :class="activeTab === 'yyb3rd' ? 'border-b-2' : 'opacity-60'"
+            :style="{
+              color: activeTab === 'yyb3rd' ? 'var(--theme-primary)' : 'var(--theme-text)',
+              borderColor: 'var(--theme-primary)',
+            }"
+            @click="activeTab = 'yyb3rd'"
+          >
+            第三方YYB
           </button>
         </div>
 
@@ -1145,6 +1260,77 @@ function resetYybQr() {
               {{ yybError }}
             </div>
           </template>
+        </div>
+
+        <!-- 第三方应用宝登录：填 接口地址 + APITOKEN + OPENID 直接拿 code 登录 -->
+        <div v-if="activeTab === 'yyb3rd'" class="space-y-4">
+          <div class="text-sm opacity-70" :style="{ color: 'var(--theme-text)' }">
+            第三方 YYB：填接口地址、APITOKEN、OPENID 即可获取 code 自动登录并启动；被踢/异地登录后按下方「账号级离线重连」设置自动重连（与该账号独立，互不影响）。
+          </div>
+
+          <BaseInput
+            v-model="yyb3rdApiBase"
+            label="接口地址"
+            placeholder="http://211.154.25.123:28999"
+          />
+          <BaseInput
+            v-model="yyb3rdApiToken"
+            label="APITOKEN"
+            :placeholder="yyb3rdTokenMasked ? '留空则不修改当前 Token' : '第三方接口 APITOKEN'"
+          />
+          <BaseInput
+            v-model="yyb3rdOpenid"
+            label="OPENID"
+            placeholder="第三方账号 openid"
+          />
+          <BaseInput
+            v-model="yyb3rdAccountName"
+            label="账号备注（可选）"
+            placeholder="留空则使用 openid 后四位"
+          />
+
+          <!-- 账号级离线重连配置（与内置 YYB 一致，独立设置） -->
+          <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700 space-y-3">
+            <label class="flex items-center gap-2 text-sm" :style="{ color: 'var(--theme-text)' }">
+              <input type="checkbox" v-model="yyb3rdAutoReconnect" />
+              启用离线自动重连
+            </label>
+            <div class="grid grid-cols-2 gap-3">
+              <BaseInput
+                v-model="yyb3rdReconnectDelayMin"
+                label="离线几分钟后重连"
+                type="number"
+                min="1"
+              />
+              <BaseInput
+                v-model="yyb3rdReconnectMaxAttempts"
+                label="失败几次后停止"
+                type="number"
+                min="1"
+              />
+            </div>
+            <div class="text-xs opacity-70" :style="{ color: 'var(--theme-text)' }">
+              账号离线后，等待 {{ yyb3rdReconnectDelayMin || 5 }} 分钟重新获取 code 并重连，失败 {{ yyb3rdReconnectMaxAttempts || 3 }} 次后停止。
+            </div>
+          </div>
+
+          <div v-if="yyb3rdError" class="text-sm text-red-500">
+            {{ yyb3rdError }}
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2">
+            <BaseButton variant="outline" @click="close">
+              取消
+            </BaseButton>
+            <BaseButton
+              variant="primary"
+              :loading="yyb3rdLoading"
+              :disabled="!yyb3rdApiBase || !yyb3rdApiToken || !yyb3rdOpenid"
+              @click="submitYyb3rdLogin"
+            >
+              {{ props.editData ? '保存' : '添加并登录' }}
+            </BaseButton>
+          </div>
         </div>
       </div>
     </div>

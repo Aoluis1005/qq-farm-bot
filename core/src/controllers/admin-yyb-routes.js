@@ -10,6 +10,7 @@
  */
 
 const DEFAULT_APP_ID = "wx5306c5978fdb76e4";
+const { getThirdpartyYybCode } = require("../utils/thirdpartyYyb");
 
 /**
  * 规范化 apiBase：去掉尾部斜杠，以及用户可能误带的 /wxapp/getCode 等路径后缀。
@@ -116,6 +117,25 @@ function registerAdminYybRoutes({ app, requireAdminToken, sendProviderError }) {
       return res.status(500).json({ ok: false, error: "应用宝接口未返回 code" });
     }
     res.json({ ok: true, data: { code, openid: data.openid || openid } });
+  });
+
+  // 第三方 YYB：用 openid + APITOKEN 向第三方接口换 code（第三方登录 tab 用）
+  // 返回的 code 与内置 yyb-go 同协议、可刷新，喂给现有 worker 登录流程即可。
+  app.post("/api/yyb/thirdparty-code", requireAdminToken, async (req, res) => {
+    const body = req.body && typeof req.body === "object" ? req.body : {};
+    const { apiBase, apiToken, openid, name } = body;
+    const result = await getThirdpartyYybCode({ apiBase, apiToken, openid, forceRefresh: Boolean(body.forceRefresh) });
+    if (!result.ok) {
+      return res.status(result.status === 401 ? 401 : 400).json({ ok: false, error: result.error });
+    }
+    res.json({
+      ok: true,
+      data: {
+        code: result.code,
+        openid: result.openid || openid,
+        name: typeof name === "string" ? name.trim() : "",
+      },
+    });
   });
 
   // ==================== 应用宝扫码登录 ====================

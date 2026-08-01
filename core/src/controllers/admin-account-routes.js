@@ -52,6 +52,18 @@ function registerAdminAccountRoutes({
       } else {
         data = { accounts: [], nextId: 1 };
       }
+      // 脱敏：第三方应用宝配置的 apiToken 不外泄到前端
+      if (data && Array.isArray(data.accounts)) {
+        data = {
+          ...data,
+          accounts: data.accounts.map((a) => {
+            if (a && a.thirdparty && a.thirdparty.apiToken) {
+              return { ...a, thirdparty: { ...a.thirdparty, apiToken: "***" } };
+            }
+            return a;
+          }),
+        };
+      }
       res.json({ ok: true, data });
     } catch (error) {
       res.status(500).json({ ok: false, error: error.message });
