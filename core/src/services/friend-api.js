@@ -10,7 +10,7 @@ const {
 } = require('../models/store');
 const { sendMsgAsync } = require('../utils/network');
 const { types } = require('../utils/proto');
-const { toLong, toNum, log, logWarn, randomDelay } = require('../utils/utils');
+const { toLong, toNum, log, logWarn, randomDelay, isTransientNetworkError } = require('../utils/utils');
 const { getInteractRecords } = require('./interact');
 
 // ===== Constants =====
@@ -419,20 +419,6 @@ function parseRpcErrorCode(err) {
   const msg = String((err && err.message) || err || '');
   const match = msg.match(/code=(\d+)/i);
   return match ? Number.parseInt(match[1], 10) || 0 : 0;
-}
-
-/** Check if the error is a transient network error (retryable). */
-function isTransientNetworkError(err) {
-  const msg = String((err && err.message) || err || '');
-  if (!msg) return false;
-  return [
-    '连接未打开',
-    '请求超时',
-    '请求已中断',
-    '连接关闭',
-    '连接已在加密途中关闭',
-    'worker exited',
-  ].some(keyword => msg.includes(keyword));
 }
 
 /** Check if the error is due to an invalid friend relationship. */

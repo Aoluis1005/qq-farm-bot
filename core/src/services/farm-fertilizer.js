@@ -1,7 +1,7 @@
 const { sendMsgAsync } = require('../utils/network');
 const { types } = require('../utils/proto');
 const { PlantPhase } = require('../config/config');
-const { toNum, toTimeSec, getServerTimeSec, log, logWarn, randomDelay } = require('../utils/utils');
+const { toNum, toTimeSec, getServerTimeSec, log, logWarn, randomDelay, isTransientNetworkError } = require('../utils/utils');
 const { getAutomation } = require('../models/store');
 const { recordOperation } = require('./stats');
 const { getAllLands, fertilize, NORMAL_FERTILIZER_ID, ORGANIC_FERTILIZER_ID } = require('./farm-api');
@@ -22,15 +22,6 @@ const FERTILIZER_LAND_TYPE_LABELS = {
 };
 
 // ─── 辅助函数 ───
-
-function isTransientNetworkError(err) {
-  const msg = String(err && err.message || '');
-  if (!msg) return false;
-  return [
-    '连接未打开', '请求超时', '请求已中断',
-    '连接关闭', '发送失败', '请求队列已满'
-  ].some(pattern => msg.includes(pattern));
-}
 
 /**
  * 有机化肥循环施肥（逐块施肥直到失败）

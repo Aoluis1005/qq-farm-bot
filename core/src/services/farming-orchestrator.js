@@ -1,6 +1,6 @@
 const { CONFIG } = require('../config/config');
 const { getUserState, isConnected, networkEvents } = require('../utils/network');
-const { toNum, log, logWarn, randomDelay } = require('../utils/utils');
+const { toNum, log, logWarn, randomDelay, isTransientNetworkError } = require('../utils/utils');
 const { isAutomationOn, getAutomation, getPrioritize2x2Crops } = require('../models/store');
 const { recordOperation } = require('./stats');
 const { createScheduler } = require('./scheduler');
@@ -21,18 +21,6 @@ let lastPushTime = 0;
 let shouldRefresh2x2Plan = true;
 
 const farmScheduler = createScheduler('farm');
-
-// ─── 辅助函数 ───
-
-/** 判断是否为临时性网络错误 */
-function isTransientNetworkError(err) {
-  const msg = String(err && err.message || '');
-  if (!msg) return false;
-  return [
-    '连接未打开', '请求超时', '请求已中断',
-    '连接关闭', '发送失败', '请求队列已满'
-  ].some(pattern => msg.includes(pattern));
-}
 
 // ─── 核心巡田逻辑 ───
 

@@ -1,23 +1,7 @@
 const EventEmitter = require('node:events');
 const { createModuleLogger } = require('../services/logger');
 const { getTodayKey, loadPersistedStats } = require('../services/stats');
-
-// ==================== 格式化工具 ====================
-
-function pad2(num) {
-    return String(num).padStart(2, '0');
-}
-
-function formatLocalDateTime24(date = new Date()) {
-    const d = date instanceof Date ? date : new Date();
-    const yyyy = d.getFullYear();
-    const mm = pad2(d.getMonth() + 1);
-    const dd = pad2(d.getDate());
-    const hh = pad2(d.getHours());
-    const min = pad2(d.getMinutes());
-    const ss = pad2(d.getSeconds());
-    return `${yyyy  }-${  mm  }-${  dd  } ${  hh  }:${  min  }:${  ss}`;
-}
+const { pad2, formatLocalDateTime24 } = require('../utils/utils');
 
 // ==================== 运行时状态工厂 ====================
 

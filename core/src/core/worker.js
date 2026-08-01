@@ -101,7 +101,7 @@ const {
     sendMsgAsync
 } = require('../utils/network');
 const { loadProto } = require('../utils/proto');
-const { setLogHook, log, toNum } = require('../utils/utils');
+const { setLogHook, log, toNum, isTransientNetworkError, pad2, formatLocalDateTime24 } = require('../utils/utils');
 const { startMysteryAutoBuyTimer, stopMysteryAutoBuyTimer } = require('../services/mystery-scheduler');
 
 // 设置环境变量中的账号ID
@@ -136,23 +136,6 @@ function exitWorker(code = 0) {
     setImmediate(() => process.exit(code));
 }
 
-// ==================== 格式化工具 ====================
-
-function pad2(num) {
-    return String(num).padStart(2, '0');
-}
-
-function formatLocalDateTime24(date = new Date()) {
-    const d = date instanceof Date ? date : new Date();
-    const yyyy = d.getFullYear();
-    const mm = pad2(d.getMonth() + 1);
-    const dd = pad2(d.getDate());
-    const hh = pad2(d.getHours());
-    const min = pad2(d.getMinutes());
-    const ss = pad2(d.getSeconds());
-    return `${yyyy  }-${  mm  }-${  dd  } ${  hh  }:${  min  }:${  ss}`;
-}
-
 // ==================== 日志/统计钩子 ====================
 
 setLogHook((tag, msg, isWarn, meta) => {
@@ -185,14 +168,6 @@ let appliedConfigRevision = 0;
 let unifiedSchedulerRunning = false;
 
 // ==================== 工具函数 ====================
-
-/** 判断是否是瞬时网络错误（可忽略） */
-function isTransientNetworkError(err) {
-    const msg = String(err && err.message || '');
-    if (!msg) return false;
-    return ['连接未打开', '请求超时', '请求已中断', '连接关闭', '发送失败', '请求队列已满']
-        .some(text => msg.includes(text));
-}
 
 // ==================== 农场/好友/偷菜 Tick 任务 ====================
 

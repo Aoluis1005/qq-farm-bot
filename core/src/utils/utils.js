@@ -152,9 +152,38 @@ function randomDelay(minMs, maxMs) {
     return new Promise(r => setTimeout(r, delay));
 }
 
+// ============ 格式化工具 ============
+function pad2(num) {
+    return String(num).padStart(2, '0');
+}
+
+function formatLocalDateTime24(date = new Date()) {
+    const d = date instanceof Date ? date : new Date();
+    const yyyy = d.getFullYear();
+    const mm = pad2(d.getMonth() + 1);
+    const dd = pad2(d.getDate());
+    const hh = pad2(d.getHours());
+    const min = pad2(d.getMinutes());
+    const ss = pad2(d.getSeconds());
+    return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+}
+
+// ============ 错误判定 ============
+/** 判断是否是瞬时网络错误（可忽略/可重试）。统一实现，避免各模块漂移导致误判。 */
+function isTransientNetworkError(err) {
+    const msg = String((err && err.message) || err || '');
+    if (!msg) return false;
+    return [
+        '连接未打开', '请求超时', '请求已中断',
+        '连接关闭', '发送失败', '请求队列已满',
+        '连接已在加密途中关闭', 'worker exited'
+    ].some(keyword => msg.includes(keyword));
+}
+
 module.exports = {
     toLong, toNum, now,
     setLogHook,
     getServerTimeSec, syncServerTime, toTimeSec,
     log, logWarn, sleep, randomDelay,
+    pad2, formatLocalDateTime24, isTransientNetworkError,
 };
