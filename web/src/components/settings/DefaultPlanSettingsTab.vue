@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watchEffect } from 'vue'
 import api from '@/api'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import AutomationSettingsTab from '@/components/settings/AutomationSettingsTab.vue'
@@ -24,6 +24,7 @@ const props = defineProps<{
   bagSeeds: BagSeedItem[]
   bagSeedsLoading: boolean
   bagSeedsError: string | null
+  fetchBagSeeds?: () => void
   fertilizerLandTypeOptions: { label: string, value: string }[]
   fertilizerOptions: { label: string, value: string | number }[]
 }>()
@@ -164,6 +165,7 @@ function buildConfig() {
     prioritize2x2Crops: strategySettings.value.prioritize2x2Crops,
     bagSeedPriority: strategySettings.value.bagSeedPriority,
     bagSeedFallbackStrategy: strategySettings.value.bagSeedFallbackStrategy,
+    bagPriorityLandTypes: strategySettings.value.bagPriorityLandTypes,
     stealDelaySeconds: strategySettings.value.stealDelaySeconds,
     plantOrderRandom: strategySettings.value.plantOrderRandom,
     plantDelaySeconds: strategySettings.value.plantDelaySeconds,
@@ -295,6 +297,12 @@ function dropBagSeed(seedId: number) {
 }
 
 onMounted(fetchPlan)
+
+// 当种植策略切到「背包种子优先」且已选中账号时，主动拉取背包种子
+watchEffect(() => {
+  if (strategySettings.value.plantingStrategy === 'bag_priority' && props.currentAccountId)
+    props.fetchBagSeeds?.()
+})
 </script>
 
 <template>
@@ -363,8 +371,8 @@ onMounted(fetchPlan)
     <StrategySettingsTab
       v-else-if="activeSection === 'strategy'"
       v-model:settings="strategySettings"
-      current-account-id="default-plan"
-      :current-account-name="null"
+      :current-account-id="currentAccountId"
+      :current-account-name="currentAccountName"
       :loading="false"
       :saving="saving"
       title="默认策略"
@@ -390,8 +398,8 @@ onMounted(fetchPlan)
       v-else
       v-model:settings="automationSettings"
       v-model:auto-code-refresh="autoCodeRefresh"
-      current-account-id="default-plan"
-      :current-account-name="null"
+      :current-account-id="currentAccountId"
+      :current-account-name="currentAccountName"
       :loading="false"
       :saving="saving"
       :auto-code-refreshing="false"

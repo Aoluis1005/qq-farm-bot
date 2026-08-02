@@ -8,6 +8,8 @@ import UserSettingsTab from '@/components/settings/UserSettingsTab.vue'
 import { useAccountSettings } from '@/composables/settings/useAccountSettings'
 import { useUserSettings } from '@/composables/settings/useUserSettings'
 import { useSettingStore } from '@/stores/setting'
+import { useAutomationSettings } from '@/composables/settings/useAutomationSettings'
+import { useStrategySettings } from '@/composables/settings/useStrategySettings'
 import AdminPanel from '@/views/AdminPanel.vue'
 
 const settingStore = useSettingStore()
@@ -120,7 +122,31 @@ const {
   confirmClearStopped,
 } = useAccountSettings(showAlert)
 
-// 自动控制 & 策略设置已移至首页子 Tab
+// 默认方案 tab 内含策略/自动化设置子区，选项需与首页同款 composable 提供
+const {
+  fertilizerLandTypeOptions,
+  fertilizerOptions,
+} = useAutomationSettings({
+  currentAccountId,
+  showAlert,
+})
+
+const {
+  plantingStrategyOptions,
+  bagFallbackStrategyOptions,
+  preferredSeedOptions,
+  bagSeeds,
+  bagSeedsLoading,
+  bagSeedsError,
+  loadStrategyData,
+  fetchBagSeeds,
+} = useStrategySettings({
+  currentAccountId,
+  getAutomationSettings: () => ({ automation: {} }),
+  showAlert,
+})
+
+// 注意：策略设置/自动控制的完整可编辑 UI 也作为首页子 Tab 提供；此处为"默认方案"预设入口
 
 async function applyDefaultPlan(account: any) {
   if (!account?.id || defaultPlanApplyingId.value)
@@ -147,6 +173,7 @@ watch(currentAccountId, async () => {
   settingStore.clearSettingsState()
   if (currentAccountId.value) {
     syncLocalOfflineSettings()
+    void loadStrategyData()
   }
 })
 
@@ -227,14 +254,15 @@ onMounted(async () => {
           v-else-if="activeTab === 'default-plan'"
           :current-account-id="currentAccountId"
           :current-account-name="currentAccountName"
-          :planting-strategy-options="[]"
-          :preferred-seed-options="[]"
-          :bag-fallback-strategy-options="[]"
-          :bag-seeds="[]"
-          :bag-seeds-loading="false"
-          :bag-seeds-error="null"
-          :fertilizer-land-type-options="[]"
-          :fertilizer-options="[]"
+          :planting-strategy-options="plantingStrategyOptions"
+          :preferred-seed-options="preferredSeedOptions"
+          :bag-fallback-strategy-options="bagFallbackStrategyOptions"
+          :bag-seeds="bagSeeds"
+          :bag-seeds-loading="bagSeedsLoading"
+          :bag-seeds-error="bagSeedsError"
+          :fetch-bag-seeds="fetchBagSeeds"
+          :fertilizer-land-type-options="fertilizerLandTypeOptions"
+          :fertilizer-options="fertilizerOptions"
           @notify="showAlert"
         />
 

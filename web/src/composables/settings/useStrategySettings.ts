@@ -369,5 +369,6 @@ export function useStrategySettings({
     loadStrategyData,
     saveStrategySettings,
     resetStrategyState,
+    fetchBagSeeds,
   }
 }
