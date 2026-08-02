@@ -1254,13 +1254,15 @@ useIntervalFn(updateCountdowns, 1000)
     </div>
   </div>
 
-  <AccountModal
-    :show="showAccountModal"
-    :edit-data="accountToEdit"
-    @close="showAccountModal = false; accountToEdit = null"
-    @saved="handleAccountSaved"
-  />
-  <CareerModal :show="showCareerModal" @close="showCareerModal = false" />
+  <Teleport to="body">
+    <AccountModal
+      :show="showAccountModal"
+      :edit-data="accountToEdit"
+      @close="showAccountModal = false; accountToEdit = null"
+      @saved="handleAccountSaved"
+    />
+    <CareerModal :show="showCareerModal" @close="showCareerModal = false" />
+  </Teleport>
 
   <!-- 一键启动结果弹窗 -->
   <Teleport to="body">

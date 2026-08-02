@@ -223,6 +223,7 @@ function accountAvatar(acc: any) {
       </div>
     </div>
 
+  <Teleport to="body">
     <AccountModal
       :show="showModal"
       :edit-data="editingAccount"
@@ -253,5 +254,6 @@ function accountAvatar(acc: any) {
       @cancel="!clearStoppedLoading && emit('closeClearStoppedConfirm')"
       @confirm="emit('confirmClearStopped')"
     />
+  </Teleport>
   </div>
 </template>
