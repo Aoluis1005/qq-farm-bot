@@ -12,10 +12,10 @@ services:
     ports:
       - "${PORT:-3007}:3007"
     volumes:
-      - qq-farm-data:/app/core/data
-      - qq-farm-logs:/app/core/data/logs
+      - qq-farm-test-data:/app/core/data
+      - qq-farm-test-logs:/app/core/data/logs
       # 应用宝 Go 服务的 SQLite 数据库持久化（跨容器重启保留已登录账号）
-      - qq-farm-yyb-db:/usr/local/share/yyb-go/resource/db
+      - qq-farm-test-yyb-db:/usr/local/share/yyb-go/resource/db
     environment:
       - TZ=${TZ:-Asia/Shanghai}
       - NODE_ENV=production
@@ -44,9 +44,9 @@ services:
         max-file: "3"
 
 volumes:
-  qq-farm-data:
-    name: qq-farm-data
-  qq-farm-logs:
-    name: qq-farm-logs
-  qq-farm-yyb-db:
-    name: qq-farm-yyb-db
+  qq-farm-test-data:
+    name: qq-farm-test-data
+  qq-farm-test-logs:
+    name: qq-farm-test-logs
+  qq-farm-test-yyb-db:
+    name: qq-farm-test-yyb-db

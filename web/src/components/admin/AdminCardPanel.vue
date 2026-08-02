@@ -76,7 +76,7 @@ const statusFilterOptions = [
     </div>
 
     <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <div class="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:bg-gray-900/40 dark:text-gray-200">
+      <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm text-gray-700 backdrop-blur-md dark:text-gray-200">
         <div class="text-xs text-gray-500 dark:text-gray-400">
           卡密总数
         </div>
@@ -84,7 +84,7 @@ const statusFilterOptions = [
           {{ cards.length }} 个
         </div>
       </div>
-      <div class="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:bg-gray-900/40 dark:text-gray-200">
+      <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm text-gray-700 backdrop-blur-md dark:text-gray-200">
         <div class="text-xs text-gray-500 dark:text-gray-400">
           已使用
         </div>
@@ -92,7 +92,7 @@ const statusFilterOptions = [
           {{ usedCardsCount }} 个
         </div>
       </div>
-      <div class="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:bg-gray-900/40 dark:text-gray-200">
+      <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm text-gray-700 backdrop-blur-md dark:text-gray-200">
         <div class="text-xs text-gray-500 dark:text-gray-400">
           已启用
         </div>
@@ -100,7 +100,7 @@ const statusFilterOptions = [
           {{ enabledCardsCount }} 个
         </div>
       </div>
-      <div class="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:bg-gray-900/40 dark:text-gray-200">
+      <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm text-gray-700 backdrop-blur-md dark:text-gray-200">
         <div class="text-xs text-gray-500 dark:text-gray-400">
           可领时间卡
         </div>
@@ -110,11 +110,11 @@ const statusFilterOptions = [
       </div>
     </div>
 
-    <div class="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-600 dark:bg-gray-900/40 dark:text-gray-300">
+    <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm text-gray-600 backdrop-blur-md dark:text-gray-300">
       可以按类型、状态和关键词筛选卡密；批量创建时会自动导出文件，便于直接发放。
     </div>
 
-    <div class="border border-gray-200 rounded-2xl bg-white px-4 py-3 text-sm shadow-sm dark:border-gray-700 dark:bg-gray-800">
+    <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm shadow-sm backdrop-blur-md">
       <div class="text-xs text-gray-500 dark:text-gray-400">
         当前卡密结论
       </div>
@@ -123,7 +123,7 @@ const statusFilterOptions = [
       </div>
     </div>
 
-    <div class="flex items-center justify-between border border-gray-200 rounded-lg bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+    <div class="flex items-center justify-between rounded-lg border border-[var(--theme-border)] bg-[var(--theme-glass)] p-4 backdrop-blur-md">
       <div>
         <h4 class="text-sm text-gray-900 font-medium dark:text-white">
           卡密领取功能
@@ -144,8 +144,8 @@ const statusFilterOptions = [
       </div>
     </div>
 
-    <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <div class="border border-gray-200 rounded-2xl bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+    <div class="grid gap-3 lg:grid-cols-2">
+      <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] p-4 backdrop-blur-md">
         <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div>
             <div class="text-sm text-gray-900 font-semibold dark:text-gray-100">
@@ -193,7 +193,7 @@ const statusFilterOptions = [
         </div>
       </div>
 
-      <div class="border border-gray-200 rounded-2xl bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+      <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] p-4 backdrop-blur-md">
         <div class="mb-3 text-sm text-gray-900 font-semibold dark:text-gray-100">
           关键词与状态
         </div>
@@ -218,7 +218,7 @@ const statusFilterOptions = [
       </div>
     </div>
 
-    <div v-if="selectedCards.size > 0" class="flex items-center gap-3 rounded-lg p-3" style="background-color: rgba(var(--theme-primary-rgb, 59, 130, 246), 0.1);">
+    <div v-if="selectedCards.size > 0" class="flex flex-wrap items-center gap-2 rounded-lg p-3" style="background-color: rgba(var(--theme-primary-rgb, 59, 130, 246), 0.1);">
       <span style="color: var(--theme-primary);">
         已选择 {{ selectedCardCount }} 个卡密
       </span>
@@ -241,8 +241,8 @@ const statusFilterOptions = [
       <div>加载中...</div>
     </div>
 
-    <div v-else class="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-      <div class="overflow-x-auto">
+    <div v-else class="overflow-hidden rounded-lg border border-[var(--theme-border)] bg-[var(--theme-glass)] shadow backdrop-blur-md">
+      <div class="overflow-x-auto resp-table">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-700">
             <tr>
@@ -360,7 +360,7 @@ const statusFilterOptions = [
         </h2>
         <div class="space-y-4">
           <div class="grid gap-3 md:grid-cols-3">
-            <div class="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:bg-gray-900/40 dark:text-gray-200">
+            <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm text-gray-700 backdrop-blur-md dark:text-gray-200">
               <div class="text-xs text-gray-500 dark:text-gray-400">
                 卡密类型
               </div>
@@ -368,7 +368,7 @@ const statusFilterOptions = [
                 {{ newCard.type === 'quota' ? '额度卡' : '时间卡' }}
               </div>
             </div>
-            <div class="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:bg-gray-900/40 dark:text-gray-200">
+            <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm text-gray-700 backdrop-blur-md dark:text-gray-200">
               <div class="text-xs text-gray-500 dark:text-gray-400">
                 生效数值
               </div>
@@ -376,7 +376,7 @@ const statusFilterOptions = [
                 {{ newCard.type === 'quota' ? `+${newCard.days || 0} 额度` : (newCard.days === -1 ? '永久' : `${newCard.days || 0} ${newCard.durationUnit === 'hour' ? '小时' : '天'}`) }}
               </div>
             </div>
-            <div class="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:bg-gray-900/40 dark:text-gray-200">
+            <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm text-gray-700 backdrop-blur-md dark:text-gray-200">
               <div class="text-xs text-gray-500 dark:text-gray-400">
                 生成数量
               </div>
@@ -473,3 +473,57 @@ const statusFilterOptions = [
     </div>
   </div>
 </template>
+<style scoped>
+@media (max-width: 640px) {
+  .resp-table table,
+  .resp-table thead,
+  .resp-table tbody,
+  .resp-table tr,
+  .resp-table td {
+    display: block;
+    width: 100%;
+  }
+  .resp-table thead { display: none; }
+  .resp-table tr {
+    margin-bottom: 12px;
+    border: 1px solid var(--theme-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--theme-glass);
+  }
+  .resp-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px !important;
+    text-align: right;
+    white-space: normal !important;
+    border: none;
+    min-width: 0;
+  }
+  .resp-table td:not(:last-child) {
+    border-bottom: 1px solid var(--theme-border);
+  }
+  .resp-table td[colspan]::before { content: none !important; }
+  .resp-table td::before {
+    content: '';
+    font-weight: 600;
+    color: var(--theme-text);
+    opacity: 0.65;
+    text-align: left;
+    flex: 0 0 auto;
+  }
+  .resp-table tbody tr td:nth-of-type(1)::before { content: "选择"; }
+  .resp-table tbody tr td:nth-of-type(2)::before { content: "卡密"; }
+  .resp-table tbody tr td:nth-of-type(3)::before { content: "描述"; }
+  .resp-table tbody tr td:nth-of-type(4)::before { content: "类型"; }
+  .resp-table tbody tr td:nth-of-type(5)::before { content: "数值"; }
+  .resp-table tbody tr td:nth-of-type(6)::before { content: "状态"; }
+  .resp-table tbody tr td:nth-of-type(7)::before { content: "使用者"; }
+  .resp-table tbody tr td:nth-of-type(8)::before { content: "生成时间"; }
+  .resp-table tbody tr td:nth-of-type(9)::before { content: "使用时间"; }
+  .resp-table tbody tr td:nth-of-type(10)::before { content: "操作"; }
+}
+</style>
+

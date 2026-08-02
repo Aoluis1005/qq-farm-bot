@@ -220,7 +220,7 @@ async function submitRenewal() {
 
 <template>
   <section class="mx-auto max-w-xl py-8 space-y-6">
-    <div class="rounded-3xl bg-white p-8 shadow-sm dark:bg-gray-800">
+    <div class="rounded-3xl glass-card p-8">
       <div class="mb-6 flex items-center gap-3">
         <div class="i-carbon-renew text-2xl text-emerald-500" />
         <div>
@@ -385,3 +385,25 @@ async function submitRenewal() {
     </div>
   </section>
 </template>
+
+<style scoped>
+.glass-card {
+  border-radius: 16px;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: var(--theme-glass);
+  border: 1px solid var(--theme-border);
+}
+
+:deep(.bg-gray-50),
+:deep(.dark\\:bg-gray-900) {
+  background: color-mix(in srgb, var(--theme-bg) 30%, transparent) !important;
+  border: 1px solid var(--theme-border) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+:deep(.shadow-sm) {
+  box-shadow: none !important;
+}
+</style>

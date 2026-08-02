@@ -1342,3 +1342,41 @@ async function handleBatchAddKnownFriendGids() {
     </Teleport>
   </div>
 </template>
+
+<style scoped>
+.glass-card {
+  border-radius: 16px;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: var(--theme-glass);
+  border: 1px solid var(--theme-border);
+}
+
+/* 子组件玻璃覆盖 */
+:deep(.bg-white),
+:deep(.dark\\:bg-gray-800),
+:deep(.dark\\:bg-gray-900) {
+  background: var(--theme-glass) !important;
+  border-color: var(--theme-border) !important;
+}
+
+:deep(.shadow),
+:deep(.shadow-sm) {
+  box-shadow: none !important;
+  border: 1px solid var(--theme-border) !important;
+}
+
+:deep(.border-gray-200),
+:deep(.dark\\:border-gray-700) {
+  border-color: var(--theme-border) !important;
+}
+
+:deep(.text-gray-500) {
+  color: var(--theme-text-secondary) !important;
+}
+
+:deep(.text-gray-900),
+:deep(.dark\\:text-gray-100) {
+  color: var(--theme-text) !important;
+}
+</style>

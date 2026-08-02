@@ -15,9 +15,9 @@ const activeTab = defineModel<AdminTabKey>('activeTab', { required: true })
 </script>
 
 <template>
-  <div class="border border-gray-200 rounded-lg bg-white shadow dark:border-gray-700 dark:bg-gray-800">
+  <div class="min-w-0 max-w-full border border-gray-200 rounded-lg bg-white shadow dark:border-gray-700 dark:bg-gray-800">
     <div class="border-b border-gray-200 dark:border-gray-700">
-      <nav class="flex gap-1 p-2">
+      <nav class="flex flex-wrap gap-1 p-2">
         <button
           v-for="tab in tabs"
           :key="tab.key"

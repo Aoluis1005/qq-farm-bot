@@ -85,8 +85,8 @@ function formatUserCardDate(timestamp: number | null) {
       </div>
     </div>
 
-    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <div class="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:bg-gray-900/40 dark:text-gray-200">
+    <div class="grid gap-3 grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
+      <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm text-gray-700 backdrop-blur-md dark:text-gray-200">
         <div class="text-xs text-gray-500 dark:text-gray-400">
           用户总数
         </div>
@@ -94,7 +94,7 @@ function formatUserCardDate(timestamp: number | null) {
           {{ users.length }} 人
         </div>
       </div>
-      <div class="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:bg-gray-900/40 dark:text-gray-200">
+      <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm text-gray-700 backdrop-blur-md dark:text-gray-200">
         <div class="text-xs text-gray-500 dark:text-gray-400">
           正常用户
         </div>
@@ -102,7 +102,7 @@ function formatUserCardDate(timestamp: number | null) {
           {{ activeUsersCount }} 人
         </div>
       </div>
-      <div class="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:bg-gray-900/40 dark:text-gray-200">
+      <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm text-gray-700 backdrop-blur-md dark:text-gray-200">
         <div class="text-xs text-gray-500 dark:text-gray-400">
           管理员
         </div>
@@ -110,7 +110,7 @@ function formatUserCardDate(timestamp: number | null) {
           {{ adminUsersCount }} 人
         </div>
       </div>
-      <div class="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:bg-gray-900/40 dark:text-gray-200">
+      <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm text-gray-700 backdrop-blur-md dark:text-gray-200">
         <div class="text-xs text-gray-500 dark:text-gray-400">
           已过期
         </div>
@@ -118,7 +118,7 @@ function formatUserCardDate(timestamp: number | null) {
           {{ expiredUsersCount }} 人
         </div>
       </div>
-      <div class="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:bg-gray-900/40 dark:text-gray-200">
+      <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm text-gray-700 backdrop-blur-md dark:text-gray-200">
         <div class="text-xs text-gray-500 dark:text-gray-400">
           当前账号
         </div>
@@ -132,7 +132,7 @@ function formatUserCardDate(timestamp: number | null) {
       到期用户清理会直接删除已过期账号，并强制这些账号的当前登录失效。执行前请确认这些用户已经不再需要保留。
     </div>
 
-    <div class="border border-gray-200 rounded-2xl bg-white px-4 py-3 text-sm shadow-sm dark:border-gray-700 dark:bg-gray-800">
+    <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm shadow-sm backdrop-blur-md">
       <div class="text-xs text-gray-500 dark:text-gray-400">
         当前用户结论
       </div>
@@ -161,8 +161,8 @@ function formatUserCardDate(timestamp: number | null) {
       <div>加载中...</div>
     </div>
 
-    <div v-else class="overflow-hidden border border-gray-200 rounded-lg dark:border-gray-700">
-      <div class="overflow-x-auto">
+    <div v-else class="overflow-hidden rounded-lg border border-[var(--theme-border)] bg-[var(--theme-glass)] shadow backdrop-blur-md dark:border-[var(--theme-border)]">
+      <div class="overflow-x-auto resp-table">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-700">
             <tr>
@@ -412,3 +412,54 @@ function formatUserCardDate(timestamp: number | null) {
     </div>
   </div>
 </template>
+<style scoped>
+@media (max-width: 640px) {
+  .resp-table table,
+  .resp-table thead,
+  .resp-table tbody,
+  .resp-table tr,
+  .resp-table td {
+    display: block;
+    width: 100%;
+  }
+  .resp-table thead { display: none; }
+  .resp-table tr {
+    margin-bottom: 12px;
+    border: 1px solid var(--theme-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--theme-glass);
+  }
+  .resp-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px !important;
+    text-align: right;
+    white-space: normal !important;
+    border: none;
+    min-width: 0;
+  }
+  .resp-table td:not(:last-child) {
+    border-bottom: 1px solid var(--theme-border);
+  }
+  .resp-table td[colspan]::before { content: none !important; }
+  .resp-table td::before {
+    content: '';
+    font-weight: 600;
+    color: var(--theme-text);
+    opacity: 0.65;
+    text-align: left;
+    flex: 0 0 auto;
+  }
+  .resp-table tbody tr td:nth-of-type(1)::before { content: "用户名"; }
+  .resp-table tbody tr td:nth-of-type(2)::before { content: "角色"; }
+  .resp-table tbody tr td:nth-of-type(3)::before { content: "额度"; }
+  .resp-table tbody tr td:nth-of-type(4)::before { content: "时长"; }
+  .resp-table tbody tr td:nth-of-type(5)::before { content: "过期时间"; }
+  .resp-table tbody tr td:nth-of-type(6)::before { content: "状态"; }
+  .resp-table tbody tr td:nth-of-type(7)::before { content: "操作"; }
+}
+</style>
+

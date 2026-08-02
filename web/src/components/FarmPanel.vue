@@ -31,38 +31,22 @@ const confirmConfig = ref({
 })
 
 async function executeOperate() {
-  if (!currentAccountId.value)
-    return
-
+  if (!currentAccountId.value) return
   const config = confirmConfig.value
-  if (!config.opType && !config.bulkAction && (!config.landAction || !config.land))
-    return
-
+  if (!config.opType && !config.bulkAction && (!config.landAction || !config.land)) return
   confirmVisible.value = false
   operating.value = true
   try {
-    if (config.opType) {
-      await farmStore.operate(currentAccountId.value, config.opType)
-    }
-    else if (config.bulkAction === 'removeAll') {
-      await farmStore.removeAllPlants(currentAccountId.value)
-    }
-    else if (config.landAction === 'fertilize') {
-      await farmStore.fertilizeLand(currentAccountId.value, Number(config.land.id))
-    }
-    else if (config.landAction === 'remove') {
-      await farmStore.removePlant(currentAccountId.value, Number(config.land.id))
-    }
+    if (config.opType) await farmStore.operate(currentAccountId.value, config.opType)
+    else if (config.bulkAction === 'removeAll') await farmStore.removeAllPlants(currentAccountId.value)
+    else if (config.landAction === 'fertilize') await farmStore.fertilizeLand(currentAccountId.value, Number(config.land.id))
+    else if (config.landAction === 'remove') await farmStore.removePlant(currentAccountId.value, Number(config.land.id))
   }
-  finally {
-    operating.value = false
-  }
+  finally { operating.value = false }
 }
 
 function handleOperate(opType: string) {
-  if (!currentAccountId.value)
-    return
-
+  if (!currentAccountId.value) return
   const confirmMap: Record<string, string> = {
     harvest: '确定要收获所有成熟作物吗？',
     clear: '确定要执行一键务农吗？将自动浇水、除草、除虫。',
@@ -70,103 +54,67 @@ function handleOperate(opType: string) {
     upgrade: '确定要升级所有可升级的土地吗？(消耗金币)',
     all: '确定要执行一键全收吗？将依次执行收获、务农、种植与升级。',
   }
-
   confirmConfig.value = {
     title: '确认操作',
     message: confirmMap[opType] || '确定执行此操作吗？',
-    opType,
-    bulkAction: '',
-    landAction: '',
-    land: null,
-    type: 'primary',
+    opType, bulkAction: '', landAction: '', land: null, type: 'primary',
   }
   confirmVisible.value = true
 }
 
 function handleRemoveAllPlants() {
-  if (!currentAccountId.value)
-    return
-
+  if (!currentAccountId.value) return
   confirmConfig.value = {
     title: '确认一键铲除',
     message: '确定要铲除全部已种植作物吗？此操作不可恢复。',
-    opType: '',
-    bulkAction: 'removeAll',
-    landAction: '',
-    land: null,
-    type: 'danger',
+    opType: '', bulkAction: 'removeAll', landAction: '', land: null, type: 'danger',
   }
   confirmVisible.value = true
 }
 
-function getLandActionName(land: any) {
-  return `#${land?.id ?? '-'} ${land?.plantName || '该作物'}`
-}
+function getLandActionName(land: any) { return `#${land?.id ?? '-'} ${land?.plantName || '该作物'}` }
 
 function handleLandFertilize(land: any) {
-  if (!currentAccountId.value)
-    return
-
+  if (!currentAccountId.value) return
   confirmConfig.value = {
     title: '确认催熟',
     message: `确定要对 ${getLandActionName(land)} 使用有机肥料催熟吗？`,
-    opType: '',
-    bulkAction: '',
-    landAction: 'fertilize',
-    land,
-    type: 'primary',
+    opType: '', bulkAction: '', landAction: 'fertilize', land, type: 'primary',
   }
   confirmVisible.value = true
 }
 
 function handleLandRemove(land: any) {
-  if (!currentAccountId.value)
-    return
-
+  if (!currentAccountId.value) return
   confirmConfig.value = {
     title: '确认铲除',
     message: `确定要铲除 ${getLandActionName(land)} 吗？此操作不可恢复。`,
-    opType: '',
-    bulkAction: '',
-    landAction: 'remove',
-    land,
-    type: 'danger',
+    opType: '', bulkAction: '', landAction: 'remove', land, type: 'danger',
   }
   confirmVisible.value = true
 }
 
 const operations = [
-  { type: 'harvest', label: '收获', icon: 'i-carbon-wheat', color: 'bg-blue-600 hover:bg-blue-700' },
-  { type: 'clear', label: '一键务农', icon: 'i-carbon-clean', color: 'bg-teal-600 hover:bg-teal-700' },
-  { type: 'plant', label: '种植', icon: 'i-carbon-sprout', color: 'bg-green-600 hover:bg-green-700' },
-  { type: 'upgrade', label: '升级土地', icon: 'i-carbon-upgrade', color: 'bg-purple-600 hover:bg-purple-700' },
-  { type: 'all', label: '一键全收', icon: 'i-carbon-flash', color: 'bg-orange-600 hover:bg-orange-700' },
+  { type: 'harvest', label: '收获', icon: 'i-carbon-wheat' },
+  { type: 'clear', label: '一键务农', icon: 'i-carbon-clean' },
+  { type: 'plant', label: '种植', icon: 'i-carbon-sprout' },
+  { type: 'upgrade', label: '升级土地', icon: 'i-carbon-upgrade' },
+  { type: 'all', label: '一键全收', icon: 'i-carbon-flash' },
 ]
 
 async function refresh() {
   if (currentAccountId.value) {
     const acc = currentAccount.value
-    if (!acc)
-      return
-
+    if (!acc) return
     try {
-      if (!realtimeConnected.value) {
-        await statusStore.fetchStatus(currentAccountId.value)
-      }
-
-      if (acc.running) {
-        await farmStore.fetchLands(currentAccountId.value)
-      }
+      if (!realtimeConnected.value) await statusStore.fetchStatus(currentAccountId.value)
+      if (acc.running) await farmStore.fetchLands(currentAccountId.value)
     }
-    finally {
-      farmLoaded.value = true
-    }
+    finally { farmLoaded.value = true }
   }
 }
 
-const showInitialLoading = computed(() =>
-  !farmLoaded.value && (loading.value || statusLoading.value),
-)
+const showInitialLoading = computed(() => !farmLoaded.value && (loading.value || statusLoading.value))
 
 watch(currentAccountId, (newId, oldId) => {
   if (oldId !== undefined && newId !== oldId) {
@@ -177,124 +125,97 @@ watch(currentAccountId, (newId, oldId) => {
   refresh()
 }, { immediate: true })
 
-watch(() => currentAccount.value?.running, () => {
-  refresh()
-})
+watch(() => currentAccount.value?.running, () => { refresh() })
 
 const { pause, resume } = useIntervalFn(() => {
-  if (lands.value) {
-    lands.value = lands.value.map((l: any) =>
-      l.matureInSec > 0 ? { ...l, matureInSec: l.matureInSec - 1 } : l,
-    )
-  }
+  if (lands.value) lands.value = lands.value.map((l: any) =>
+    l.matureInSec > 0 ? { ...l, matureInSec: l.matureInSec - 1 } : l,
+  )
 }, 1000)
 
 const { pause: pauseRefresh, resume: resumeRefresh } = useIntervalFn(refresh, 60000)
-
 resume()
 resumeRefresh()
-onUnmounted(() => {
-  pause()
-  pauseRefresh()
-})
+onUnmounted(() => { pause(); pauseRefresh() })
 </script>
 
 <template>
-  <div class="space-y-4">
-    <div class="rounded-lg bg-white shadow dark:bg-gray-800">
-      <!-- Header with Title and Actions -->
-      <div class="flex flex-col items-center justify-between gap-4 border-b border-gray-100 p-4 sm:flex-row dark:border-gray-700">
-        <h3 class="flex items-center gap-2 text-lg font-bold">
-          <div class="i-carbon-grid text-xl" />
-          土地详情
-        </h3>
-        <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-          <button
-            v-for="op in operations"
-            :key="op.type"
-            class="flex items-center justify-center gap-1.5 rounded px-3 py-2 text-sm text-white transition disabled:cursor-not-allowed disabled:opacity-50"
-            :class="op.color"
-            :disabled="operating"
-            @click="handleOperate(op.type)"
-          >
-            <div :class="op.icon" />
-            {{ op.label }}
-          </button>
-          <button
-            class="flex items-center justify-center gap-1.5 rounded bg-red-600 px-3 py-2 text-sm text-white transition disabled:cursor-not-allowed hover:bg-red-700 disabled:opacity-50"
-            :disabled="operating"
-            @click="handleRemoveAllPlants"
-          >
-            <div class="i-carbon-trash-can" />
-            一键铲除
-          </button>
-        </div>
+  <div class="farm-panel">
+    <!-- 功能按钮横排 -->
+    <div class="farm-actions">
+      <button
+        v-for="op in operations"
+        :key="op.type"
+        class="act-btn"
+        :class="'act-' + op.type"
+        :disabled="operating"
+        @click="handleOperate(op.type)"
+      >
+        <div :class="op.icon" class="act-icon" />
+        <span>{{ op.label }}</span>
+      </button>
+      <button
+        class="act-btn act-remove"
+        :disabled="operating"
+        @click="handleRemoveAllPlants"
+      >
+        <div class="i-carbon-trash-can act-icon" />
+        <span>一键铲除</span>
+      </button>
+    </div>
+
+    <!-- 统计 -->
+    <div class="farm-stats">
+      <div class="stat-item stat-harvest">
+        <div class="stat-val">{{ summary?.harvestable || 0 }}</div>
+        <div class="stat-lbl">可收</div>
       </div>
-
-      <!-- Summary -->
-      <div class="flex flex-wrap gap-4 border-b border-gray-100 bg-gray-50 p-4 text-sm dark:border-gray-700 dark:bg-gray-900/50">
-        <div class="flex items-center gap-1.5 rounded-full bg-orange-100 px-3 py-1 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
-          <div class="i-carbon-clean" />
-          <span class="font-medium">可收: {{ summary?.harvestable || 0 }}</span>
-        </div>
-        <div class="flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-          <div class="i-carbon-sprout" />
-          <span class="font-medium">生长: {{ summary?.growing || 0 }}</span>
-        </div>
-        <div class="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-gray-700 dark:bg-gray-800 dark:text-gray-400">
-          <div class="i-carbon-checkbox" />
-          <span class="font-medium">空闲: {{ summary?.empty || 0 }}</span>
-        </div>
-        <div class="flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-          <div class="i-carbon-warning" />
-          <span class="font-medium">枯萎: {{ summary?.dead || 0 }}</span>
-        </div>
+      <div class="stat-item stat-growing">
+        <div class="stat-val">{{ summary?.growing || 0 }}</div>
+        <div class="stat-lbl">生长</div>
       </div>
-
-      <!-- Grid -->
-      <div class="p-4">
-        <div v-if="showInitialLoading" class="flex justify-center py-12">
-          <div class="i-svg-spinners-90-ring-with-bg text-4xl text-blue-500" />
-        </div>
-
-        <div v-else-if="!currentAccountId" class="flex flex-col items-center justify-center gap-4 rounded-lg bg-white p-12 text-center text-gray-500 shadow dark:bg-gray-800">
-          <div class="i-carbon-user-offline text-4xl text-gray-400" />
-          <div>
-            <div class="text-lg text-gray-700 font-medium dark:text-gray-300">
-              未登录账号
-            </div>
-            <div class="mt-1 text-sm text-gray-400">
-              请先添加农场账号
-            </div>
-          </div>
-        </div>
-
-        <div v-else-if="!lands || lands.length === 0" class="flex justify-center py-12 text-gray-500">
-          暂无土地数据
-        </div>
-
-        <div v-else-if="currentStatusReady && !status?.connection?.connected" class="flex flex-col items-center justify-center gap-4 rounded-lg bg-white p-12 text-center text-gray-500 shadow dark:bg-gray-800">
-          <div class="i-carbon-connection-signal-off text-4xl text-gray-400" />
-          <div>
-            <div class="text-lg text-gray-700 font-medium dark:text-gray-300">
-              账号未登录
-            </div>
-            <div class="mt-1 text-sm text-gray-400">
-              请先运行账号或检查网络连接
-            </div>
-          </div>
-        </div>
-
-        <div v-else class="grid grid-cols-2 gap-4 lg:grid-cols-6 md:grid-cols-4 sm:grid-cols-3">
-          <LandCard
-            v-for="land in lands"
-            :key="land.id"
-            :land="land"
-            @fertilize="handleLandFertilize"
-            @remove="handleLandRemove"
-          />
-        </div>
+      <div class="stat-item stat-empty">
+        <div class="stat-val">{{ summary?.empty || 0 }}</div>
+        <div class="stat-lbl">空闲</div>
       </div>
+      <div class="stat-item stat-dead">
+        <div class="stat-val">{{ summary?.dead || 0 }}</div>
+        <div class="stat-lbl">枯萎</div>
+      </div>
+    </div>
+
+    <!-- 加载 -->
+    <div v-if="showInitialLoading" class="farm-loading">
+      <div class="i-svg-spinners-90-ring-with-bg text-3xl" :style="{ color: 'var(--theme-primary)' }" />
+    </div>
+
+    <!-- 未登录 -->
+    <div v-else-if="!currentAccountId" class="farm-empty">
+      <div class="i-carbon-user-offline text-4xl opacity-20" />
+      <div class="empty-text">未登录账号</div>
+    </div>
+
+    <!-- 无数据 -->
+    <div v-else-if="!lands || lands.length === 0" class="farm-empty">
+      <div class="empty-text">暂无土地数据</div>
+    </div>
+
+    <!-- 未连接 -->
+    <div v-else-if="currentStatusReady && !status?.connection?.connected" class="farm-empty">
+      <div class="i-carbon-connection-signal-off text-4xl opacity-20" />
+      <div class="empty-text">账号未登录</div>
+      <div class="empty-sub">请先运行账号或检查网络连接</div>
+    </div>
+
+    <!-- 土地网格 -->
+    <div v-else class="land-grid">
+      <LandCard
+        v-for="land in lands"
+        :key="land.id"
+        :land="land"
+        @fertilize="handleLandFertilize"
+        @remove="handleLandRemove"
+      />
     </div>
 
     <ConfirmModal
@@ -308,3 +229,96 @@ onUnmounted(() => {
     />
   </div>
 </template>
+
+<style scoped>
+.farm-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ===== 功能按钮 ===== */
+.farm-actions {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+}
+.farm-actions::-webkit-scrollbar { display: none; }
+
+.act-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--theme-border);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  background: var(--theme-glass);
+  color: var(--theme-text);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: all 0.2s;
+  user-select: none;
+}
+.act-btn:active { transform: scale(0.94); }
+.act-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+.act-icon { font-size: 15px; line-height: 1; }
+
+.act-harvest { background: color-mix(in srgb, var(--theme-accent) 8%, transparent); border-color: color-mix(in srgb, var(--theme-accent) 18%, transparent); color: var(--theme-accent); }
+.act-clear { background: color-mix(in srgb, #14b8a6 8%, transparent); border-color: color-mix(in srgb, #14b8a6 18%, transparent); color: #14b8a6; }
+.act-plant { background: color-mix(in srgb, var(--theme-primary) 8%, transparent); border-color: color-mix(in srgb, var(--theme-primary) 18%, transparent); color: var(--theme-primary); }
+.act-upgrade { background: color-mix(in srgb, #a78bfa 8%, transparent); border-color: color-mix(in srgb, #a78bfa 18%, transparent); color: #a78bfa; }
+.act-all { background: color-mix(in srgb, #fb923c 8%, transparent); border-color: color-mix(in srgb, #fb923c 18%, transparent); color: #fb923c; }
+.act-remove { background: color-mix(in srgb, #ef4444 8%, transparent); border-color: color-mix(in srgb, #ef4444 18%, transparent); color: #f87171; }
+
+/* ===== 统计 ===== */
+.farm-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.stat-item {
+  padding: 10px 4px;
+  border-radius: 14px;
+  border: 1px solid var(--theme-border);
+  text-align: center;
+  background: var(--theme-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.stat-val { font-size: 20px; font-weight: 700; line-height: 1.2; }
+.stat-lbl { font-size: 10px; color: var(--theme-text-secondary); margin-top: 1px; }
+.stat-harvest .stat-val { color: var(--theme-accent); }
+.stat-growing .stat-val { color: var(--theme-primary); }
+.stat-empty .stat-val { color: var(--theme-text-secondary); opacity: 0.5; }
+.stat-dead .stat-val { color: #ef4444; opacity: 0.8; }
+
+/* ===== 土地网格 ===== */
+.land-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+@media (max-width: 480px) { .land-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; } }
+
+/* ===== 空/加载状态 ===== */
+.farm-loading, .farm-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  gap: 8px;
+}
+.empty-text { font-size: 14px; color: var(--theme-text-secondary); }
+.empty-sub { font-size: 12px; color: var(--theme-text-secondary); opacity: 0.6; }
+</style>

@@ -36,6 +36,7 @@ body {
   padding: 0;
   overflow: hidden; /* App handles scrolling */
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 

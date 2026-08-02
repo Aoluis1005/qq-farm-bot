@@ -16,26 +16,39 @@ app.use(router)
 
 // Apply theme immediately before app mounts
 const THEME_KEY = 'ui_theme'
-const savedTheme = localStorage.getItem(THEME_KEY) || 'light-pink'
-const themes: Record<string, { isDark: boolean, bg: string, text: string, primary: string, secondary: string, gradient: string }> = {
-  'light-blue': { isDark: false, bg: '#f9fafb', text: '#1f2937', primary: '#3b82f6', secondary: '#2563eb', gradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' },
-  'dark-blue': { isDark: true, bg: '#111827', text: '#f3f4f6', primary: '#3b82f6', secondary: '#2563eb', gradient: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)' },
-  'light-pink': { isDark: false, bg: '#fff0f5', text: '#831843', primary: '#ec4899', secondary: '#be185d', gradient: 'linear-gradient(135deg, #f472b6 0%, #ec4899 100%)' },
-  'light-green': { isDark: false, bg: '#f0fdf4', text: '#14532d', primary: '#22c55e', secondary: '#16a34a', gradient: 'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)' },
-  'dark-purple': { isDark: true, bg: '#1e1b4b', text: '#e9d5ff', primary: '#a855f7', secondary: '#9333ea', gradient: 'linear-gradient(135deg, #c084fc 0%, #a855f7 100%)' },
-  'dark-orange': { isDark: true, bg: '#292524', text: '#fef3c7', primary: '#f59e0b', secondary: '#d97706', gradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' },
-  'dark-teal': { isDark: true, bg: '#134e4a', text: '#ccfbf1', primary: '#06b6d4', secondary: '#0891b2', gradient: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)' },
-  'dark-red': { isDark: true, bg: '#18181b', text: '#fda4af', primary: '#f43f5e', secondary: '#e11d48', gradient: 'linear-gradient(135deg, #fb7185 0%, #f43f5e 100%)' },
+const savedTheme = localStorage.getItem(THEME_KEY) || 'light'
+
+const lightTheme = {
+  isDark: false,
+  bg: '#f6f8f3',
+  text: '#1c2e1c',
+  primary: '#22a65e',
+  secondary: '#4ade80',
+  accent: '#d97706',
+  gradient: 'linear-gradient(135deg, #22a65e 0%, #d97706 100%)',
 }
 
-const theme = themes[savedTheme] || themes['light-pink']
+const darkTheme = {
+  isDark: true,
+  bg: '#0e1218',
+  text: '#e2e8f0',
+  primary: '#4ade80',
+  secondary: '#22c55e',
+  accent: '#fbbf24',
+  gradient: 'linear-gradient(135deg, #4ade80 0%, #fbbf24 100%)',
+}
+
+const theme = savedTheme === 'dark' ? darkTheme : lightTheme
 if (theme) {
   document.documentElement.style.setProperty('--theme-bg', theme.bg)
   document.documentElement.style.setProperty('--theme-text', theme.text)
   document.documentElement.style.setProperty('--theme-primary', theme.primary)
   document.documentElement.style.setProperty('--theme-secondary', theme.secondary)
+  document.documentElement.style.setProperty('--theme-accent', theme.accent)
   document.documentElement.style.setProperty('--theme-gradient', theme.gradient)
-  if (theme.isDark) {
+  document.documentElement.style.setProperty('--theme-glass', theme.isDark ? 'rgba(14,18,24,0.72)' : 'rgba(255,255,255,0.72)')
+  document.documentElement.style.setProperty('--theme-border', theme.isDark ? 'rgba(74,222,128,0.15)' : 'rgba(34,166,94,0.12)')
+  if (savedTheme === 'dark') {
     document.documentElement.classList.add('dark')
   }
   else {

@@ -49,8 +49,8 @@ defineEmits<{
       </div>
     </div>
 
-    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-      <div class="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:bg-gray-900/40 dark:text-gray-200">
+    <div class="grid gap-3 grid-cols-1 sm:grid-cols-3">
+      <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm text-gray-700 backdrop-blur-md dark:text-gray-200">
         <div class="text-xs text-gray-500 dark:text-gray-400">
           日志总数
         </div>
@@ -58,7 +58,7 @@ defineEmits<{
           {{ total }} 条
         </div>
       </div>
-      <div class="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:bg-gray-900/40 dark:text-gray-200">
+      <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm text-gray-700 backdrop-blur-md dark:text-gray-200">
         <div class="text-xs text-gray-500 dark:text-gray-400">
           成功登录
         </div>
@@ -66,7 +66,7 @@ defineEmits<{
           {{ successCount }} 条
         </div>
       </div>
-      <div class="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:bg-gray-900/40 dark:text-gray-200">
+      <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm text-gray-700 backdrop-blur-md dark:text-gray-200">
         <div class="text-xs text-gray-500 dark:text-gray-400">
           失败登录
         </div>
@@ -76,11 +76,11 @@ defineEmits<{
       </div>
     </div>
 
-    <div class="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-600 dark:bg-gray-900/40 dark:text-gray-300">
+    <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm text-gray-600 backdrop-blur-md dark:text-gray-300">
       登录日志默认展示最近记录，适合快速排查锁定、限流和密码错误等异常。
     </div>
 
-    <div class="border border-gray-200 rounded-2xl bg-white px-4 py-3 text-sm shadow-sm dark:border-gray-700 dark:bg-gray-800">
+    <div class="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-glass)] px-4 py-3 text-sm shadow-sm backdrop-blur-md">
       <div class="text-xs text-gray-500 dark:text-gray-400">
         当前日志结论
       </div>
@@ -89,8 +89,8 @@ defineEmits<{
       </div>
     </div>
 
-    <div class="overflow-hidden border border-gray-200 rounded-lg bg-white dark:border-gray-700 dark:bg-gray-800">
-      <div class="overflow-x-auto">
+    <div class="overflow-hidden rounded-lg border border-[var(--theme-border)] bg-[var(--theme-glass)] shadow backdrop-blur-md dark:bg-[var(--theme-glass)]">
+      <div class="overflow-x-auto resp-table">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-900">
             <tr>
@@ -162,3 +162,53 @@ defineEmits<{
     </div>
   </div>
 </template>
+<style scoped>
+@media (max-width: 640px) {
+  .resp-table table,
+  .resp-table thead,
+  .resp-table tbody,
+  .resp-table tr,
+  .resp-table td {
+    display: block;
+    width: 100%;
+  }
+  .resp-table thead { display: none; }
+  .resp-table tr {
+    margin-bottom: 12px;
+    border: 1px solid var(--theme-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--theme-glass);
+  }
+  .resp-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px !important;
+    text-align: right;
+    white-space: normal !important;
+    border: none;
+    min-width: 0;
+  }
+  .resp-table td:not(:last-child) {
+    border-bottom: 1px solid var(--theme-border);
+  }
+  .resp-table td[colspan]::before { content: none !important; }
+  .resp-table td::before {
+    content: '';
+    font-weight: 600;
+    color: var(--theme-text);
+    opacity: 0.65;
+    text-align: left;
+    flex: 0 0 auto;
+  }
+  .resp-table tbody tr td:nth-of-type(1)::before { content: "时间"; }
+  .resp-table tbody tr td:nth-of-type(2)::before { content: "事件"; }
+  .resp-table tbody tr td:nth-of-type(3)::before { content: "用户名"; }
+  .resp-table tbody tr td:nth-of-type(4)::before { content: "错误类型"; }
+  .resp-table tbody tr td:nth-of-type(5)::before { content: "IP地址"; }
+  .resp-table tbody tr td:nth-of-type(6)::before { content: "浏览器"; }
+}
+</style>
+

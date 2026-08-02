@@ -12,14 +12,14 @@ export const menuRoutes: MenuItem[] = [
   {
     path: '',
     name: 'dashboard',
-    label: '概览',
+    label: '首页',
     icon: 'i-carbon-chart-pie',
     component: () => import('@/views/Dashboard.vue'),
   },
   {
     path: 'personal',
     name: 'personal',
-    label: '个人',
+    label: '账号',
     icon: 'i-carbon-user',
     component: () => import('@/views/Personal.vue'),
   },

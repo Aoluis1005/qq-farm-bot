@@ -768,3 +768,36 @@ function formatGrowTime(seconds: any) {
     </div>
   </div>
 </template>
+
+<style scoped>
+:deep(.bg-white),
+:deep(.dark\\:bg-gray-800),
+:deep(.dark\\:bg-gray-700),
+:deep(.dark\\:bg-gray-900) {
+  background: var(--theme-glass) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+:deep(.shadow),
+:deep(.shadow-sm) {
+  box-shadow: none !important;
+  border: 1px solid var(--theme-border) !important;
+}
+
+:deep(.border-gray-200),
+:deep(.dark\\:border-gray-700),
+:deep(.dark\\:border-gray-600) {
+  border-color: var(--theme-border) !important;
+}
+
+:deep(.bg-gray-50) {
+  background: color-mix(in srgb, var(--theme-bg) 20%, transparent) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+:deep(.text-gray-500) {
+  color: var(--theme-text-secondary) !important;
+}
+</style>

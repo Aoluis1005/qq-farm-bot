@@ -416,4 +416,10 @@ onMounted(() => {
 </template>
 
 <style scoped lang="postcss">
+.admin-panel {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
 </style>

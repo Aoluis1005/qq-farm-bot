@@ -6,16 +6,27 @@ import api from '@/api'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseSelect from '@/components/ui/BaseSelect.vue'
+import DashboardTabs from '@/components/DashboardTabs.vue'
+import FarmPanel from '@/components/FarmPanel.vue'
+import BagPanel from '@/components/BagPanel.vue'
+import TaskPanel from '@/components/TaskPanel.vue'
+import FriendsTabContent from '@/components/DashboardFriendsTab.vue'
+import AutomationSettingsTab from '@/components/settings/AutomationSettingsTab.vue'
+import StrategySettingsTab from '@/components/settings/StrategySettingsTab.vue'
+import Illustrated from '@/views/Illustrated.vue'
+import Analytics from '@/views/Analytics.vue'
+import { useAutomationSettings } from '@/composables/settings/useAutomationSettings'
+import { useStrategySettings } from '@/composables/settings/useStrategySettings'
+import { useSettingStore } from '@/stores/setting'
 import AccountModal from '@/components/AccountModal.vue'
 import CareerModal from '@/components/CareerModal.vue'
 import { useAccountStore } from '@/stores/account'
 import { useBagStore } from '@/stores/bag'
 import { useStatusStore } from '@/stores/status'
 import { useToastStore } from '@/stores/toast'
-import { useAppStore } from '@/stores/app'
 import { formatCouponAmount, formatGoldAmount, formatGoldBeanAmount } from '@/utils/number-format'
-
-const appStore = useAppStore()
+import ThemeToggle from '@/components/ThemeToggle.vue'
+import { useAppStore } from '@/stores/app'
 const statusStore = useStatusStore()
 const accountStore = useAccountStore()
 const bagStore = useBagStore()
@@ -34,11 +45,14 @@ const { dashboardItems } = storeToRefs(bagStore)
 const showAccountDropdown = ref(false)
 const showAccountModal = ref(false)
 const showCareerModal = ref(false)
+const appStore = useAppStore()
+const startBtnStyle = computed(() => appStore.isDark
+  ? { background: 'linear-gradient(135deg, #1e3a8a, #3730a3)', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.4)' }
+  : { background: 'linear-gradient(135deg, #3b82f6, #6366f1)', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)' })
 const startAllLoading = ref(false)
 const startAllResults = ref<{ name: string; ok: boolean; msg: string }[]>([])
 const showStartAllModal = ref(false)
 const accountToEdit = ref<any>(null)
-const { accounts } = storeToRefs(accountStore)
 
 function openCareerModal() {
   showCareerModal.value = true
@@ -47,6 +61,10 @@ function openCareerModal() {
 // 关闭下拉（点击外部）
 onMounted(() => {
   document.addEventListener('click', closeAccountDropdown)
+  // 初始化主题
+  if (localStorage.getItem('theme-override') === 'dark') {
+    document.documentElement.classList.add('dark')
+  }
 })
 onUnmounted(() => {
   document.removeEventListener('click', closeAccountDropdown)
@@ -55,16 +73,6 @@ function closeAccountDropdown(e: MouseEvent) {
   const el = (e.target as HTMLElement)
   if (!el.closest('[data-account-dropdown]')) showAccountDropdown.value = false
 }
-function selectAccount(acc: any) {
-  accountStore.setCurrentAccount(acc)
-  showAccountDropdown.value = false
-}
-function openAddAccount() {
-  showAccountDropdown.value = false
-  accountToEdit.value = null
-  showAccountModal.value = true
-}
-
 async function handleAccountSaved() {
   showAccountModal.value = false
   accountToEdit.value = null
@@ -122,12 +130,6 @@ async function startAllAccounts() {
   showStartAllModal.value = true
 }
 
-// 账号显示名
-function accountDisplayName(acc: any) {
-  if (!acc) return '选择账号'
-  return acc.nick || acc.name || acc.uin || acc.qq || acc.id || '选择账号'
-}
-
 // 当前账号的微信昵称（去括号备注）
 const nickName = computed(() => {
   const acc = currentAccount.value
@@ -170,6 +172,102 @@ const filter = reactive({
 const hasActiveLogFilter = computed(() =>
   !!(filter.module || filter.event || filter.keyword || filter.isWarn),
 )
+const activeTab = ref('overview')
+const panelEl = ref<HTMLElement | null>(null)
+
+const swipeStart = { x: 0, y: 0 }
+function onSwipeStart(e: TouchEvent) {
+  const t = e.changedTouches && e.changedTouches[0]
+  if (!t) return
+  swipeStart.x = t.clientX
+  swipeStart.y = t.clientY
+}
+function onSwipeEnd(e: TouchEvent) {
+  const t = e.changedTouches && e.changedTouches[0]
+  if (!t) return
+  const dx = t.clientX - swipeStart.x
+  const dy = t.clientY - swipeStart.y
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+    const idx = dashboardTabs.findIndex((it) => it.key === activeTab.value)
+    if (idx === -1) return
+    const next = dx < 0 ? idx + 1 : idx - 1
+    const target = dashboardTabs[next]
+    if (target) activeTab.value = target.key
+
+  }
+}
+
+// 切换 tab 时给内容区一个轻微淡入，缓解滑动卡顿观感
+watch(activeTab, () => {
+  const el = panelEl.value
+  if (!el) return
+  el.classList.remove('tab-fade')
+  void el.offsetWidth
+  el.classList.add('tab-fade')
+})
+
+const dashboardTabs = [
+  { key: 'overview', label: '概览', icon: 'i-carbon-chart-pie' },
+  { key: 'farm', label: '农场', icon: 'i-carbon-tree' },
+  { key: 'bag', label: '背包', icon: 'i-carbon-backpack' },
+  { key: 'friends', label: '好友', icon: 'i-carbon-user-multiple' },
+  { key: 'tasks', label: '任务', icon: 'i-carbon-task' },
+  { key: 'automation', label: '自动控制', icon: 'i-carbon-settings-adjust' },
+  { key: 'strategy', label: '策略设置', icon: 'i-carbon-settings' },
+  { key: 'illustrated', label: '图鉴', icon: 'i-carbon-book' },
+  { key: 'analytics', label: '分析', icon: 'i-carbon-analytics' },
+]
+
+const settingStore = useSettingStore()
+function showAlert(message: string, _type: 'primary' | 'danger' = 'primary') {
+  toastStore.info(message)
+}
+
+const {
+  localAutomationSettings,
+  automationSaving,
+  fertilizerLandTypeOptions,
+  fertilizerOptions,
+  syncLocalAutomationSettings,
+  saveAutomationSettings,
+} = useAutomationSettings({
+  currentAccountId,
+  showAlert,
+})
+
+const {
+  settingsLoading,
+  strategySaving,
+  localStrategySettings,
+  plantingStrategyOptions,
+  bagFallbackStrategyOptions,
+  bagSeeds,
+  bagSeedsLoading,
+  bagSeedsError,
+  sortedBagSeeds,
+  preferredSeedOptions,
+  strategyPreviewLabel,
+  resetBagSeedPriority,
+  moveBagSeed,
+  removeBagSeedPriority,
+  startBagSeedDrag,
+  dragOverBagSeed,
+  dropBagSeed,
+  loadStrategyData,
+  saveStrategySettings,
+  resetStrategyState,
+} = useStrategySettings({
+  currentAccountId,
+  getAutomationSettings: () => ({ automation: localAutomationSettings.value }),
+  showAlert,
+})
+
+// 标记使用以消除 TS 未引用警告 (实际动态使用)
+void settingStore.clearSettingsState
+void resetStrategyState
+void syncLocalAutomationSettings
+void loadStrategyData
+
 const currentAccountDisconnected = computed(() =>
   currentStatusReady.value && !status.value?.connection?.connected,
 )
@@ -690,6 +788,10 @@ onMounted(async () => {
   statusStore.setRealtimeLogsEnabled(!hasActiveLogFilter.value)
   syncRealtimeAccount()
   await refresh()
+  if (currentAccountId.value) {
+    await loadStrategyData()
+    syncLocalAutomationSettings()
+  }
   scrollToBottom()
 })
 
@@ -713,28 +815,51 @@ useIntervalFn(updateCountdowns, 1000)
       </linearGradient>
     </defs>
   </svg>
-  <div class="flex flex-col gap-5 pt-1 md:pt-2">
-    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3 sm:grid-cols-2">
+  <div ref="panelEl" class="flex flex-col gap-2 pt-1 md:pt-2 overflow-x-hidden" @touchstart="onSwipeStart" @touchend="onSwipeEnd">
+    <!-- 首页子标签导航 -->
+
+    <div class="sticky top-0 z-30 -mx-1 px-1 pt-1" style="transform: translateZ(0);">
+
+      <DashboardTabs
+
+        :tabs="dashboardTabs"
+
+        :active-tab="activeTab"
+
+        @update:active-tab="activeTab = $event"
+
+      />
+
+    </div>
+
+    <!-- ===== 概览 ===== -->
+    <div v-show="activeTab === 'overview'" class="overview-panel grid grid-cols-1 gap-4 lg:grid-cols-3 sm:grid-cols-2">
       <!-- 合并账号面板 -->
-      <div class="ui-card metric-card overflow-visible rounded-lg">
+      <div class="overview-card">
         <div class="flex flex-col">
-          <!-- 第一行：居中标题 -->
+          <!-- 第一行：主题切换 + 居中标题 -->
           <div class="flex items-center px-5 py-3 border-b border-gray-100/80 dark:border-gray-700/80">
-            <button class="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700" @click="appStore.toggleSidebar()">
-              <span class="i-carbon-menu text-base" />
-            </button>
+            <!-- 主题切换按钮 左 -->
+            <ThemeToggle class="shrink-0 mr-2" />
             <div class="flex flex-1 items-center justify-center gap-2">
               <div class="i-fas-user-circle text-blue-500" />
               <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">QQ农场智能助手</span>
             </div>
-            <button
-              class="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+                        <button
+              class="relative flex h-8 w-16 items-center justify-between rounded-full px-1.5 transition-all duration-300"
+              :style="startBtnStyle"
               :disabled="startAllLoading"
+              :title="startAllLoading ? '启动中' : (allAccountsRunning ? '停止' : '一键启动')"
               @click="startAllAccounts"
             >
-              <span v-if="startAllLoading" class="i-svg-spinners-90-ring-with-bg text-base" />
-              <span v-else-if="allAccountsRunning" class="i-carbon-stop-filled text-base text-red-400" />
-              <span v-else class="i-carbon-play text-base" />
+              <div
+                class="flex h-6 w-6 transform items-center justify-center rounded-full shadow-md transition-all duration-300"
+                :class="[allAccountsRunning ? 'translate-x-[18px]' : 'translate-x-0', appStore.isDark ? 'bg-slate-700' : 'bg-white']"
+              >
+                <span v-if="startAllLoading" class="i-svg-spinners-90-ring-with-bg text-sm text-blue-500" />
+                <span v-else-if="allAccountsRunning" class="i-carbon-stop-filled text-sm text-blue-600" />
+                <span v-else class="i-carbon-play text-sm text-blue-600" />
+              </div>
             </button>
           </div>
 
@@ -768,41 +893,8 @@ useIntervalFn(updateCountdowns, 1000)
                 <span class="max-w-[80px] truncate text-xs font-semibold text-gray-800 dark:text-gray-200" :title="String(nickName)">
                   {{ nickName }}
                 </span>
-                <span
-                  class="cursor-pointer text-[10px] text-blue-500 transition-colors hover:text-blue-600 select-none"
-                  @click.stop="showAccountDropdown = !showAccountDropdown"
-                >
-                  ▼
-                </span>
+                
 
-                <!-- 账号切换下拉框 -->
-                <div
-                  v-if="showAccountDropdown"
-                  class="absolute left-1/2 top-full z-50 mt-1 w-44 -translate-x-1/2 overflow-hidden rounded-lg border border-gray-200/70 bg-white/95 py-1 shadow-xl backdrop-blur-sm dark:border-gray-700/70 dark:bg-gray-900/95"
-                >
-                  <div class="max-h-60 overflow-y-auto">
-                    <button
-                      v-for="acc in accounts"
-                      :key="acc.id || acc.uin"
-                      class="flex w-full items-center gap-2 whitespace-nowrap px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100/60 dark:hover:bg-gray-700/50"
-                      :style="{ backgroundColor: currentAccount?.id === acc.id ? 'color-mix(in srgb, var(--theme-primary) 10%, transparent)' : undefined }"
-                      @click="selectAccount(acc)"
-                    >
-                      <span class="truncate">{{ accountDisplayName(acc) }}</span>
-                      <div v-if="currentAccount?.id === acc.id" class="i-carbon-checkmark shrink-0 ml-auto" :style="{ color: 'var(--theme-primary)' }" />
-                    </button>
-                  </div>
-                  <div class="border-t border-gray-100 pt-1 dark:border-gray-700">
-                    <button
-                      class="flex w-full items-center gap-2 whitespace-nowrap px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100/50 dark:hover:bg-gray-700/50"
-                      :style="{ color: 'var(--theme-primary)' }"
-                      @click="openAddAccount"
-                    >
-                      <div class="i-carbon-add" />
-                      <span>添加账号</span>
-                    </button>
-                  </div>
-                </div>
               </div>
 
               <!-- EXP 进度条 -->
@@ -866,7 +958,7 @@ useIntervalFn(updateCountdowns, 1000)
       </div>
 
       <!-- 今日统计（展开/折叠） -->
-      <div class="ui-card metric-card overflow-visible rounded-lg p-5">
+      <div class="overview-card p-5">
         <div class="mb-3 flex items-center justify-between">
           <div class="flex items-center gap-2 text-sm text-gray-500">
             <div class="i-carbon-chart-column" />
@@ -913,7 +1005,7 @@ useIntervalFn(updateCountdowns, 1000)
       </div>
     </div>
 
-    <div class="flex flex-1 flex-col items-stretch gap-5 md:flex-row">
+    <div v-show="activeTab === 'overview'" class="flex flex-1 flex-col items-stretch gap-5 md:flex-row">
       <!-- 倒计时圆环卡片 + 化肥容器（原 md:w-1/4，现放前面） -->
       <div class="flex flex-col gap-5 md:w-1/4">
         <div class="ui-card flex flex-col rounded-lg p-4">
@@ -1090,6 +1182,76 @@ useIntervalFn(updateCountdowns, 1000)
         </div>
       </div>
     </div>
+
+    <!-- 农场（复用 FarmPanel） -->
+    <div v-show="activeTab === 'farm'" class="h-full">
+      <FarmPanel />
+    </div>
+
+    <!-- 背包（复用 BagPanel） -->
+    <div v-show="activeTab === 'bag'" class="h-full">
+      <BagPanel />
+    </div>
+
+    <!-- 好友（复用 FriendsFriendList） -->
+    <div v-show="activeTab === 'friends'" class="h-full">
+      <FriendsTabContent />
+    </div>
+
+    <!-- 任务（复用 TaskPanel） -->
+    <div v-show="activeTab === 'tasks'" class="h-full">
+      <TaskPanel />
+    </div>
+
+    <!-- 自动控制（完整设置） -->
+    <div v-show="activeTab === 'automation'" class="h-full">
+      <AutomationSettingsTab
+        v-model:settings="localAutomationSettings"
+        :current-account-name="currentAccount?.nick || currentAccount?.name || ''"
+        :current-account-id="currentAccountId"
+        :loading="settingsLoading"
+        :saving="automationSaving"
+        :fertilizer-land-type-options="fertilizerLandTypeOptions"
+        :fertilizer-options="fertilizerOptions"
+        @save="saveAutomationSettings"
+      />
+    </div>
+
+    <!-- 策略设置（完整设置） -->
+    <div v-show="activeTab === 'strategy'" class="h-full">
+      <StrategySettingsTab
+        v-model:settings="localStrategySettings"
+        :current-account-name="currentAccount?.nick || currentAccount?.name || ''"
+        :current-account-id="currentAccountId"
+        :loading="settingsLoading"
+        :saving="strategySaving"
+        :planting-strategy-options="plantingStrategyOptions"
+        :preferred-seed-options="preferredSeedOptions"
+        :bag-fallback-strategy-options="bagFallbackStrategyOptions"
+        :strategy-preview-label="strategyPreviewLabel"
+        :bag-seeds="bagSeeds"
+        :sorted-bag-seeds="sortedBagSeeds"
+        :bag-seeds-loading="bagSeedsLoading"
+        :bag-seeds-error="bagSeedsError"
+        @reset-bag-seed-priority="resetBagSeedPriority"
+        @move-bag-seed="moveBagSeed"
+        @remove-bag-seed="removeBagSeedPriority"
+        @start-bag-seed-drag="startBagSeedDrag"
+        @drag-over-bag-seed="dragOverBagSeed"
+        @drop-bag-seed="dropBagSeed"
+        @save="saveStrategySettings"
+      />
+    </div>
+
+    <!-- 图鉴 -->
+    <div v-show="activeTab === 'illustrated'" class="illustrated-container h-full">
+      <Illustrated />
+    </div>
+
+    <!-- 分析 -->
+    <div v-show="activeTab === 'analytics'" class="analytics-container h-full">
+      <Analytics />
+    </div>
   </div>
 
   <AccountModal
@@ -1104,8 +1266,8 @@ useIntervalFn(updateCountdowns, 1000)
   <Teleport to="body">
     <Transition name="fade">
       <div v-if="showStartAllModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" @click.self="showStartAllModal = false">
-        <div class="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl dark:bg-gray-800">
-          <h3 class="mb-4 text-center text-base font-bold text-gray-800 dark:text-gray-100">🚀 一键启动结果</h3>
+        <div class="w-full max-w-sm rounded-2xl glass-card p-5">
+          <h3 class="mb-4 text-center text-base font-bold">🚀 一键启动结果</h3>
           <div class="flex flex-col gap-2">
             <div
               v-for="(r, i) in startAllResults"
@@ -1128,4 +1290,94 @@ useIntervalFn(updateCountdowns, 1000)
     </Transition>
   </Teleport>
 </template>
- 
+
+<style scoped>
+.overview-panel {
+  --ov-glow: rgba(108, 92, 231, 0.06);
+}
+
+.overview-card {
+  border-radius: 16px;
+  overflow: visible;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: var(--theme-glass);
+  border: 1px solid var(--theme-border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+  transition: box-shadow 0.2s;
+}
+
+.overview-card :deep(.ui-subtle-panel) {
+  background: var(--theme-glass) !important;
+  border: 1px solid var(--theme-border) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+.overview-panel .ui-card {
+  border-radius: 16px;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: var(--theme-glass);
+  border: 1px solid var(--theme-border);
+}
+
+.overview-panel .ui-card-elevated {
+  border-radius: 16px;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: var(--theme-glass);
+  border: 1px solid var(--theme-border);
+}
+
+.overview-panel .ui-subtle-panel {
+  background: color-mix(in srgb, var(--theme-bg) 40%, transparent) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--theme-border);
+}
+
+/* 嵌入式组件玻璃覆盖 - 图鉴 / 分析 / 背包 / 好友 / 设置 */
+:deep(.illustrated-container),
+:deep(.analytics-container),
+.illustrated-container :deep(.rounded-lg),
+.analytics-container :deep(.rounded-lg) {
+  background: var(--theme-glass) !important;
+  border: 1px solid var(--theme-border) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.illustrated-container :deep(.bg-white),
+.analytics-container :deep(.bg-white),
+.illustrated-container :deep(.bg-gray-50),
+.analytics-container :deep(.bg-gray-50),
+.illustrated-container :deep(.dark\\:bg-gray-800),
+.analytics-container :deep(.dark\\:bg-gray-800),
+.illustrated-container :deep(.dark\\:bg-gray-900),
+.analytics-container :deep(.dark\\:bg-gray-900) {
+  background: var(--theme-glass) !important;
+}
+
+.illustrated-container :deep(.shadow-sm),
+.analytics-container :deep(.shadow-sm),
+.illustrated-container :deep(.shadow),
+.analytics-container :deep(.shadow) {
+  box-shadow: none !important;
+}
+
+.illustrated-container :deep(.border-gray-200),
+.analytics-container :deep(.border-gray-200),
+.illustrated-container :deep(.dark\\:border-gray-700),
+.analytics-container :deep(.dark\\:border-gray-700) {
+  border-color: var(--theme-border) !important;
+}
+
+
+/* 切 tab 淡入 */
+.tab-fade { animation: tabFadeIn 0.2s ease; }
+@keyframes tabFadeIn {
+  from { opacity: 0.35; }
+  to { opacity: 1; }
+}
+</style>

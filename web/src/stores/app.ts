@@ -4,7 +4,7 @@ import api from '@/api'
 
 const THEME_KEY = 'ui_theme'
 
-export type Theme = 'light-blue' | 'light-green' | 'light-pink' | 'dark-blue' | 'dark-purple' | 'dark-teal' | 'dark-orange' | 'dark-red'
+export type Theme = 'light' | 'dark'
 
 export interface LoginPageConfig {
   logoUrl: string
@@ -24,115 +24,53 @@ const defaultLoginPageConfig: LoginPageConfig = {
   qqGroupUrl: '',
 }
 
+export interface ThemeConfig {
+  name: string
+  isDark: boolean
+  bg: string
+  text: string
+  primary: string
+  secondary: string
+  accent: string
+  gradient: string
+  glass: string
+  border: string
+  icon: string
+}
+
 export const useAppStore = defineStore('app', () => {
-  const sidebarOpen = ref(false)
-  const currentTheme = ref<Theme>((localStorage.getItem(THEME_KEY) as Theme) || 'light-blue')
+  const currentTheme = ref<Theme>((localStorage.getItem(THEME_KEY) as Theme) || 'light')
   const showThemePanel = ref(false)
   const loginPageConfig = ref<LoginPageConfig>({ ...defaultLoginPageConfig })
   let loginPageConfigPromise: Promise<void> | null = null
 
-  const themes: Record<Theme, {
-    name: string
-    isDark: boolean
-    bg: string
-    text: string
-    primary: string
-    secondary: string
-    gradient: string
-    icon: string
-  }> = {
-    'light-blue': {
-      name: '晴空蓝',
+  const themes: Record<Theme, ThemeConfig> = {
+    light: {
+      name: '晨光',
       isDark: false,
-      bg: '#f6f8fb',
-      text: '#172033',
-      primary: '#2563eb',
-      secondary: '#0f766e',
-      gradient: 'linear-gradient(135deg, #2563eb 0%, #0f766e 100%)',
+      bg: '#f6f8f3',
+      text: '#1c2e1c',
+      primary: '#22a65e',
+      secondary: '#4ade80',
+      accent: '#d97706',
+      gradient: 'linear-gradient(135deg, #22a65e 0%, #d97706 100%)',
+      glass: 'rgba(255,255,255,0.72)',
+      border: 'rgba(34,166,94,0.12)',
       icon: 'i-carbon-sun',
     },
-    'dark-blue': {
-      name: '深海蓝',
+    dark: {
+      name: '夜幕',
       isDark: true,
-      bg: '#0b1020',
-      text: '#e5e7eb',
-      primary: '#60a5fa',
-      secondary: '#2dd4bf',
-      gradient: 'linear-gradient(135deg, #60a5fa 0%, #2dd4bf 100%)',
+      bg: '#0e1218',
+      text: '#e2e8f0',
+      primary: '#4ade80',
+      secondary: '#22c55e',
+      accent: '#fbbf24',
+      gradient: 'linear-gradient(135deg, #4ade80 0%, #fbbf24 100%)',
+      glass: 'rgba(14,18,24,0.72)',
+      border: 'rgba(74,222,128,0.15)',
       icon: 'i-carbon-moon',
     },
-    'light-pink': {
-      name: '樱花粉',
-      isDark: false,
-      bg: '#fff0f5',
-      text: '#831843',
-      primary: '#ec4899',
-      secondary: '#be185d',
-      gradient: 'linear-gradient(135deg, #f472b6 0%, #ec4899 100%)',
-      icon: 'i-carbon-favorite',
-    },
-    'light-green': {
-      name: '清新绿',
-      isDark: false,
-      bg: '#f0fdf4',
-      text: '#14532d',
-      primary: '#22c55e',
-      secondary: '#16a34a',
-      gradient: 'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)',
-      icon: 'i-fas-leaf',
-    },
-    'dark-purple': {
-      name: '紫罗兰',
-      isDark: true,
-      bg: '#1e1b4b',
-      text: '#e9d5ff',
-      primary: '#a855f7',
-      secondary: '#9333ea',
-      gradient: 'linear-gradient(135deg, #c084fc 0%, #a855f7 100%)',
-      icon: 'i-fas-crown',
-    },
-    'dark-orange': {
-      name: '暖阳橙',
-      isDark: true,
-      bg: '#292524',
-      text: '#fef3c7',
-      primary: '#f59e0b',
-      secondary: '#d97706',
-      gradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-      icon: 'i-carbon-sun',
-    },
-    'dark-teal': {
-      name: '青空青',
-      isDark: true,
-      bg: '#134e4a',
-      text: '#ccfbf1',
-      primary: '#06b6d4',
-      secondary: '#0891b2',
-      gradient: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
-      icon: 'i-carbon-tree',
-    },
-    'dark-red': {
-      name: '绯红夜',
-      isDark: true,
-      bg: '#18181b',
-      text: '#fda4af',
-      primary: '#f43f5e',
-      secondary: '#e11d48',
-      gradient: 'linear-gradient(135deg, #fb7185 0%, #f43f5e 100%)',
-      icon: 'i-carbon-close-filled',
-    },
-  }
-
-  function toggleSidebar() {
-    sidebarOpen.value = !sidebarOpen.value
-  }
-
-  function closeSidebar() {
-    sidebarOpen.value = false
-  }
-
-  function openSidebar() {
-    sidebarOpen.value = true
   }
 
   async function fetchTheme() {
@@ -166,7 +104,7 @@ export const useAppStore = defineStore('app', () => {
 
   function applyTheme(theme: Theme) {
     if (!themes[theme]) {
-      theme = 'light-pink'
+      theme = 'light'
     }
 
     const t = themes[theme]
@@ -178,7 +116,10 @@ export const useAppStore = defineStore('app', () => {
       document.documentElement.style.setProperty('--theme-text', t.text)
       document.documentElement.style.setProperty('--theme-primary', t.primary)
       document.documentElement.style.setProperty('--theme-secondary', t.secondary)
+      document.documentElement.style.setProperty('--theme-accent', t.accent)
       document.documentElement.style.setProperty('--theme-gradient', t.gradient)
+      document.documentElement.style.setProperty('--theme-glass', t.glass)
+      document.documentElement.style.setProperty('--theme-border', t.border)
 
       if (t.isDark) {
         document.documentElement.classList.add('dark')
@@ -194,13 +135,7 @@ export const useAppStore = defineStore('app', () => {
   }
 
   function toggleDark() {
-    const current = currentTheme.value
-    if (themes[current]?.isDark) {
-      applyTheme('light-green')
-    }
-    else {
-      applyTheme('light-pink')
-    }
+    applyTheme(currentTheme.value === 'dark' ? 'light' : 'dark')
   }
 
   const isDark = computed(() => themes[currentTheme.value]?.isDark ?? false)
@@ -212,7 +147,6 @@ export const useAppStore = defineStore('app', () => {
   applyTheme(currentTheme.value)
 
   return {
-    sidebarOpen,
     isDark,
     currentTheme,
     showThemePanel,
@@ -221,9 +155,6 @@ export const useAppStore = defineStore('app', () => {
     applyTheme,
     toggleThemePanel,
     toggleDark,
-    toggleSidebar,
-    closeSidebar,
-    openSidebar,
     fetchTheme,
     fetchLoginPageConfig,
   }

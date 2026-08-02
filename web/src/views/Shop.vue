@@ -338,8 +338,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="space-y-4">
-    <div class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
+  <section class="shop-page space-y-4">
+    <div class="rounded-lg glass-card p-4">
       <div class="mb-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <ShopAccountHeader
           :account-name="currentAccount?.name"
@@ -359,20 +359,20 @@ onMounted(() => {
         />
       </div>
 
-      <div v-if="!currentAccountId" class="rounded-lg bg-gray-50 p-8 text-center text-sm text-gray-500 dark:bg-gray-900/40 dark:text-gray-400">
+      <div v-if="!currentAccountId" class="rounded-lg glass-subtle p-8 text-center text-sm text-gray-500">
         请先选择账号，再查看商城。
       </div>
 
-      <div v-else-if="isAnyLoading && activeIsEmpty" class="rounded-lg bg-gray-50 p-8 text-center text-sm text-gray-500 dark:bg-gray-900/40 dark:text-gray-400">
+      <div v-else-if="isAnyLoading && activeIsEmpty" class="rounded-lg glass-subtle p-8 text-center text-sm text-gray-500">
         正在加载当前分区商品...
       </div>
 
-      <div v-else-if="activeError && activeIsEmpty" class="rounded-lg bg-red-50 p-8 text-center text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+      <div v-else-if="activeError && activeIsEmpty" class="rounded-lg glass-error p-8 text-center text-sm">
         {{ activeError }}
       </div>
 
       <div v-else-if="tab === 'seed'" class="space-y-4">
-        <div v-if="error" class="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+        <div v-if="error" class="rounded-xl glass-error px-4 py-3 text-sm">
           {{ error }}
         </div>
         <ShopEmptyState v-if="!sortedSeeds.length" :message="activeEmptyMessage" />
@@ -391,7 +391,7 @@ onMounted(() => {
       </div>
 
       <div v-else-if="tab === 'pet'" class="space-y-4">
-        <div v-if="petError" class="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+        <div v-if="petError" class="rounded-xl glass-error px-4 py-3 text-sm">
           {{ petError }}
         </div>
         <ShopEmptyState v-if="!pets.length" :message="activeEmptyMessage" />
@@ -410,7 +410,7 @@ onMounted(() => {
       </div>
 
       <div v-else-if="tab === 'decoration'" class="space-y-4">
-        <div v-if="decorationError" class="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+        <div v-if="decorationError" class="rounded-xl glass-error px-4 py-3 text-sm">
           {{ decorationError }}
         </div>
         <ShopEmptyState v-if="!decorations.length" :message="activeEmptyMessage" />
@@ -428,7 +428,7 @@ onMounted(() => {
       </div>
 
       <div v-else-if="tab === 'mall'" class="space-y-4">
-        <div v-if="mallError" class="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+        <div v-if="mallError" class="rounded-xl glass-error px-4 py-3 text-sm">
           {{ mallError }}
         </div>
         <ShopEmptyState v-if="!mallGoods.length" :message="activeEmptyMessage" />
@@ -447,7 +447,7 @@ onMounted(() => {
 
       <div v-else class="space-y-4">
         <MysteryAutoBuyCard :account-id="currentAccountId" />
-        <div v-if="mysteryError" class="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+        <div v-if="mysteryError" class="rounded-xl glass-error px-4 py-3 text-sm">
           {{ mysteryError }}
         </div>
         <ShopEmptyState v-if="!mysteryOffer?.active" :message="activeEmptyMessage" />
@@ -486,3 +486,47 @@ onMounted(() => {
     />
   </section>
 </template>
+
+<style scoped>
+.shop-page .glass-card {
+  border-radius: 16px;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: var(--theme-glass);
+  border: 1px solid var(--theme-border);
+}
+
+.shop-page .glass-subtle {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--theme-bg) 30%, transparent);
+  border: 1px solid var(--theme-border);
+  color: var(--theme-text-secondary);
+}
+
+.shop-page .glass-error {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: color-mix(in srgb, #ef4444 6%, transparent);
+  border: 1px solid color-mix(in srgb, #ef4444 12%, transparent);
+  color: var(--theme-text-secondary);
+}
+
+/* 子组件覆盖 */
+.shop-page :deep(bg-white),
+.shop-page :deep(.dark\\:bg-gray-800),
+.shop-page :deep(.dark\\:bg-gray-900) {
+  background: var(--theme-glass) !important;
+}
+
+.shop-page :deep(.border-gray-200),
+.shop-page :deep(.dark\\:border-gray-700) {
+  border-color: var(--theme-border) !important;
+}
+
+.shop-page :deep(.shadow-sm),
+.shop-page :deep(.shadow) {
+  box-shadow: none !important;
+}
+</style>
+

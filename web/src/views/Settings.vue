@@ -3,23 +3,20 @@ import { nextTick, onMounted, ref, watch } from 'vue'
 import api from '@/api'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import AccountSettingsTab from '@/components/settings/AccountSettingsTab.vue'
-import AutomationSettingsTab from '@/components/settings/AutomationSettingsTab.vue'
 import DefaultPlanSettingsTab from '@/components/settings/DefaultPlanSettingsTab.vue'
-import StrategySettingsTab from '@/components/settings/StrategySettingsTab.vue'
 import UserSettingsTab from '@/components/settings/UserSettingsTab.vue'
 import { useAccountSettings } from '@/composables/settings/useAccountSettings'
-import { useAutomationSettings } from '@/composables/settings/useAutomationSettings'
-import { useStrategySettings } from '@/composables/settings/useStrategySettings'
 import { useUserSettings } from '@/composables/settings/useUserSettings'
 import { useSettingStore } from '@/stores/setting'
+import AdminPanel from '@/views/AdminPanel.vue'
 
 const settingStore = useSettingStore()
 
-type SettingsTabKey = 'account' | 'strategy' | 'automation' | 'default-plan' | 'user'
+type SettingsTabKey = 'account' | 'default-plan' | 'user' | 'admin'
 
 function getInitialSettingsTab(): SettingsTabKey {
   const saved = localStorage.getItem('settings-active-tab')
-  return saved === 'strategy' || saved === 'automation' || saved === 'default-plan' || saved === 'user'
+  return saved === 'default-plan' || saved === 'user' || saved === 'admin'
     ? saved
     : 'account'
 }
@@ -40,10 +37,9 @@ watch(activeTab, (newTab) => {
 
 const tabs = [
   { key: 'account', label: '账号管理', icon: 'i-carbon-user-settings' },
-  { key: 'strategy', label: '策略设置', icon: 'i-fas-cogs' },
-  { key: 'automation', label: '自动控制', icon: 'i-carbon-toggle-on' },
   { key: 'default-plan', label: '默认方案', icon: 'i-carbon-settings-adjust' },
   { key: 'user', label: '用户管理', icon: 'i-carbon-user' },
+  { key: 'admin', label: '后台', icon: 'i-carbon-settings-adjust' },
 ] as const
 
 const modalVisible = ref(false)
@@ -124,47 +120,7 @@ const {
   confirmClearStopped,
 } = useAccountSettings(showAlert)
 
-const {
-  localAutomationSettings,
-  localAutoCodeRefresh,
-  automationSaving,
-  autoCodeRefreshing,
-  fertilizerLandTypeOptions,
-  fertilizerOptions,
-  syncLocalAutomationSettings,
-  saveAutomationSettings,
-  runAutoCodeRefreshNow,
-} = useAutomationSettings({
-  currentAccountId,
-  showAlert,
-})
-
-const {
-  settingsLoading,
-  strategySaving,
-  localStrategySettings,
-  plantingStrategyOptions,
-  bagFallbackStrategyOptions,
-  bagSeeds,
-  bagSeedsLoading,
-  bagSeedsError,
-  sortedBagSeeds,
-  preferredSeedOptions,
-  strategyPreviewLabel,
-  resetBagSeedPriority,
-  moveBagSeed,
-  removeBagSeedPriority,
-  startBagSeedDrag,
-  dragOverBagSeed,
-  dropBagSeed,
-  loadStrategyData,
-  saveStrategySettings,
-  resetStrategyState,
-} = useStrategySettings({
-  currentAccountId,
-  getAutomationSettings: () => localAutomationSettings.value,
-  showAlert,
-})
+// 自动控制 & 策略设置已移至首页子 Tab
 
 async function applyDefaultPlan(account: any) {
   if (!account?.id || defaultPlanApplyingId.value)
@@ -177,12 +133,6 @@ async function applyDefaultPlan(account: any) {
     })
     if (!data?.ok)
       throw new Error(data?.error || '应用失败')
-    if (String(currentAccountId.value || '') === accountId) {
-      settingStore.clearSettingsState()
-      resetStrategyState()
-      await loadStrategyData()
-      syncLocalAutomationSettings()
-    }
     showAlert(`已将默认方案应用到 ${account.name || account.id}`)
   }
   catch (error: any) {
@@ -195,10 +145,7 @@ async function applyDefaultPlan(account: any) {
 
 watch(currentAccountId, async () => {
   settingStore.clearSettingsState()
-  resetStrategyState()
   if (currentAccountId.value) {
-    await loadStrategyData()
-    syncLocalAutomationSettings()
     syncLocalOfflineSettings()
   }
 })
@@ -207,11 +154,6 @@ onMounted(async () => {
   await fetchAccounts()
   await fetchDeviceProtocol()
   selectFirstAccountIfNeeded()
-  if (currentAccountId.value) {
-    await loadStrategyData()
-    syncLocalAutomationSettings()
-    syncLocalOfflineSettings()
-  }
   await scrollActiveTabIntoView()
 })
 </script>
@@ -224,8 +166,8 @@ onMounted(async () => {
       </h1>
     </div>
 
-    <div class="border border-gray-200 rounded-lg bg-white shadow dark:border-gray-700 dark:bg-gray-800">
-      <div class="border-b border-gray-200 dark:border-gray-700">
+    <div class="glass-page">
+      <div class="glass-tabnav">
         <nav ref="settingsTabsNav" class="flex gap-1 overflow-x-auto p-2">
           <button
             v-for="tab in tabs"
@@ -245,7 +187,6 @@ onMounted(async () => {
       </div>
 
       <div class="p-4">
-        <!-- 账号管理 -->
         <AccountSettingsTab
           v-if="activeTab === 'account'"
           :accounts="accounts"
@@ -257,9 +198,9 @@ onMounted(async () => {
           :add-account-disabled-reason="addAccountDisabledReason"
           :is-account-ops-disabled="isAccountOpsDisabled"
           :show-modal="showModal"
-          :editing-account="editingAccount"
           :show-delete-confirm="showDeleteConfirm"
           :delete-loading="deleteLoading"
+          :editing-account="editingAccount"
           :account-to-delete="accountToDelete"
           :show-clear-stopped-confirm="showClearStoppedConfirm"
           :clear-stopped-loading="clearStoppedLoading"
@@ -282,58 +223,18 @@ onMounted(async () => {
           @confirm-clear-stopped="confirmClearStopped"
         />
 
-        <StrategySettingsTab
-          v-else-if="activeTab === 'strategy'"
-          v-model:settings="localStrategySettings"
-          :current-account-name="currentAccountName"
-          :current-account-id="currentAccountId"
-          :loading="settingsLoading"
-          :saving="strategySaving"
-          :planting-strategy-options="plantingStrategyOptions"
-          :preferred-seed-options="preferredSeedOptions"
-          :bag-fallback-strategy-options="bagFallbackStrategyOptions"
-          :strategy-preview-label="strategyPreviewLabel"
-          :bag-seeds="bagSeeds"
-          :sorted-bag-seeds="sortedBagSeeds"
-          :bag-seeds-loading="bagSeedsLoading"
-          :bag-seeds-error="bagSeedsError"
-          @reset-bag-seed-priority="resetBagSeedPriority"
-          @move-bag-seed="moveBagSeed"
-          @remove-bag-seed="removeBagSeedPriority"
-          @start-bag-seed-drag="startBagSeedDrag"
-          @drag-over-bag-seed="dragOverBagSeed"
-          @drop-bag-seed="dropBagSeed"
-          @save="saveStrategySettings"
-        />
-
-        <!-- 自动控制 -->
-        <AutomationSettingsTab
-          v-else-if="activeTab === 'automation'"
-          v-model:settings="localAutomationSettings"
-          v-model:auto-code-refresh="localAutoCodeRefresh"
-          :current-account-name="currentAccountName"
-          :current-account-id="currentAccountId"
-          :loading="settingsLoading"
-          :saving="automationSaving"
-          :auto-code-refreshing="autoCodeRefreshing"
-          :fertilizer-land-type-options="fertilizerLandTypeOptions"
-          :fertilizer-options="fertilizerOptions"
-          @run-auto-code-refresh="runAutoCodeRefreshNow"
-          @save="saveAutomationSettings"
-        />
-
         <DefaultPlanSettingsTab
           v-else-if="activeTab === 'default-plan'"
           :current-account-id="currentAccountId"
           :current-account-name="currentAccountName"
-          :planting-strategy-options="plantingStrategyOptions"
-          :preferred-seed-options="preferredSeedOptions"
-          :bag-fallback-strategy-options="bagFallbackStrategyOptions"
-          :bag-seeds="bagSeeds"
-          :bag-seeds-loading="bagSeedsLoading"
-          :bag-seeds-error="bagSeedsError"
-          :fertilizer-land-type-options="fertilizerLandTypeOptions"
-          :fertilizer-options="fertilizerOptions"
+          :planting-strategy-options="[]"
+          :preferred-seed-options="[]"
+          :bag-fallback-strategy-options="[]"
+          :bag-seeds="[]"
+          :bag-seeds-loading="false"
+          :bag-seeds-error="null"
+          :fertilizer-land-type-options="[]"
+          :fertilizer-options="[]"
           @notify="showAlert"
         />
 
@@ -361,6 +262,8 @@ onMounted(async () => {
           @test-offline="handleTestOffline"
           @save-offline="handleSaveOffline"
         />
+
+        <AdminPanel v-else-if="activeTab === 'admin'" />
       </div>
     </div>
 
@@ -377,3 +280,45 @@ onMounted(async () => {
     />
   </div>
 </template>
+
+<style scoped>
+.settings-page {
+  margin: 0 auto;
+  max-width: 1440px;
+  padding: 18px 24px;
+}
+
+@media (max-width: 640px) {
+  .settings-page {
+    padding: 12px 12px;
+  }
+}
+
+.glass-page {
+  border-radius: 16px;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: var(--theme-glass);
+  border: 1px solid var(--theme-border);
+}
+
+.glass-tabnav {
+  border-bottom: 1px solid var(--theme-border);
+}
+
+.glass-content :deep(.bg-white),
+.glass-content :deep(.dark\\:bg-gray-800),
+.glass-content :deep(.dark\\:bg-gray-900) {
+  background: var(--theme-glass) !important;
+}
+
+.glass-content :deep(.border-gray-200),
+.glass-content :deep(.dark\\:border-gray-700) {
+  border-color: var(--theme-border) !important;
+}
+
+.glass-content :deep(.shadow-sm),
+.glass-content :deep(.shadow) {
+  box-shadow: none !important;
+}
+</style>

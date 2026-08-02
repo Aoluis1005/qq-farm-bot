@@ -14,7 +14,7 @@ const currentTab = ref<'farm' | 'bag' | 'task'>('farm')
         class="rounded-lg px-4 py-2 font-medium transition-colors"
         :class="currentTab === 'farm'
           ? 'text-white shadow-md'
-          : 'bg-white text-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'"
+          : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'"
         :style="currentTab === 'farm' ? { backgroundColor: 'var(--theme-primary)' } : {}"
         @click="currentTab = 'farm'"
       >
@@ -27,7 +27,7 @@ const currentTab = ref<'farm' | 'bag' | 'task'>('farm')
         class="rounded-lg px-4 py-2 font-medium transition-colors"
         :class="currentTab === 'bag'
           ? 'text-white shadow-md'
-          : 'bg-white text-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'"
+          : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'"
         :style="currentTab === 'bag' ? { backgroundColor: 'var(--theme-primary)' } : {}"
         @click="currentTab = 'bag'"
       >
@@ -40,7 +40,7 @@ const currentTab = ref<'farm' | 'bag' | 'task'>('farm')
         class="rounded-lg px-4 py-2 font-medium transition-colors"
         :class="currentTab === 'task'
           ? 'text-white shadow-md'
-          : 'bg-white text-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'"
+          : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'"
         :style="currentTab === 'task' ? { backgroundColor: 'var(--theme-primary)' } : {}"
         @click="currentTab = 'task'"
       >

@@ -1,58 +1,22 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import MysteryMerchantBanner from '@/components/shop/MysteryMerchantBanner.vue'
 import FloatingDock from '@/components/FloatingDock.vue'
-import Sidebar from '@/components/Sidebar.vue'
-import { useAppStore } from '@/stores/app'
 import { useAccountStore } from '@/stores/account'
 
-const appStore = useAppStore()
 const accountStore = useAccountStore()
 
-// 右滑呼出侧边栏（触屏）
-const touchStartX = ref(0)
-const touchStartY = ref(0)
-function onTouchStart(e: TouchEvent) {
-  touchStartX.value = e.touches?.[0]?.clientX ?? 0
-  touchStartY.value = e.touches?.[0]?.clientY ?? 0
-}
-function onTouchMove(e: TouchEvent) {
-  const x = e.touches?.[0]?.clientX ?? 0
-  const y = e.touches?.[0]?.clientY ?? 0
-  const dx = x - touchStartX.value
-  const dy = Math.abs(y - touchStartY.value)
-  if (dx > 80 && dx > dy * 2) {
-    if (!appStore.sidebarOpen) appStore.openSidebar()
-  }
-}
-
 onMounted(() => {
-  appStore.fetchLoginPageConfig()
-  accountStore.fetchAccounts()
-  document.addEventListener('touchstart', onTouchStart as any, { passive: true })
-  document.addEventListener('touchmove', onTouchMove as any, { passive: true })
-})
-
-onUnmounted(() => {
-  document.removeEventListener('touchstart', onTouchStart as any)
-  document.removeEventListener('touchmove', onTouchMove as any)
-})
-
-onMounted(() => {
-  appStore.fetchLoginPageConfig()
   accountStore.fetchAccounts()
 })
-
-onUnmounted(() => {})
 </script>
 
 <template>
-  <div class="w-screen flex overflow-hidden bg-gray-50 dark:bg-gray-900" style="height: 100dvh;">>
-    <Sidebar />
-    <main class="relative h-full min-h-0 min-w-0 flex flex-1 flex-col overflow-hidden">
+  <div class="w-full flex overflow-hidden bg-gray-50 dark:bg-gray-900" style="height: 100dvh;">
+      <main class="relative h-full min-h-0 min-w-0 flex flex-1 flex-col overflow-hidden">
       <div class="min-h-0 flex flex-1 flex-col overflow-hidden">
         <MysteryMerchantBanner />
-        <div class="custom-scrollbar min-h-0 flex flex-1 flex-col overflow-y-auto p-3 pb-[calc(5rem+env(safe-area-inset-bottom))] md:p-6 sm:p-4 md:pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:pb-[calc(5rem+env(safe-area-inset-bottom))]">
+        <div class="custom-scrollbar min-h-0 flex flex-1 flex-col overflow-y-auto overflow-x-hidden p-3 pb-[calc(5rem+env(safe-area-inset-bottom))] md:p-6 sm:p-4 md:pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:pb-[calc(5rem+env(safe-area-inset-bottom))]">
           <RouterView v-slot="{ Component, route }">
             <component :is="Component" :key="route.path" />
           </RouterView>

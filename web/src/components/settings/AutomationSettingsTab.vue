@@ -38,35 +38,25 @@ interface AutomationSettings {
   goldenBugRoundLimit: number
 }
 
-interface AutoCodeRefreshConfig {
-  enabled: boolean
-  intervalMinutes: number
-}
-
 withDefaults(defineProps<{
   currentAccountName: string | null
   currentAccountId: string | number | null | undefined
   loading: boolean
   saving: boolean
-  autoCodeRefreshing: boolean
   fertilizerLandTypeOptions: { label: string, value: string }[]
   fertilizerOptions: { label: string, value: string | number }[]
   title?: string
   saveLabel?: string
-  showRunAutoCodeRefresh?: boolean
 }>(), {
   title: '自动控制',
   saveLabel: '保存自动控制',
-  showRunAutoCodeRefresh: true,
 })
 
 const emit = defineEmits<{
   save: []
-  runAutoCodeRefresh: []
 }>()
 
 const settings = defineModel<AutomationSettings>('settings', { required: true })
-const autoCodeRefresh = defineModel<AutoCodeRefreshConfig>('autoCodeRefresh', { required: true })
 
 function isFastMatureFertilizerMode(mode: string) {
   return mode === 'smart' || mode === 'smart_only' || mode === 'smart_normal'
@@ -95,62 +85,50 @@ function isFastMatureFertilizerMode(mode: string) {
     </div>
 
     <div v-else class="space-y-4">
-      <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
-        <BaseSwitch v-model="settings.automation.farm" label="自动种植收获" />
-        <BaseSwitch v-model="settings.automation.task" label="自动做任务" />
-        <BaseSwitch v-model="settings.automation.sell" label="自动卖果实" />
-        <BaseSwitch v-model="settings.automation.friend" label="自动好友互动" />
-        <BaseSwitch v-model="settings.automation.farm_push" label="推送触发巡田" />
-        <BaseSwitch v-model="settings.automation.land_upgrade" label="自动升级土地" />
-        <BaseSwitch v-model="settings.automation.fertilizer_gift" label="自动填充化肥" />
-        <BaseSwitch v-model="settings.automation.fertilizer_buy_organic" label="自动购买有机化肥" />
-        <BaseSwitch v-model="settings.automation.fertilizer_buy_normal" label="自动购买无机化肥" />
-        <BaseSwitch v-model="settings.automation.skip_own_weed_bug" label="不除自己草虫" />
-        <BaseSwitch v-model="settings.automation.golden_bug_clear" label="自动清除黄金虫" />
-      </div>
-
-      <div class="border border-gray-200 rounded bg-gray-50/70 p-3 dark:border-gray-700 dark:bg-gray-900/20">
-        <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div class="min-w-0 space-y-2">
-            <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <span class="inline-flex items-center gap-1.5 text-sm text-gray-900 font-medium dark:text-gray-100">
-                <span class="i-carbon-renew text-base text-gray-500 dark:text-gray-400" />
-                自动刷新获取 Code
-              </span>
-              <BaseSwitch
-                v-model="autoCodeRefresh.enabled"
-                label="启用"
-              />
-            </div>
-            <p class="text-xs text-gray-500 dark:text-gray-400">
-              <span class="text-amber-700 font-semibold dark:text-amber-300">仅微信账号可用。</span>
-              到点后自动获取新 Code 并重启当前账号；QQ 账号和缺少 wxid 的手动填码账号会跳过。
-            </p>
-          </div>
-
-          <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
-            <BaseInput
-              v-model.number="autoCodeRefresh.intervalMinutes"
-              class="sm:w-36"
-              label="间隔(分钟)"
-              type="number"
-              min="1"
-              max="1440"
-              placeholder="60"
-            />
-            <BaseButton
-              v-if="showRunAutoCodeRefresh"
-              variant="secondary"
-              size="sm"
-              class="h-9 whitespace-nowrap"
-              :loading="autoCodeRefreshing"
-              :disabled="saving"
-              @click="emit('runAutoCodeRefresh')"
-            >
-              <span class="i-carbon-renew mr-1" />
-              立即刷新
-            </BaseButton>
-          </div>
+      <div class="grid grid-cols-2 gap-2 sm:gap-3">
+        <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+          <span class="text-[13px] text-gray-800 dark:text-gray-100">自动种植收获</span>
+          <BaseSwitch v-model="settings.automation.farm" />
+        </div>
+        <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+          <span class="text-[13px] text-gray-800 dark:text-gray-100">自动做任务</span>
+          <BaseSwitch v-model="settings.automation.task" />
+        </div>
+        <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+          <span class="text-[13px] text-gray-800 dark:text-gray-100">自动卖果实</span>
+          <BaseSwitch v-model="settings.automation.sell" />
+        </div>
+        <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+          <span class="text-[13px] text-gray-800 dark:text-gray-100">自动好友互动</span>
+          <BaseSwitch v-model="settings.automation.friend" />
+        </div>
+        <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+          <span class="text-[13px] text-gray-800 dark:text-gray-100">推送触发巡田</span>
+          <BaseSwitch v-model="settings.automation.farm_push" />
+        </div>
+        <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+          <span class="text-[13px] text-gray-800 dark:text-gray-100">自动升级土地</span>
+          <BaseSwitch v-model="settings.automation.land_upgrade" />
+        </div>
+        <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+          <span class="text-[13px] text-gray-800 dark:text-gray-100">自动填充化肥</span>
+          <BaseSwitch v-model="settings.automation.fertilizer_gift" />
+        </div>
+        <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+          <span class="text-[13px] text-gray-800 dark:text-gray-100">自动购买有机化肥</span>
+          <BaseSwitch v-model="settings.automation.fertilizer_buy_organic" />
+        </div>
+        <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+          <span class="text-[13px] text-gray-800 dark:text-gray-100">自动购买无机化肥</span>
+          <BaseSwitch v-model="settings.automation.fertilizer_buy_normal" />
+        </div>
+        <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+          <span class="text-[13px] text-gray-800 dark:text-gray-100">不除自己草虫</span>
+          <BaseSwitch v-model="settings.automation.skip_own_weed_bug" />
+        </div>
+        <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+          <span class="text-[13px] text-gray-800 dark:text-gray-100">自动清除黄金虫</span>
+          <BaseSwitch v-model="settings.automation.golden_bug_clear" />
         </div>
       </div>
 
@@ -211,13 +189,34 @@ function isFastMatureFertilizerMode(mode: string) {
         </p>
       </div>
 
-      <div v-if="settings.automation.friend" class="flex flex-wrap gap-4 rounded bg-blue-50 p-3 text-sm dark:bg-blue-900/20">
-        <BaseSwitch v-model="settings.automation.friend_steal" label="自动偷菜" />
-        <BaseSwitch v-model="settings.automation.friend_help" label="自动帮忙" />
-        <BaseSwitch v-model="settings.automation.friend_bad" label="自动捣乱" />
-        <BaseSwitch v-model="settings.automation.friend_golden_bug" label="自动放黄金虫" />
-        <BaseSwitch v-model="settings.automation.friend_help_exp_limit" label="经验满只帮护主犬" />
-        <BaseSwitch v-model="settings.automation.friend_turbo_mode" label="极速务农（只帮护主犬）" />
+      <div v-if="settings.automation.friend" class="space-y-2">
+        <div class="text-sm text-gray-500 dark:text-gray-400">好友互动</div>
+        <div class="grid grid-cols-2 gap-2 sm:gap-3">
+        <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+          <span class="text-[13px] text-gray-800 dark:text-gray-100">自动偷菜</span>
+          <BaseSwitch v-model="settings.automation.friend_steal" />
+        </div>
+        <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+          <span class="text-[13px] text-gray-800 dark:text-gray-100">自动帮忙</span>
+          <BaseSwitch v-model="settings.automation.friend_help" />
+        </div>
+        <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+          <span class="text-[13px] text-gray-800 dark:text-gray-100">自动捣乱</span>
+          <BaseSwitch v-model="settings.automation.friend_bad" />
+        </div>
+        <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+          <span class="text-[13px] text-gray-800 dark:text-gray-100">自动放黄金虫</span>
+          <BaseSwitch v-model="settings.automation.friend_golden_bug" />
+        </div>
+        <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+          <span class="text-[13px] text-gray-800 dark:text-gray-100">经验满只帮护主犬</span>
+          <BaseSwitch v-model="settings.automation.friend_help_exp_limit" />
+        </div>
+        <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+          <span class="text-[13px] text-gray-800 dark:text-gray-100">极速务农（只帮护主犬）</span>
+          <BaseSwitch v-model="settings.automation.friend_turbo_mode" />
+        </div>
+        </div>
       </div>
 
       <div v-if="settings.automation.friend && settings.automation.friend_golden_bug" class="grid grid-cols-1 gap-3 rounded bg-amber-50 p-3 text-sm md:grid-cols-2 dark:bg-amber-900/20">
@@ -286,11 +285,11 @@ function isFastMatureFertilizerMode(mode: string) {
           />
         </div>
 
-        <div class="flex items-center gap-4">
-          <BaseSwitch
-            v-model="settings.automation.fertilizer_multi_season"
-            label="多季补肥"
-          />
+        <div class="grid grid-cols-2 gap-2 sm:gap-3">
+          <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+            <span class="text-[13px] text-gray-800 dark:text-gray-100">多季补肥</span>
+            <BaseSwitch v-model="settings.automation.fertilizer_multi_season" />
+          </div>
         </div>
 
         <div v-if="isFastMatureFertilizerMode(settings.automation.fertilizer)" class="rounded bg-amber-50 p-3 text-sm dark:bg-amber-900/20">

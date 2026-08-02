@@ -218,7 +218,7 @@ function handleLogoFileChange(event: Event) {
           保存后会立刻影响全局连接参数。若服务器地址、平台或系统版本不匹配，可能导致后续账号连接异常。
         </div>
 
-        <div class="grid grid-cols-2 gap-3 text-sm">
+        <div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
           <BaseInput
             v-model="localSystemConfig.serverUrl"
             label="服务器地址"
@@ -235,7 +235,7 @@ function handleLogoFileChange(event: Event) {
           />
           <div class="flex flex-col gap-1.5">
             <label class="text-sm text-gray-700 font-medium dark:text-gray-300">平台</label>
-            <div class="flex gap-2">
+            <div class="flex flex-wrap gap-2">
               <button
                 v-for="option in platformOptions"
                 :key="option.value"
@@ -252,7 +252,7 @@ function handleLogoFileChange(event: Event) {
           </div>
           <div class="flex flex-col gap-1.5">
             <label class="text-sm text-gray-700 font-medium dark:text-gray-300">系统</label>
-            <div class="flex gap-2">
+            <div class="flex flex-wrap gap-2">
               <button
                 v-for="option in osOptions"
                 :key="option.value"
@@ -340,7 +340,7 @@ function handleLogoFileChange(event: Event) {
           保存会立即影响扫码登录、自动添加账号与用户隔离行为，建议确认当前环境、代理地址和启用状态后再提交。
         </div>
 
-        <div class="grid grid-cols-2 gap-3 text-sm">
+        <div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
           <div class="col-span-2">
             <BaseSwitch
               v-model="localWxConfig.enabled"
@@ -431,7 +431,7 @@ function handleLogoFileChange(event: Event) {
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 text-sm">
+        <div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
           <div class="col-span-2">
             <BaseSwitch
               v-model="localCaptureConfig.enabled"

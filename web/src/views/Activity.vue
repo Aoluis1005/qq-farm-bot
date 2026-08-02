@@ -293,7 +293,7 @@ onMounted(() => {
 
 <template>
   <section class="space-y-4">
-    <header class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
+    <header class="rounded-lg glass-card p-4">
       <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <div class="min-w-0 flex flex-wrap items-center gap-3">
           <div class="flex items-center gap-2">
@@ -317,7 +317,7 @@ onMounted(() => {
 
         <div class="min-w-0 flex flex-wrap items-center gap-2">
           <div class="max-w-full min-w-0 overflow-x-auto pb-1">
-            <div class="h-9 min-w-max inline-flex overflow-hidden border border-gray-200 rounded-lg bg-white p-0.5 dark:border-gray-700 dark:bg-gray-800">
+            <div class="h-9 min-w-max inline-flex overflow-hidden border rounded-lg glass-segmented p-0.5">
               <button
                 v-for="section in sectionTabs"
                 :key="section.key"
@@ -345,18 +345,18 @@ onMounted(() => {
 
     <div
       v-if="!currentAccountId"
-      class="rounded-lg bg-white p-10 text-center text-sm text-gray-500 shadow dark:bg-gray-800 dark:text-gray-400"
+      class="rounded-lg glass-subtle p-10 text-center text-sm"
     >
-      <div class="i-carbon-user-profile mx-auto mb-3 text-3xl text-gray-300" />
+      <div class="i-carbon-user-profile mx-auto mb-3 text-3xl opacity-30" />
       {{ L.needAccount }}
     </div>
 
     <template v-else>
       <!-- 荷风活动已过期 -->
-      <div v-if="HELU_EXPIRED" class="rounded-lg bg-white p-10 text-center text-sm text-gray-500 shadow dark:bg-gray-800 dark:text-gray-400">
-        <div class="i-carbon-calendar-mischeck mx-auto mb-3 text-3xl text-gray-300" />
-        <div class="text-base font-medium text-gray-700 dark:text-gray-200">荷风活动已结束</div>
-        <div class="mt-1 text-xs text-gray-400">新活动「千星游记」上线后敬请期待</div>
+      <div v-if="HELU_EXPIRED" class="rounded-lg glass-subtle p-10 text-center text-sm">
+        <div class="i-carbon-calendar-mischeck mx-auto mb-3 text-3xl opacity-30" />
+        <div class="text-base font-medium">荷风活动已结束</div>
+        <div class="mt-1 text-xs" style="opacity:0.6">新活动「千星游记」上线后敬请期待</div>
       </div>
 
       <div v-else class="min-w-0 space-y-4">
@@ -439,3 +439,45 @@ onMounted(() => {
     </template>
   </section>
 </template>
+
+<style scoped>
+.glass-card {
+  border-radius: 16px;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: var(--theme-glass);
+  border: 1px solid var(--theme-border);
+}
+
+.glass-subtle {
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--theme-bg) 30%, transparent);
+  border: 1px solid var(--theme-border);
+}
+
+.glass-segmented {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--theme-glass) 50%, transparent);
+  border-color: var(--theme-border);
+}
+
+/* 子组件覆盖 */
+:deep(.bg-white),
+:deep(.dark\\:bg-gray-800),
+:deep(.dark\\:bg-gray-900) {
+  background: var(--theme-glass) !important;
+}
+
+:deep(.border-gray-200),
+:deep(.dark\\:border-gray-700) {
+  border-color: var(--theme-border) !important;
+}
+
+:deep(.shadow-sm),
+:deep(.shadow) {
+  box-shadow: none !important;
+}
+</style>
