@@ -45,8 +45,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/screenshots/04-login-light.jpg" width="48%" alt="登录页（白天主题）" />
-  <img src="assets/screenshots/05-login-dark.jpg" width="48%" alt="登录页（夜间主题）" />
+  <img src="assets/screenshots/05-login-dark.jpg" width="55%" alt="登录页（夜间主题）" />
 </p>
 
 本仓库前端已用 **Vue 3 + Vite + TypeScript + UnoCSS** 完全重构，相比原版面板在交互、信息密度和移动端适配上都有质的提升。核心亮点：
