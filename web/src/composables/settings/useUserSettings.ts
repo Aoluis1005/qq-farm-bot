@@ -180,11 +180,11 @@ export function useUserSettings(showAlert: (message: string, type?: AlertType) =
   }
 
   function generateRandomMac() {
-    return Array.from({ length: 6 }).fill(randomHexPair()).join(':')
+    return Array.from({ length: 6 }, randomHexPair).join(':')
   }
 
   function generateRandomDeviceId() {
-    return Array.from({ length: 16 }).fill(Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase()
+    return Array.from({ length: 16 }, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase()
   }
 
   function generateRandomImei() {
