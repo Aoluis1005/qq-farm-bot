@@ -7,6 +7,8 @@ export interface BlacklistItem {
   gid: number
   name: string
   avatarUrl: string
+  skipSteal: boolean
+  skipHelp: boolean
 }
 
 export interface KnownFriendSettings {
@@ -221,6 +223,20 @@ export const useFriendStore = defineStore('friend', () => {
     if (res.data.ok) {
       blacklist.value = res.data.data || []
     }
+  }
+
+  async function updateBlacklistItem(accountId: string, gid: number, opts: { skipSteal?: boolean, skipHelp?: boolean }) {
+    if (!accountId || !gid)
+      return
+    try {
+      const res = await api.post('/api/friend-blacklist/update', { gid, ...opts }, {
+        headers: { 'x-account-id': accountId },
+      })
+      if (res.data.ok) {
+        blacklist.value = res.data.data || []
+      }
+    }
+    catch { /* ignore */ }
   }
 
   async function fetchFriendLands(accountId: string, friendId: string) {
@@ -472,6 +488,7 @@ export const useFriendStore = defineStore('friend', () => {
     fetchFriendDogInfo,
     fetchBlacklist,
     toggleBlacklist,
+    updateBlacklistItem,
     fetchInteractRecords,
     fetchFriendLands,
     operate,

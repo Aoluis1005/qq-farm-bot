@@ -314,6 +314,12 @@ onMounted(async () => {
   margin: 0 auto;
   max-width: 1440px;
   padding: 18px 24px;
+  /* App.vue 根容器是 h-screen overflow-hidden，本页必须自带滚动容器，
+     否则后台等子 tab 内容超出屏幕时无法滚动（移动端尤其明显） */
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 @media (max-width: 640px) {

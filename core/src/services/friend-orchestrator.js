@@ -2,6 +2,7 @@ const { CONFIG } = require('../config/config');
 const {
   isAutomationOn,
   getFriendBlacklist,
+  getFriendBlacklistDetails,
   getAutoAcceptFriendMinLevel,
   getKnownFriendGids,
   applyConfigSnapshot,
@@ -288,7 +289,7 @@ async function checkFriends(options = {}) {
       return false;
     }
 
-    const blacklist = new Set(getFriendBlacklist(accountId));
+    const blacklist = new Map(getFriendBlacklistDetails(accountId).map((w) => [w.gid, w]));
     const dogInfoCache = readFriendDogInfoCache(accountId);
     const guardDogGidSet = dogInfoCache
       ? new Set(Object.keys(dogInfoCache).map(Number))
@@ -313,7 +314,7 @@ async function checkFriends(options = {}) {
         const gid = toNum(friend.gid);
         if (gid === userState.gid) continue;
         if (visitedGids.has(gid)) continue;
-        if (blacklist.has(gid)) continue;
+        if (blacklist.has(gid) && blacklist.get(gid).skipSteal) continue;
 
         const name = friend.remark || friend.name || `GID:${gid}`;
         const plant = friend.plant;
@@ -335,7 +336,7 @@ async function checkFriends(options = {}) {
           const gid = toNum(friend.gid);
           if (gid === userState.gid) continue;
           if (!guardDogGidSet.has(gid)) continue;
-          if (blacklist.has(gid)) continue;
+          if (blacklist.has(gid) && blacklist.get(gid).skipHelp) continue;
 
           const name = friend.remark || friend.name || `GID:${gid}`;
           const plant = friend.plant;
@@ -368,7 +369,7 @@ async function checkFriends(options = {}) {
       for (const friend of rawFriends) {
         const gid = toNum(friend.gid);
         if (gid === userState.gid) continue;
-        if (blacklist.has(gid)) continue;
+        if (blacklist.has(gid) && blacklist.get(gid).skipHelp) continue;
 
         const dogId = toNum(friend.dogId);
         const hasGuardDog = guardDogGidSet.has(gid) || dogId === 90021;

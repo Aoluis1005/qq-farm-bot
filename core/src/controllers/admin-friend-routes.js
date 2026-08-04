@@ -36,13 +36,18 @@ async function getFriendMetaByGid(provider, accountId) {
   return metaByGid;
 }
 
-function formatFriendBlacklist(gids, metaByGid) {
-  return gids.map((gid) => {
+function formatFriendBlacklist(items, metaByGid) {
+  return items.map((item) => {
+    const gid = typeof item === "object" && item ? Number(item.gid) : Number(item);
     const meta = metaByGid.get(Number(gid)) || {};
+    const skipSteal = typeof item === "object" && item ? item.skipSteal !== false : true;
+    const skipHelp = typeof item === "object" && item ? item.skipHelp !== false : true;
     return {
-      gid: Number(gid),
+      gid,
       name: meta.name || "",
       avatarUrl: meta.avatarUrl || "",
+      skipSteal,
+      skipHelp,
     };
   });
 }
@@ -263,13 +268,13 @@ function registerAdminFriendRoutes({
     const accountId = getAccountOrRespond(req, res, access);
     if (!accountId) return;
 
-    const blacklist = store.getFriendBlacklist
-      ? store.getFriendBlacklist(accountId)
+    const list = store.getFriendBlacklistDetails
+      ? store.getFriendBlacklistDetails(accountId)
       : [];
     const metaByGid = await getFriendMetaByGid(provider, accountId);
     res.json({
       ok: true,
-      data: formatFriendBlacklist(blacklist, metaByGid),
+      data: formatFriendBlacklist(list, metaByGid),
     });
   });
 
@@ -281,16 +286,22 @@ function registerAdminFriendRoutes({
     if (!gid) {
       return res.status(400).json({ ok: false, error: "Missing gid" });
     }
-
-    const blacklist = store.getFriendBlacklist
-      ? store.getFriendBlacklist(accountId)
+    const body = req.body || {};
+    const list = store.getFriendBlacklistDetails
+      ? store.getFriendBlacklistDetails(accountId)
       : [];
-    const nextBlacklist = blacklist.includes(gid)
-      ? blacklist.filter((item) => item !== gid)
-      : [...blacklist, gid];
+    const existing = list.find((w) => w.gid === gid);
+    let nextList;
+    if (existing) {
+      nextList = list.filter((w) => w.gid !== gid);
+    } else {
+      const skipSteal = typeof body.skipSteal === "boolean" ? body.skipSteal : true;
+      const skipHelp = typeof body.skipHelp === "boolean" ? body.skipHelp : true;
+      nextList = [...list, { gid, skipSteal, skipHelp }];
+    }
     const saved = store.setFriendBlacklist
-      ? store.setFriendBlacklist(accountId, nextBlacklist)
-      : nextBlacklist;
+      ? store.setFriendBlacklist(accountId, nextList)
+      : nextList;
     if (provider && typeof provider.broadcastConfig === "function") {
       provider.broadcastConfig(accountId);
     }
@@ -298,7 +309,37 @@ function registerAdminFriendRoutes({
     const metaByGid = await getFriendMetaByGid(provider, accountId);
     res.json({
       ok: true,
+      added: !existing,
       data: formatFriendBlacklist(saved, metaByGid),
+    });
+  });
+
+  app.post("/api/friend-blacklist/update", async (req, res) => {
+    const accountId = getAccountOrRespond(req, res, access);
+    if (!accountId) return;
+
+    const gid = Number((req.body || {}).gid);
+    if (!gid) {
+      return res.status(400).json({ ok: false, error: "Missing gid" });
+    }
+    const body = req.body || {};
+    const opts = {};
+    if (typeof body.skipSteal === "boolean") opts.skipSteal = body.skipSteal;
+    if (typeof body.skipHelp === "boolean") opts.skipHelp = body.skipHelp;
+    const updated = store.updateBlacklistItem
+      ? store.updateBlacklistItem(accountId, gid, opts)
+      : false;
+    if (provider && typeof provider.broadcastConfig === "function") {
+      provider.broadcastConfig(accountId);
+    }
+    const list = store.getFriendBlacklistDetails
+      ? store.getFriendBlacklistDetails(accountId)
+      : [];
+    const metaByGid = await getFriendMetaByGid(provider, accountId);
+    res.json({
+      ok: true,
+      updated,
+      data: formatFriendBlacklist(list, metaByGid),
     });
   });
 

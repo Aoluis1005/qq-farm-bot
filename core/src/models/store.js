@@ -457,7 +457,6 @@ function cloneAccountConfig(config = DEFAULT_ACCOUNT_CONFIG) {
         }
     }
 
-    const friendBlacklist = Array.isArray(config.friendBlacklist) ? config.friendBlacklist : [];
     const knownFriendGids = normalizeKnownFriendGids(config.knownFriendGids);
     const plantBlacklist = Array.isArray(config.plantBlacklist) ? config.plantBlacklist : [];
 
@@ -471,7 +470,7 @@ function cloneAccountConfig(config = DEFAULT_ACCOUNT_CONFIG) {
         intervals: { ...config.intervals || DEFAULT_ACCOUNT_CONFIG.intervals },
         friendQuietHours: { ...config.friendQuietHours || DEFAULT_ACCOUNT_CONFIG.friendQuietHours },
         knownFriendGids,
-        friendBlacklist: friendBlacklist.map(Number).filter(n => Number.isFinite(n) && n > 0),
+        friendBlacklist: normalizeFriendBlacklist(config.friendBlacklist),
         plantingStrategy: ALLOWED_PLANTING_STRATEGIES.includes(String(config.plantingStrategy || ''))
             ? String(config.plantingStrategy) : DEFAULT_ACCOUNT_CONFIG.plantingStrategy,
         preferredSeedId: Math.max(0, Number.parseInt(config.preferredSeedId, 10) || 0),
@@ -617,7 +616,7 @@ function normalizeAccountConfig(raw, fallbackConfig = accountFallbackConfig) {
 
     // 黑名单
     if (Array.isArray(input.friendBlacklist)) {
-        cfg.friendBlacklist = input.friendBlacklist.map(Number).filter(n => Number.isFinite(n) && n > 0);
+        cfg.friendBlacklist = normalizeFriendBlacklist(input.friendBlacklist);
     }
 
     // 已知好友
@@ -1140,7 +1139,7 @@ function applyConfigSnapshot(patch = {}, opts = {}) {
         };
     }
     if (Array.isArray(patch.friendBlacklist)) {
-        cfg.friendBlacklist = patch.friendBlacklist.map(Number).filter(n => Number.isFinite(n) && n > 0);
+        cfg.friendBlacklist = normalizeFriendBlacklist(patch.friendBlacklist);
     }
     if (patch.knownFriendGids !== undefined) {
         cfg.knownFriendGids = normalizeKnownFriendGids(patch.knownFriendGids, cfg.knownFriendGids);
@@ -1298,25 +1297,91 @@ function setKnownFriendGids(accountId, gids) {
     return [...normalized];
 }
 
-function getFriendBlacklist(accountId) {
-    return [...getAccountConfigSnapshot(accountId).friendBlacklist || []];
+function normalizeFriendBlacklist(raw) {
+    if (!Array.isArray(raw))
+        return [];
+    const seen = new Set();
+    const out = [];
+    for (const item of raw) {
+        let gid;
+        let skipSteal = true;
+        let skipHelp = true;
+        if (typeof item === 'number' || typeof item === 'string') {
+            gid = Number(item);
+        }
+        else if (item && typeof item === 'object') {
+            gid = Number(item.gid);
+            if (typeof item.skipSteal === 'boolean')
+                skipSteal = item.skipSteal;
+            if (typeof item.skipHelp === 'boolean')
+                skipHelp = item.skipHelp;
+        }
+        else {
+            continue;
+        }
+        if (!gid || gid <= 0 || seen.has(gid))
+            continue;
+        seen.add(gid);
+        out.push({ gid, skipSteal, skipHelp });
+    }
+    return out;
 }
 
-function setFriendBlacklist(accountId, blacklist) {
+// 黑名单（精细化跳过）：返回纯 gid 数组，供既有逻辑用 Set.has(gid) 快速排除。
+function getFriendBlacklist(accountId) {
+    return normalizeFriendBlacklist(getAccountConfigSnapshot(accountId).friendBlacklist).map(w => w.gid);
+}
+
+// 黑名单明细：返回 [{ gid, skipSteal, skipHelp }]，供偷菜/帮忙精细化跳过判断。
+function getFriendBlacklistDetails(accountId) {
+    return normalizeFriendBlacklist(getAccountConfigSnapshot(accountId).friendBlacklist);
+}
+
+function setFriendBlacklist(accountId, list) {
     const base = getAccountConfigSnapshot(accountId);
     const cfg = normalizeAccountConfig(base, accountFallbackConfig);
-    cfg.friendBlacklist = Array.isArray(blacklist)
-        ? blacklist.map(Number).filter(n => Number.isFinite(n) && n > 0) : [];
+    cfg.friendBlacklist = normalizeFriendBlacklist(list);
     setAccountConfigSnapshot(accountId, cfg);
-    return [...cfg.friendBlacklist];
+    return getFriendBlacklistDetails(accountId);
 }
 
-function addFriendToBlacklist(accountId, gid) {
+function addFriendToBlacklist(accountId, gid, skipSteal = true, skipHelp = true) {
     const targetGid = Number(gid);
-    if (!targetGid || targetGid <= 0) return false;
-    const blacklist = getFriendBlacklist(accountId);
-    if (blacklist.includes(targetGid)) return false;
-    setFriendBlacklist(accountId, [...blacklist, targetGid]);
+    if (!targetGid || targetGid <= 0)
+        return false;
+    const list = getFriendBlacklistDetails(accountId);
+    if (list.some(w => w.gid === targetGid))
+        return false;
+    setFriendBlacklist(accountId, [...list, { gid: targetGid, skipSteal: !!skipSteal, skipHelp: !!skipHelp }]);
+    return true;
+}
+
+function removeFriendFromBlacklist(accountId, gid) {
+    const targetGid = Number(gid);
+    if (!targetGid || targetGid <= 0)
+        return false;
+    const list = getFriendBlacklistDetails(accountId);
+    if (!list.some(w => w.gid === targetGid))
+        return false;
+    setFriendBlacklist(accountId, list.filter(w => w.gid !== targetGid));
+    return true;
+}
+
+function updateBlacklistItem(accountId, gid, opts) {
+    const targetGid = Number(gid);
+    if (!targetGid || targetGid <= 0)
+        return false;
+    if (!opts || typeof opts !== 'object')
+        return false;
+    const list = getFriendBlacklistDetails(accountId);
+    const idx = list.findIndex(w => w.gid === targetGid);
+    if (idx < 0)
+        return false;
+    if (typeof opts.skipSteal === 'boolean')
+        list[idx].skipSteal = opts.skipSteal;
+    if (typeof opts.skipHelp === 'boolean')
+        list[idx].skipHelp = opts.skipHelp;
+    setFriendBlacklist(accountId, list);
     return true;
 }
 
@@ -1967,8 +2032,11 @@ module.exports = {
     getKnownFriendGids,
     setKnownFriendGids,
     getFriendBlacklist,
+    getFriendBlacklistDetails,
     setFriendBlacklist,
     addFriendToBlacklist,
+    removeFriendFromBlacklist,
+    updateBlacklistItem,
     getStealDelaySeconds,
     getPlantOrderRandom,
     getPlantDelaySeconds,
