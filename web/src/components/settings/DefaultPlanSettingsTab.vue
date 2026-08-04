@@ -310,7 +310,7 @@ watchEffect(() => {
     <div class="flex flex-col gap-3 border-b border-gray-200 pb-4 lg:flex-row lg:items-center lg:justify-between dark:border-gray-700">
       <div class="min-w-0">
         <div class="flex flex-wrap items-center gap-3">
-          <h3 class="flex items-center gap-2 text-lg text-gray-900 font-bold dark:text-gray-100">
+          <h3 class="flex items-center gap-2 text-lg text-gray-900 font-bold dark:text-gray-100 max-sm:text-base">
             <span class="i-carbon-settings-adjust" />
             默认方案
           </h3>
@@ -343,7 +343,7 @@ watchEffect(() => {
     <div class="inline-flex border border-gray-200 rounded-lg bg-gray-50 p-1 dark:border-gray-700 dark:bg-gray-900/30">
       <button
         data-testid="default-plan-strategy-section"
-        class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
+        class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors max-sm:px-2.5 max-sm:py-1 max-sm:text-xs"
         :class="activeSection === 'strategy' ? 'text-white' : 'text-gray-600 dark:text-gray-300'"
         :style="activeSection === 'strategy' ? { background: 'var(--theme-primary)' } : {}"
         @click="activeSection = 'strategy'"

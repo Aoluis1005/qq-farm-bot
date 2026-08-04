@@ -61,7 +61,7 @@ function selectTab(key: string) {
 <style scoped>
 .dashboard-tabs-wrapper {
   position: relative;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   z-index: 1;
 }
 
@@ -88,8 +88,8 @@ function selectTab(key: string) {
   border-radius: 16px;
   position: relative;
   background: var(--theme-glass);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
   border: 1px solid var(--theme-border);
   box-shadow: 0 4px 16px color-mix(in srgb, var(--theme-primary) 6%, transparent), 0 1px 2px rgba(0,0,0,0.03);
 }

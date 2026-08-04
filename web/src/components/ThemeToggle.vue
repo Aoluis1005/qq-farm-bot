@@ -28,7 +28,7 @@ const appStore = useAppStore()
       >
         <div
           :class="appStore.isDark ? 'i-carbon-moon text-yellow-300' : 'i-carbon-sun text-amber-500'"
-          class="text-sm"
+          class="text-xs"
         />
       </div>
     </button>

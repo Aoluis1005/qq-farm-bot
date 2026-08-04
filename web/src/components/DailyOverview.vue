@@ -122,13 +122,11 @@ function formatGiftProgress(gift: any) {
 }
 
 .daily-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
   padding: 12px;
 }
-
-@media (min-width: 700px) { .daily-grid { grid-template-columns: repeat(3, 1fr); } }
 
 .daily-item {
   display: flex;
@@ -137,7 +135,7 @@ function formatGiftProgress(gift: any) {
   padding: 12px;
   border-radius: 14px;
   border: 1px solid var(--theme-border);
-  background: var(--theme-surface);
+  background: var(--theme-glass);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: all 0.2s;

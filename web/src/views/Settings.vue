@@ -188,7 +188,7 @@ onMounted(async () => {
 <template>
   <div class="settings-page">
     <div class="mb-4">
-      <h1 class="text-2xl text-gray-900 font-bold dark:text-gray-100">
+      <h1 class="text-2xl text-gray-900 font-bold dark:text-gray-100 max-sm:text-xl">
         设置
       </h1>
     </div>
@@ -200,7 +200,7 @@ onMounted(async () => {
             v-for="tab in tabs"
             :key="tab.key"
             :data-settings-tab="tab.key"
-            class="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all"
+            class="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition-all max-sm:gap-1 max-sm:px-2.5 max-sm:py-1 max-sm:text-xs"
             :class="activeTab === tab.key
               ? 'text-white shadow-sm'
               : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'"
@@ -213,7 +213,7 @@ onMounted(async () => {
         </nav>
       </div>
 
-      <div class="p-4">
+      <div class="p-4 max-sm:p-3">
         <AccountSettingsTab
           v-if="activeTab === 'account'"
           :accounts="accounts"

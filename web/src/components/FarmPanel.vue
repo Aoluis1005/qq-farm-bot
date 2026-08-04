@@ -11,7 +11,7 @@ import { useStatusStore } from '@/stores/status'
 const farmStore = useFarmStore()
 const accountStore = useAccountStore()
 const statusStore = useStatusStore()
-const { lands, summary, loading } = storeToRefs(farmStore)
+const { lands, loading } = storeToRefs(farmStore)
 const { currentAccountId, currentAccount } = storeToRefs(accountStore)
 const { status, loading: statusLoading, realtimeConnected, currentStatusReady } = storeToRefs(statusStore)
 
@@ -164,26 +164,6 @@ onUnmounted(() => { pause(); pauseRefresh() })
       </button>
     </div>
 
-    <!-- 统计 -->
-    <div class="farm-stats">
-      <div class="stat-item stat-harvest">
-        <div class="stat-val">{{ summary?.harvestable || 0 }}</div>
-        <div class="stat-lbl">可收</div>
-      </div>
-      <div class="stat-item stat-growing">
-        <div class="stat-val">{{ summary?.growing || 0 }}</div>
-        <div class="stat-lbl">生长</div>
-      </div>
-      <div class="stat-item stat-empty">
-        <div class="stat-val">{{ summary?.empty || 0 }}</div>
-        <div class="stat-lbl">空闲</div>
-      </div>
-      <div class="stat-item stat-dead">
-        <div class="stat-val">{{ summary?.dead || 0 }}</div>
-        <div class="stat-lbl">枯萎</div>
-      </div>
-    </div>
-
     <!-- 加载 -->
     <div v-if="showInitialLoading" class="farm-loading">
       <div class="i-svg-spinners-90-ring-with-bg text-3xl" :style="{ color: 'var(--theme-primary)' }" />
@@ -240,13 +220,9 @@ onUnmounted(() => { pause(); pauseRefresh() })
 /* ===== 功能按钮 ===== */
 .farm-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 2px;
 }
-.farm-actions::-webkit-scrollbar { display: none; }
 
 .act-btn {
   display: flex;
@@ -279,28 +255,6 @@ onUnmounted(() => { pause(); pauseRefresh() })
 .act-upgrade { background: color-mix(in srgb, #a78bfa 8%, transparent); border-color: color-mix(in srgb, #a78bfa 18%, transparent); color: #a78bfa; }
 .act-all { background: color-mix(in srgb, #fb923c 8%, transparent); border-color: color-mix(in srgb, #fb923c 18%, transparent); color: #fb923c; }
 .act-remove { background: color-mix(in srgb, #ef4444 8%, transparent); border-color: color-mix(in srgb, #ef4444 18%, transparent); color: #f87171; }
-
-/* ===== 统计 ===== */
-.farm-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-.stat-item {
-  padding: 10px 4px;
-  border-radius: 14px;
-  border: 1px solid var(--theme-border);
-  text-align: center;
-  background: var(--theme-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
-.stat-val { font-size: 20px; font-weight: 700; line-height: 1.2; }
-.stat-lbl { font-size: 10px; color: var(--theme-text-secondary); margin-top: 1px; }
-.stat-harvest .stat-val { color: var(--theme-accent); }
-.stat-growing .stat-val { color: var(--theme-primary); }
-.stat-empty .stat-val { color: var(--theme-text-secondary); opacity: 0.5; }
-.stat-dead .stat-val { color: #ef4444; opacity: 0.8; }
 
 /* ===== 土地网格 ===== */
 .land-grid {

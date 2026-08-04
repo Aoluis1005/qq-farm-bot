@@ -23,6 +23,9 @@ temp/
 .env.*
 *.log
 
+# 运行时生成的种子图标资源（旧镜像带出，非源码，勿提交）
+core/src/gameConfig/seed_images_named/
+
 # Python
 __pycache__/
 *.pyc

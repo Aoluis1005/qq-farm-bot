@@ -398,10 +398,10 @@ useIntervalFn(loadBag, 60000)
         <button
           v-for="cat in CATEGORY_OPTIONS"
           :key="cat.value"
-          class="rounded-lg px-3 py-1.5 text-sm font-medium transition"
+          class="whitespace-nowrap rounded-[14px] border border-[var(--theme-border)] bg-[var(--theme-glass)] px-3.5 py-[7px] text-xs font-semibold text-[var(--theme-text)] backdrop-blur-[16px] transition-colors"
           :class="selectedCategory === cat.value
-            ? 'bg-blue-500 text-white dark:bg-blue-600'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'"
+            ? '!border-[var(--theme-primary)] !bg-[var(--theme-primary)] text-white'
+            : 'hover:bg-white/20 dark:hover:bg-white/10'"
           @click="selectedCategory = cat.value"
         >
           {{ cat.label }}
@@ -412,10 +412,10 @@ useIntervalFn(loadBag, 60000)
 
         <template v-if="selectedCategory === 'fruit' || selectedCategory === 'all'">
           <button
-            class="rounded-lg px-3 py-1.5 text-sm font-medium transition"
+            class="whitespace-nowrap rounded-[14px] border border-[var(--theme-border)] bg-[var(--theme-glass)] px-3.5 py-[7px] text-xs font-semibold text-[var(--theme-text)] backdrop-blur-[16px] transition-colors"
             :class="batchMode
               ? 'bg-orange-500 text-white dark:bg-orange-600'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'"
+              : 'hover:bg-white/20 dark:hover:bg-white/10'"
             @click="toggleBatchMode"
           >
             <div v-if="batchMode" class="i-carbon-close mr-1 inline-block" />
@@ -423,16 +423,16 @@ useIntervalFn(loadBag, 60000)
           </button>
           <template v-if="batchMode">
             <button
-              class="rounded-lg bg-blue-500 px-3 py-1.5 text-sm text-white font-medium transition dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-700"
+              class="whitespace-nowrap rounded-[14px] border border-blue-500 bg-blue-500 px-3.5 py-[7px] text-xs font-semibold text-white transition-colors dark:bg-blue-600"
               @click="selectAllSellable"
             >
               全选
             </button>
             <button
-              class="rounded-lg px-3 py-1.5 text-sm font-medium transition"
+              class="whitespace-nowrap rounded-[14px] border border-[var(--theme-border)] bg-[var(--theme-glass)] px-3.5 py-[7px] text-xs font-semibold text-[var(--theme-text)] backdrop-blur-[16px] transition-colors"
               :class="selectedSellableCount > 0
                 ? 'bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700'
-                : 'bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500'"
+                : 'opacity-60'"
               :disabled="selectedSellableCount === 0"
               @click="handleBatchSellClick"
             >

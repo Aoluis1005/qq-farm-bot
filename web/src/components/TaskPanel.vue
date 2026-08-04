@@ -147,17 +147,23 @@ function formatTaskProgress(task: any) {
 .empty-sub { font-size: 11px; opacity: 0.6; }
 
 .task-list {
-  padding: 4px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
 }
 .task-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 0;
+  padding: 12px;
   font-size: 13px;
-  border-bottom: 1px solid var(--theme-border);
+  border-radius: 14px;
+  border: 1px solid var(--theme-border);
+  background: var(--theme-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
-.task-row:last-child { border-bottom: none; }
 .task-label { color: var(--theme-text); }
 .task-progress { color: var(--theme-text-secondary); font-size: 12px; }
 </style>

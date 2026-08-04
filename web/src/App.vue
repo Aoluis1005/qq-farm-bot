@@ -110,7 +110,7 @@ body {
 
 .glass-panel {
   border: 1px solid var(--surface-border);
-  background: color-mix(in srgb, var(--surface-1) 78%, transparent);
+  background: color-mix(in srgb, var(--surface-1) 60%, transparent);
   backdrop-filter: blur(20px);
   box-shadow: var(--surface-shadow-soft);
 }

@@ -243,9 +243,9 @@ async function handleAccountSaved() {
   border-radius: 28px;
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.16);
   border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.14), 0 0 0 0.5px rgba(255, 255, 255, 0.4) inset;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.14), 0 0 0 0.5px rgba(255, 255, 255, 0.2) inset;
   animation: nav-slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .floating-nav::-webkit-scrollbar { display: none; }
@@ -437,11 +437,11 @@ async function handleAccountSaved() {
 .popup-enter-from, .popup-leave-to { opacity: 0; }
 .popup-enter-active .account-popup { animation: popup-slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
 
-@media (prefers-color-scheme: light) {
+  @media (prefers-color-scheme: light) {
   .floating-nav {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.16);
     border: 1px solid rgba(0, 0, 0, 0.06);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.03) inset;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(255, 255, 255, 0.18) inset;
   }
   .nav-item { color: rgba(0, 0, 0, 0.5); }
   .nav-item--active { color: #000; background: rgba(0, 0, 0, 0.05); box-shadow: 0 0 20px color-mix(in srgb, var(--theme-primary) 15%, transparent); }
@@ -488,7 +488,7 @@ async function handleAccountSaved() {
 }
 
 .dark .floating-nav {
-  background: rgba(30, 30, 40, 0.5);
+  background: rgba(30, 30, 40, 0.32);
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.05) inset;
 }

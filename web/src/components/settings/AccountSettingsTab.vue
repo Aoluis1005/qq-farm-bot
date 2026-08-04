@@ -56,7 +56,7 @@ function accountAvatar(acc: any) {
 <template>
   <div class="space-y-4">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <h3 class="text-lg text-gray-900 font-bold dark:text-gray-100">
+      <h3 class="text-lg text-gray-900 font-bold dark:text-gray-100 max-sm:text-base">
         账号管理
       </h3>
       <div class="flex flex-wrap gap-2">

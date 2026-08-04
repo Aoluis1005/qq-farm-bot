@@ -66,7 +66,7 @@ function isFastMatureFertilizerMode(mode: string) {
 <template>
   <div class="space-y-4">
     <div class="flex items-center justify-between">
-      <h3 class="text-lg text-gray-900 font-bold dark:text-gray-100">
+      <h3 class="text-lg text-gray-900 font-bold dark:text-gray-100 max-sm:text-base">
         {{ title }}
         <span v-if="currentAccountName" class="ml-2 text-sm text-gray-500 font-normal dark:text-gray-400">
           ({{ currentAccountName }})

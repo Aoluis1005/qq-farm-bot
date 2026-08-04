@@ -46,7 +46,7 @@ if (theme) {
   document.documentElement.style.setProperty('--theme-secondary', theme.secondary)
   document.documentElement.style.setProperty('--theme-accent', theme.accent)
   document.documentElement.style.setProperty('--theme-gradient', theme.gradient)
-  document.documentElement.style.setProperty('--theme-glass', theme.isDark ? 'rgba(14,18,24,0.72)' : 'rgba(255,255,255,0.72)')
+  document.documentElement.style.setProperty('--theme-glass', theme.isDark ? 'rgba(14,18,24,0.55)' : 'rgba(255,255,255,0.5)')
   document.documentElement.style.setProperty('--theme-border', theme.isDark ? 'rgba(74,222,128,0.15)' : 'rgba(34,166,94,0.12)')
   if (savedTheme === 'dark') {
     document.documentElement.classList.add('dark')
