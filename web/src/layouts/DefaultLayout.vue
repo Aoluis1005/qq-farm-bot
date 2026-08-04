@@ -16,7 +16,7 @@ onMounted(() => {
       <main class="relative h-full min-h-0 min-w-0 flex flex-1 flex-col overflow-hidden">
       <div class="min-h-0 flex flex-1 flex-col overflow-hidden">
         <MysteryMerchantBanner />
-        <div class="custom-scrollbar min-h-0 flex flex-1 flex-col overflow-y-auto overflow-x-hidden p-3 pb-[calc(5rem+env(safe-area-inset-bottom))] md:p-6 sm:p-4 md:pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:pb-[calc(5rem+env(safe-area-inset-bottom))]">
+        <div class="custom-scrollbar min-h-0 flex flex-1 flex-col overflow-y-auto overflow-x-hidden p-3 pb-[calc(0.5rem+env(safe-area-inset-bottom))] md:p-6 sm:p-4 md:pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
           <RouterView v-slot="{ Component, route }">
             <component :is="Component" :key="route.path" />
           </RouterView>
