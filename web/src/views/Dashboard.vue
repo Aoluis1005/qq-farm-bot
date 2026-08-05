@@ -10,6 +10,7 @@ import DashboardTabs from '@/components/DashboardTabs.vue'
 import FarmPanel from '@/components/FarmPanel.vue'
 import BagPanel from '@/components/BagPanel.vue'
 import TaskPanel from '@/components/TaskPanel.vue'
+import DogGiftsPanel from '@/components/DogGiftsPanel.vue'
 import FriendsTabContent from '@/components/DashboardFriendsTab.vue'
 import AutomationSettingsTab from '@/components/settings/AutomationSettingsTab.vue'
 import StrategySettingsTab from '@/components/settings/StrategySettingsTab.vue'
@@ -211,6 +212,7 @@ const dashboardTabs = [
   { key: 'farm', label: '农场', icon: 'i-carbon-tree' },
   { key: 'bag', label: '背包', icon: 'i-carbon-backpack' },
   { key: 'friends', label: '好友', icon: 'i-carbon-user-multiple' },
+  { key: 'pet', label: '宠物', icon: 'i-carbon-dog-walker' },
   { key: 'tasks', label: '任务', icon: 'i-carbon-task' },
   { key: 'automation', label: '自动控制', icon: 'i-carbon-settings-adjust' },
   { key: 'strategy', label: '策略设置', icon: 'i-carbon-settings' },
@@ -1201,6 +1203,14 @@ useIntervalFn(updateCountdowns, 1000)
     <!-- 任务（复用 TaskPanel） -->
     <div v-show="activeTab === 'tasks'" class="h-full">
       <TaskPanel />
+    </div>
+
+    <!-- 宠物（护主犬同气礼包） -->
+    <div v-show="activeTab === 'pet'" class="h-full">
+      <DogGiftsPanel
+        :account-id="currentAccountId"
+        :account-running="allAccountsRunning"
+      />
     </div>
 
     <!-- 自动控制（完整设置） -->

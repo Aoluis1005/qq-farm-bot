@@ -44,6 +44,7 @@ const {
 } = require('../services/friend');
 const { getInteractRecords } = require('../services/interact');
 const { processInviteCodes, sendReportArkClick } = require('../services/invite');
+const { getDogGiftStatus, claimDogGifts } = require('../services/dog-gifts');
 const {
     autoBuyFertilizer,
     checkAndBuyFertilizerBoth,
@@ -822,6 +823,14 @@ async function handleApiCall(msg) {
             case 'sendReportArkClick':
                 // 分享卡加好友：uid(gid) + openid + share_key → ReportArkClick（在账号 worker 的 WS 连接上执行）
                 result = await sendReportArkClick(args[0], args[1], args[2]);
+                break;
+            case 'getDogGiftStatus':
+                // 护主犬同气礼包：查询可领数量（GetDogInfo f7）
+                result = await getDogGiftStatus();
+                break;
+            case 'claimDogGifts':
+                // 护主犬同气礼包：领取（ClaimSkillGifts 无参）
+                result = await claimDogGifts();
                 break;
             case 'getSeeds':
                 result = await getAvailableSeeds();

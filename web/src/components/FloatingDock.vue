@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAccountStore, getPlatformLabel, getPlatformClass } from '@/stores/account'
@@ -17,6 +17,41 @@ const showAccountPopup = ref(false)
 const showAccountModal = ref(false)
 const showRemarkModal = ref(false)
 const accountToEdit = ref<any>(null)
+
+// ---------- 滚动方向显隐导航栏（向下滑隐藏 / 向上滑显示） ----------
+// 捕获阶段监听 document 上所有元素的 scroll 事件，不依赖特定选择器：
+// 无论实际滚动发生在 window/body 还是页面内任意滚动容器，都能覆盖。
+const dockHidden = ref(false)
+let lastScrollTop = 0
+let lastScrollTarget: EventTarget | null = null
+const SCROLL_THRESHOLD = 5 // 滚动超过该像素才算"滑过"，防误触
+
+function scrollTopOf(target: EventTarget | null): number {
+  if (!target) return 0
+  if (target === document || target === document.documentElement || target === document.body) {
+    return window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0
+  }
+  const el = target as HTMLElement
+  return typeof el.scrollTop === 'number' ? el.scrollTop : 0
+}
+
+function handleScroll(e: Event) {
+  const target = e.target
+  const st = scrollTopOf(target)
+  // 滚动源切换（如从主容器切到子面板）：重置基准，不误判方向
+  if (target !== lastScrollTarget) {
+    lastScrollTarget = target
+    lastScrollTop = st
+    return
+  }
+  const delta = st - lastScrollTop
+  if (Math.abs(delta) < SCROLL_THRESHOLD) {
+    lastScrollTop = st
+    return
+  }
+  dockHidden.value = delta > 0 // 向下滑隐藏，向上滑显示
+  lastScrollTop = st
+}
 
 const navItems = [
   { key: 'dashboard', path: '/', label: '首页', icon: 'i-carbon-home' },
@@ -52,8 +87,22 @@ function handleOutsideClick(e: MouseEvent) {
   }
 }
 
-onMounted(() => document.addEventListener('click', handleOutsideClick))
-onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick))
+onMounted(() => {
+  document.addEventListener('click', handleOutsideClick)
+  // 捕获阶段监听：能收到文档内任意元素的 scroll（含 window/body 滚动）
+  document.addEventListener('scroll', handleScroll, { capture: true, passive: true })
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleOutsideClick)
+  document.removeEventListener('scroll', handleScroll, { capture: true } as EventListenerOptions)
+})
+
+// 切换页面时恢复导航栏显示，避免上一页隐藏的状态带到下一页
+watch(() => route.fullPath, () => {
+  dockHidden.value = false
+  lastScrollTarget = null
+  lastScrollTop = 0
+})
 
 function selectAccount(acc: any) {
   accountStore.setCurrentAccount(acc)
@@ -117,8 +166,8 @@ async function handleAccountSaved() {
 </script>
 
 <template>
-  <div class="ambient-glow" />
-  <div class="floating-nav-wrapper">
+  <div class="ambient-glow" :class="{ 'dock-hidden': dockHidden }" />
+  <div class="floating-nav-wrapper" :class="{ 'dock-hidden': dockHidden }">
     <nav class="floating-nav" role="navigation" aria-label="主导航">
       <button
         v-for="item in navItems"
@@ -220,6 +269,13 @@ async function handleAccountSaved() {
   justify-content: center;
   padding-bottom: env(safe-area-inset-bottom, 0px);
   pointer-events: none;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+  will-change: transform;
+}
+.floating-nav-wrapper.dock-hidden {
+  transform: translateY(calc(100% + 28px));
+  opacity: 0;
+  pointer-events: none;
 }
 .ambient-glow {
   position: fixed;
@@ -232,6 +288,12 @@ async function handleAccountSaved() {
   pointer-events: none;
   z-index: 999;
   filter: blur(36px);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+  will-change: transform;
+}
+.ambient-glow.dock-hidden {
+  transform: translateX(-50%) translateY(calc(100% + 28px));
+  opacity: 0;
 }
 .floating-nav {
   pointer-events: auto;
@@ -481,7 +543,8 @@ async function handleAccountSaved() {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .floating-nav, .nav-item, .nav-item-icon, .nav-item--active::before, .account-popup {
+  .floating-nav, .nav-item, .nav-item-icon, .nav-item--active::before, .account-popup,
+  .floating-nav-wrapper, .ambient-glow {
     animation: none !important;
     transition: opacity 0.15s ease !important;
   }

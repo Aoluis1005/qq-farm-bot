@@ -148,6 +148,9 @@ function createDataProvider(deps) {
         delFriend: (ref, gid) => callWorkerApi(resolveAccountId(ref), 'delFriend', gid),
         // 分享卡加好友：uid(gid) + openid + share_key → 账号 worker 内 ReportArkClick
         sendReportArkClick: (ref, uid, openid, shareKey) => callWorkerApi(resolveAccountId(ref), 'sendReportArkClick', uid, openid, shareKey),
+        // 护主犬同气礼包：查询可领数量 / 领取
+        getDogGiftStatus: (ref) => callWorkerApi(resolveAccountId(ref), 'getDogGiftStatus'),
+        claimDogGifts: (ref) => callWorkerApi(resolveAccountId(ref), 'claimDogGifts'),
 
         // ========== 仓库 ==========
         useItem: (ref, itemId, count) => callWorkerApi(resolveAccountId(ref), 'useItem', itemId, count),

@@ -47,6 +47,7 @@ const {
 } = require("./admin-account-runtime-routes");
 const { registerAdminAccountRoutes } = require("./admin-account-routes");
 const { registerAdminFriendRoutes } = require("./admin-friend-routes");
+const { registerAdminDogRoutes } = require("./admin-dog-routes");
 const { registerAdminCareerRoutes } = require("./admin-career-routes");
 const { registerAdminAnalyticsRoutes } = require("./admin-analytics-routes");
 const { createAdminAccountAccess } = require("./admin-account-access");
@@ -598,6 +599,7 @@ function startAdminServer(dataProvider) {
   });
   registerAdminQrLoginRoutes({ app });
   registerAdminFriendRoutes({ app, provider, store, getAccountIdFromRequest, canAccessAccount, sendProviderError });
+  registerAdminDogRoutes({ app, provider, getAccountIdFromRequest, canAccessAccount, sendProviderError });
   registerAdminCareerRoutes({ app, provider, getAccountIdFromRequest, canAccessAccount, sendProviderError });
   registerAdminProxyRoutes({ app, logger: adminLogger });
   registerAdminLoginLogRoutes({
