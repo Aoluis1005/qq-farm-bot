@@ -1010,8 +1010,8 @@ useIntervalFn(updateCountdowns, 1000)
     <div v-show="activeTab === 'overview'" class="flex flex-1 flex-col items-stretch gap-5 md:flex-row">
       <!-- 倒计时圆环卡片 + 化肥容器（原 md:w-1/4，现放前面） -->
       <div class="flex flex-col gap-5 md:w-1/4">
-        <div class="ui-card flex flex-col rounded-lg p-4">
-          <div class="mb-3 flex items-center justify-center gap-1.5 text-xs text-gray-400 font-medium">
+        <div class="overview-card flex flex-col p-4">
+          <div class="mb-3 flex items-center justify-center gap-1.5 text-xs text-gray-400 dark:text-gray-300 font-medium">
             <div class="i-carbon-hourglass" />
             <span>下次检查倒计时</span>
           </div>
@@ -1025,7 +1025,7 @@ useIntervalFn(updateCountdowns, 1000)
                 </svg>
                 <div class="flex flex-col items-center leading-none">
                   <div class="text-xs font-bold tabular-nums" style="color:#a5b4fc;">{{ nextFarmCheck }}</div>
-                  <div class="text-[9px] text-gray-500 mt-0.5">农场</div>
+                  <div class="text-[9px] text-gray-500 dark:text-gray-400 mt-0.5">农场</div>
                 </div>
               </div>
             </div>
@@ -1038,7 +1038,7 @@ useIntervalFn(updateCountdowns, 1000)
                 </svg>
                 <div class="flex flex-col items-center leading-none">
                   <div class="text-xs font-bold tabular-nums" style="color:#fdba74;">{{ nextHelpCheck }}</div>
-                  <div class="text-[9px] text-gray-500 mt-0.5">帮助</div>
+                  <div class="text-[9px] text-gray-500 dark:text-gray-400 mt-0.5">帮助</div>
                 </div>
               </div>
             </div>
@@ -1051,7 +1051,7 @@ useIntervalFn(updateCountdowns, 1000)
                 </svg>
                 <div class="flex flex-col items-center leading-none">
                   <div class="text-xs font-bold tabular-nums" style="color:#6ee7b7;">{{ nextStealCheck }}</div>
-                  <div class="text-[9px] text-gray-500 mt-0.5">偷菜</div>
+                  <div class="text-[9px] text-gray-500 dark:text-gray-400 mt-0.5">偷菜</div>
                 </div>
               </div>
             </div>
@@ -1059,46 +1059,46 @@ useIntervalFn(updateCountdowns, 1000)
         </div>
 
         <!-- 化肥容器卡片（保留原样） -->
-        <div class="ui-card flex-1 rounded-lg p-5">
-          <div class="mb-2 flex items-center gap-1.5 text-sm text-gray-500">
+        <div class="overview-card flex-1 p-5">
+          <div class="mb-2 flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
             <div class="i-fas-flask text-emerald-400" />
             化肥容器
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <div class="flex items-center gap-1 text-xs text-gray-400">
+              <div class="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-300">
                 <div class="i-fas-flask text-emerald-400" />
                 普通
               </div>
-              <div class="font-bold">{{ formatBucketTime(fertilizerNormal) }}</div>
+              <div class="font-bold text-gray-800 dark:text-gray-100">{{ formatBucketTime(fertilizerNormal) }}</div>
             </div>
             <div>
-              <div class="flex items-center gap-1 text-xs text-gray-400">
+              <div class="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-300">
                 <div class="i-fas-vial text-emerald-400" />
                 有机
               </div>
-              <div class="font-bold">{{ formatBucketTime(fertilizerOrganic) }}</div>
+              <div class="font-bold text-gray-800 dark:text-gray-100">{{ formatBucketTime(fertilizerOrganic) }}</div>
             </div>
           </div>
           <div class="my-3 border-t border-gray-100/80 dark:border-gray-700/80" />
-          <div class="mb-1 flex items-center gap-1.5 text-sm text-gray-500">
+          <div class="mb-1 flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
             <div class="i-fas-star text-emerald-400" />
             收藏点
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <div class="flex items-center gap-1 text-xs text-gray-400">
+              <div class="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-300">
                 <div class="i-fas-bookmark text-emerald-400" />
                 普通
               </div>
-              <div class="font-bold">{{ collectionNormal?.count || 0 }}</div>
+              <div class="font-bold text-gray-800 dark:text-gray-100">{{ collectionNormal?.count || 0 }}</div>
             </div>
             <div>
-              <div class="flex items-center gap-1 text-xs text-gray-400">
+              <div class="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-300">
                 <div class="i-fas-gem text-emerald-400" />
                 典藏
               </div>
-              <div class="font-bold">{{ collectionRare?.count || 0 }}</div>
+              <div class="font-bold text-gray-800 dark:text-gray-100">{{ collectionRare?.count || 0 }}</div>
             </div>
           </div>
         </div>
@@ -1106,7 +1106,7 @@ useIntervalFn(updateCountdowns, 1000)
 
       <!-- 运行日志卡片（原 md:w-3/4，现放后面） -->
       <div class="flex flex-1 flex-col gap-5 md:w-3/4">
-        <div class="ui-card-elevated flex flex-1 flex-col rounded-lg p-5 md:overflow-hidden">
+        <div class="overview-card flex flex-1 flex-col p-5 md:overflow-hidden">
           <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <h3 class="flex items-center gap-2 text-lg font-medium">
               <div class="i-carbon-document" />
