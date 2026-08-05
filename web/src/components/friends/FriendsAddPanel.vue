@@ -18,6 +18,8 @@ interface TargetRow {
   gid: number
   key: string
   keyValid: boolean
+  tokenKind?: 'invite' | 'sharekey'
+  openid?: string
   selected: boolean
   status: RowStatus
   resultText: string
@@ -28,6 +30,7 @@ let rowSeq = 0
 const rawInput = ref('')
 const rows = ref<TargetRow[]>([])
 const sending = ref(false)
+const cancelRequested = ref(false)
 const sendIntervalMs = ref(800)
 
 // 手动单个添加
@@ -36,6 +39,9 @@ const manualKey = ref('')
 
 // ------------ 解析逻辑 ------------
 const HEX32_RE = /(?<![0-9a-f])[0-9a-f]{32}(?![0-9a-f])/i
+const INVITE_RE = /[A-Za-z0-9+/=]{40,}/
+
+interface TokenInfo { token: string; kind: 'invite' | 'sharekey' | 'none' }
 
 function extractGid(line: string): number {
   // 优先 uid= / gid= 参数
@@ -47,19 +53,34 @@ function extractGid(line: string): number {
   return m2 ? Number(m2[1] ?? '') : 0
 }
 
-function extractKey(line: string): string {
-  // 优先 share_key= 参数
+// 抽取加好友凭证：邀请 token（base64 >=40 位）优先；否则 32 位 hex 分享凭证（分享卡路径，需搭配 openid）
+function extractToken(line: string): TokenInfo {
+  const mi = line.match(INVITE_RE)
+  if (mi && (mi[0] ?? '').length >= 40)
+    return { token: mi[0] ?? '', kind: 'invite' }
   const m = line.match(/share_key=([0-9a-f]+)/i)
   if (m) {
-    // 参数值可能带噪声，截取前 32 位 hex
     const v = (m[1] ?? '').toLowerCase()
-    if (v.length >= 32)
-      return v.slice(0, 32)
-    return v
+    return { token: v.length >= 32 ? v.slice(0, 32) : v, kind: v.length >= 32 ? 'sharekey' : 'none' }
   }
-  // 退化：任意独立的 32 位 hex
   const m2 = line.match(HEX32_RE)
-  return m2 ? (m2[0] ?? '').toLowerCase() : ''
+  if (m2)
+    return { token: (m2[0] ?? '').toLowerCase(), kind: 'sharekey' }
+  return { token: '', kind: 'none' }
+}
+
+// 抽取卡主 openid（分享卡路径 ReportArkClick 必需）
+function extractOpenId(line: string): string {
+  const m = line.match(/openid=([A-Za-z0-9_\-]+)/i)
+  return m ? (m[1] ?? '') : ''
+}
+
+function isTokenValid(info: TokenInfo): boolean {
+  if (info.kind === 'invite')
+    return info.token.length >= 40
+  if (info.kind === 'sharekey')
+    return /^[0-9a-f]{32}$/i.test(info.token)
+  return false
 }
 
 function parseInput() {
@@ -68,27 +89,30 @@ function parseInput() {
     toast.error('请先粘贴分享卡片数据')
     return
   }
-  // 把单行拼接的多条数据拆开：在每个 uid=/gid= 前插入换行
-  const normalized = text.replace(/(?=(?:uid|gid)=)/gi, '\n')
+  // 把单行拼接的多条数据拆开：在每个 uid=/gid=/invite= 前插入换行
+  const normalized = text.replace(/(?=(?:uid|gid|invite)=)/gi, '\n')
   const lines = normalized.split(/[\r\n]+/).map(s => s.trim()).filter(Boolean)
 
   const seen = new Set<string>()
   const parsed: TargetRow[] = []
   for (const line of lines) {
     const gid = extractGid(line)
-    if (!gid)
+    const info = extractToken(line)
+    if (!info.token)
       continue
-    const key = extractKey(line)
-    const dedupeKey = `${gid}:${key}`
+    const openid = extractOpenId(line)
+    const dedupeKey = `${gid}:${info.token}`
     if (seen.has(dedupeKey))
       continue
     seen.add(dedupeKey)
     parsed.push({
       id: ++rowSeq,
       gid,
-      key,
-      keyValid: /^[0-9a-f]{32}$/i.test(key),
-      selected: /^[0-9a-f]{32}$/i.test(key),
+      key: info.token,
+      keyValid: isTokenValid(info),
+      tokenKind: info.kind === 'none' ? undefined : info.kind,
+      openid: openid || undefined,
+      selected: isTokenValid(info),
       status: 'pending',
       resultText: '',
       resultKind: 'none',
@@ -96,7 +120,7 @@ function parseInput() {
   }
 
   if (parsed.length === 0) {
-    toast.error('未解析到有效的 gid，请检查数据格式')
+    toast.error('未解析到有效的分享卡数据（uid + openid + share_key），请检查格式')
     return
   }
 
@@ -137,7 +161,7 @@ async function onImportFile(e: Event) {
       const arr = trimmed.startsWith('[') ? JSON.parse(trimmed) : [JSON.parse(trimmed)]
       const lines = (arr as any[])
         .filter(o => o && o.gid && o.share_key)
-        .map(o => `uid=${o.gid}&share_key=${o.share_key}`)
+        .map(o => `uid=${o.gid}${o.openid ? `&openid=${o.openid}` : ''}&share_key=${o.share_key}`)
       if (lines.length === 0) {
         toast.error('JSON 中未找到 gid + share_key 字段')
         return
@@ -157,21 +181,25 @@ async function onImportFile(e: Event) {
 
 function addManual() {
   const gid = Number(String(manualGid.value).trim())
-  const key = String(manualKey.value).trim().toLowerCase()
-  if (!gid || !Number.isFinite(gid)) {
-    toast.error('请输入有效的 gid')
+  const raw = String(manualKey.value).trim()
+  const info = extractToken(raw)
+  if (!info.token) {
+    toast.error('请输入有效的分享卡数据（含 share_key）')
     return
   }
-  const dedupeKey = `${gid}:${key}`
+  const gidOk = gid && Number.isFinite(gid)
+  const dedupeKey = `${gidOk ? gid : 0}:${info.token}`
   if (rows.value.some(r => `${r.gid}:${r.key}` === dedupeKey)) {
-    toast.info('该 gid + 凭证已在列表中')
+    toast.info('该目标已在列表中')
     return
   }
   rows.value.push({
     id: ++rowSeq,
-    gid,
-    key,
-    keyValid: /^[0-9a-f]{32}$/i.test(key),
+    gid: gidOk ? gid : 0,
+    key: info.token,
+    keyValid: isTokenValid(info),
+    tokenKind: info.kind === 'none' ? undefined : info.kind,
+    openid: extractOpenId(raw) || undefined,
     selected: true,
     status: 'pending',
     resultText: '',
@@ -207,6 +235,8 @@ function storageKey() {
 interface PersistTarget {
   gid: number
   key: string
+  tokenKind?: 'invite' | 'sharekey'
+  openid?: string
   selected: boolean
 }
 
@@ -233,7 +263,9 @@ function loadRows(): TargetRow[] {
         id: ++rowSeq,
         gid,
         key,
-        keyValid: /^[0-9a-f]{32}$/i.test(key),
+        keyValid: item.tokenKind === 'invite' ? key.length >= 40 : /^[0-9a-f]{32}$/i.test(key),
+        tokenKind: item.tokenKind === 'invite' || item.tokenKind === 'sharekey' ? item.tokenKind : undefined,
+        openid: typeof item.openid === 'string' && item.openid ? item.openid : undefined,
         selected: item.selected !== false,
         status: 'pending',
         resultText: '',
@@ -252,6 +284,8 @@ function saveRows() {
     const data: PersistTarget[] = rows.value.map(r => ({
       gid: r.gid,
       key: r.key,
+      tokenKind: r.tokenKind,
+      openid: r.openid,
       selected: r.selected,
     }))
     localStorage.setItem(storageKey(), JSON.stringify(data))
@@ -290,8 +324,6 @@ function describeResult(ok: boolean, code: number, error: string): { text: strin
   switch (code) {
     case 1005024:
       return { text: '凭证已过期（请用新鲜卡片）', kind: 'warn' }
-    case 1002007:
-      return { text: '目标未开启拜访开关', kind: 'warn' }
     case 1005004:
       return { text: '对方好友列表已满', kind: 'warn' }
     case 1005014:
@@ -317,11 +349,19 @@ async function sendRow(row: TargetRow) {
   row.status = 'sending'
   row.resultText = '发送中…'
   row.resultKind = 'none'
-  const res = await friendStore.applyFriend(
-    props.accountId,
-    row.gid,
-    row.keyValid ? row.key : undefined,
-  )
+  // 唯一路径（2026-08-05 已验证）：gid + openid + share_key → ReportArkClick，无需 Enter、绕过 1002007
+  const isCard = !!row.openid && !!row.gid && /^[0-9a-f]{32}$/i.test(row.key)
+  if (!isCard) {
+    row.status = 'failed'
+    row.resultText = '缺少 openid，请粘贴完整分享卡数据 (uid&openid&share_key)'
+    row.resultKind = 'error'
+    return
+  }
+  const res = await friendStore.applyFriend(props.accountId, {
+    gid: row.gid,
+    shareKey: row.key,
+    openid: row.openid,
+  })
   const desc = describeResult(res.ok, res.code, res.error)
   row.status = res.ok ? 'success' : 'failed'
   row.resultText = desc.text
@@ -344,20 +384,50 @@ async function sendSelected() {
   }
   const interval = Math.max(0, Number(sendIntervalMs.value) || 0)
   sending.value = true
+  cancelRequested.value = false
+  let sent = 0
+  let skipped = 0
   try {
     for (let i = 0; i < targets.length; i++) {
+      if (cancelRequested.value) {
+        skipped = targets.length - i
+        break
+      }
       const row = targets[i]
       if (!row)
         continue
       await sendRow(row)
+      sent++
+      if (cancelRequested.value) {
+        skipped = targets.length - i - 1
+        break
+      }
       if (i < targets.length - 1 && interval > 0)
         await sleep(interval)
     }
-    toast.success(`发送完成：成功 ${successCount.value}，失败 ${failedCount.value}`)
+    if (cancelRequested.value) {
+      // 恢复仍在"发送中"的行（请求未返回的视为未发送）
+      for (const r of rows.value) {
+        if (r.status === 'sending') {
+          r.status = 'pending'
+          r.resultText = ''
+          r.resultKind = 'none'
+        }
+      }
+      toast.info(`已取消发送：已发送 ${sent} 条${skipped > 0 ? `，跳过 ${skipped} 条` : ''}`)
+    }
+    else {
+      toast.success(`发送完成：成功 ${successCount.value}，失败 ${failedCount.value}`)
+    }
   }
   finally {
     sending.value = false
+    cancelRequested.value = false
   }
+}
+
+function cancelSending() {
+  cancelRequested.value = true
 }
 
 async function retryFailed() {
@@ -382,23 +452,22 @@ function statusBadgeClass(row: TargetRow) {
 <template>
   <div class="space-y-4">
     <!-- 说明 -->
-    <div class="rounded-lg bg-blue-50 p-4 text-sm text-blue-800 dark:bg-blue-900/20 dark:text-blue-200">
+    <div class="rounded-lg bg-blue-50 p-3 text-sm text-blue-800 dark:bg-blue-900/20 dark:text-blue-200 sm:p-4">
       <div class="mb-1 flex items-center gap-2 font-medium">
         <div class="i-carbon-information" />
         主动加好友说明
       </div>
       <ul class="list-disc pl-5 space-y-1 text-blue-700/90 dark:text-blue-200/80">
-        <li>加好友需要目标的<b>分享凭证</b>（share_key，32 位十六进制），来自对方分享的农场卡片。</li>
+        <li>粘贴<b>分享卡片数据</b>（<code>uid=...&openid=...&share_key=...</code>）——走 <b>ReportArkClick</b> 直接发申请，<b>无需进农场、天然绕过拜访开关 1002007</b>（已验证）。</li>
+        <li>每条必须含 <code>gid(uid)</code> + <code>openid</code> + <code>share_key</code>(32位hex) 三者，缺一不可；支持一行一条或整段粘贴，或「导入文件」选 <code>share_cards.txt/.json</code>。</li>
         <li>凭证有<b>时效</b>，请使用<b>新鲜</b>卡片；过期会返回「凭证已过期」。</li>
-        <li>粘贴数据支持：<code>share.txt</code> 行、卡片 pagepath/链接、或 <code>gid 凭证</code> 每行一条；也可点「导入文件」直接选抓包导出的 <code>share_cards.txt/.json</code>。</li>
-        <li>默认走「跳过进农场」的直接申请流程，可绕过对方拜访开关限制。</li>
       </ul>
     </div>
 
     <!-- 账号在线提示 -->
     <div
       v-if="!accountRunning"
-      class="flex items-center gap-2 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-300"
+      class="flex items-center gap-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-300 sm:p-4"
     >
       <div class="i-carbon-warning-alt" />
       当前账号未在线，发送前请先到「账号」页启动该账号。
@@ -412,12 +481,12 @@ function statusBadgeClass(row: TargetRow) {
       <textarea
         v-model="rawInput"
         rows="6"
-        placeholder="支持多种格式，一行一条或整段粘贴，例如：&#10;uid=1218494342&openid=xxx&share_source=1&doc_id=123&share_key=44a3a23322ea4fc5be44701da99ecebc&#10;或&#10;1218494342 44a3a23322ea4fc5be44701da99ecebc&#10;或 pages/index.html?gid=...&share_key=..."
+        placeholder="支持多种格式，一行一条或整段粘贴，例如：&#10;uid=1218494342&openid=xxx&share_key=44a3a23322ea4fc5be44701da99ecebc&share_source=1&#10;或&#10;1218494342 44a3a23322ea4fc5be44701da99ecebc&#10;或 pages/index.html?gid=...&openid=...&share_key=..."
         class="w-full border border-gray-300 rounded-lg bg-white p-3 text-sm font-mono dark:border-gray-600 focus:border-blue-500 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
       />
       <div class="mt-3 flex flex-wrap items-center gap-2">
         <button
-          class="rounded-lg px-4 py-2 text-sm text-white transition disabled:opacity-50"
+          class="w-full rounded-lg px-4 py-2 text-sm text-white transition disabled:opacity-50 sm:w-auto"
           :style="{ backgroundColor: 'var(--theme-primary)' }"
           :disabled="!rawInput.trim()"
           @click="parseInput"
@@ -426,7 +495,7 @@ function statusBadgeClass(row: TargetRow) {
           解析
         </button>
         <button
-          class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-600 transition dark:border-gray-600 dark:bg-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-600"
+          class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-600 transition dark:border-gray-600 dark:bg-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-600 sm:w-auto"
           @click="triggerImport"
         >
           <div class="i-carbon-document-import mr-1 inline-block align-text-bottom" />
@@ -440,7 +509,7 @@ function statusBadgeClass(row: TargetRow) {
           @change="onImportFile"
         >
         <button
-          class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-600 transition dark:border-gray-600 dark:bg-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-600"
+          class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-600 transition dark:border-gray-600 dark:bg-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-600 sm:w-auto"
           @click="rawInput = ''"
         >
           清空输入框
@@ -449,26 +518,26 @@ function statusBadgeClass(row: TargetRow) {
     </div>
 
     <!-- 手动单个添加 -->
-    <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
+    <div class="rounded-lg bg-white p-3 shadow dark:bg-gray-800 sm:p-4">
       <label class="mb-2 block text-sm text-gray-700 font-medium dark:text-gray-200">
         手动添加单个目标
       </label>
-      <div class="flex flex-wrap items-center gap-2">
+      <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
         <input
           v-model="manualGid"
           type="text"
           inputmode="numeric"
           placeholder="目标 gid"
-          class="w-40 border border-gray-300 rounded-lg bg-white px-3 py-2 text-sm dark:border-gray-600 focus:border-blue-500 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+          class="w-full border border-gray-300 rounded-lg bg-white px-3 py-2 text-sm dark:border-gray-600 focus:border-blue-500 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 sm:w-40"
         >
         <input
           v-model="manualKey"
           type="text"
-          placeholder="share_key（32 位十六进制）"
-          class="min-w-64 flex-1 border border-gray-300 rounded-lg bg-white px-3 py-2 text-sm font-mono dark:border-gray-600 focus:border-blue-500 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+          placeholder="分享卡数据 uid&openid&share_key（可整段粘贴）"
+          class="w-full min-w-0 flex-1 border border-gray-300 rounded-lg bg-white px-3 py-2 text-sm font-mono dark:border-gray-600 focus:border-blue-500 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 sm:min-w-64"
         >
         <button
-          class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 transition dark:border-gray-600 dark:bg-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-600"
+          class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 transition dark:border-gray-600 dark:bg-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-600 sm:w-auto"
           @click="addManual"
         >
           添加到列表
@@ -478,7 +547,7 @@ function statusBadgeClass(row: TargetRow) {
 
     <!-- 目标列表 -->
     <div class="rounded-lg bg-white shadow dark:bg-gray-800">
-      <div class="flex flex-wrap items-center gap-3 border-b border-gray-200 p-4 dark:border-gray-700">
+      <div class="flex flex-col gap-3 border-b border-gray-200 p-3 dark:border-gray-700 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3 sm:p-4">
         <label class="flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
           <input v-model="allSelected" type="checkbox" class="h-4 w-4 rounded border-gray-300">
           全选
@@ -503,30 +572,39 @@ function statusBadgeClass(row: TargetRow) {
         </div>
         <button
           v-if="failedCount > 0 && !sending"
-          class="rounded-lg bg-amber-100 px-3 py-2 text-sm text-amber-700 transition dark:bg-amber-900/30 hover:bg-amber-200 dark:text-amber-300"
+          class="w-full rounded-lg bg-amber-100 px-3 py-2 text-sm text-amber-700 transition dark:bg-amber-900/30 hover:bg-amber-200 dark:text-amber-300 sm:w-auto"
           @click="retryFailed"
         >
           重试失败 ({{ failedCount }})
         </button>
         <button
-          class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 transition dark:border-gray-600 dark:bg-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-600 disabled:opacity-50"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 transition dark:border-gray-600 dark:bg-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 sm:w-auto"
           :disabled="rows.length === 0 || sending"
           @click="clearAll"
         >
           清空列表
         </button>
         <button
-          class="rounded-lg px-4 py-2 text-sm text-white transition disabled:opacity-50"
+          v-if="!sending"
+          class="w-full rounded-lg px-4 py-2 text-sm text-white transition disabled:opacity-50 sm:w-auto"
           :style="{ backgroundColor: 'var(--theme-primary)' }"
           :disabled="selectedCount === 0 || sending || !accountRunning"
           @click="sendSelected"
         >
-          <div v-if="sending" class="i-svg-spinners-90-ring-with-bg mr-1 inline-block align-text-bottom" />
-          {{ sending ? '发送中…' : `发送选中 (${selectedCount})` }}
+          <div class="i-carbon-send mr-1 inline-block align-text-bottom" />
+          发送选中 ({{ selectedCount }})
+        </button>
+        <button
+          v-else
+          class="w-full rounded-lg bg-red-600 px-4 py-2 text-sm text-white transition hover:bg-red-500 sm:w-auto"
+          @click="cancelSending"
+        >
+          <div class="i-carbon-close mr-1 inline-block align-text-bottom" />
+          取消发送
         </button>
       </div>
 
-      <div v-if="rows.length === 0" class="p-10 text-center text-gray-400">
+      <div v-if="rows.length === 0" class="p-6 text-center text-gray-400 sm:p-10">
         <div class="i-carbon-user-follow mx-auto mb-3 text-4xl text-gray-300" />
         <div class="text-sm">
           暂无目标，先在上方粘贴数据并解析，或手动添加。
@@ -537,38 +615,59 @@ function statusBadgeClass(row: TargetRow) {
         <div
           v-for="row in rows"
           :key="row.id"
-          class="flex items-center gap-3 px-4 py-3"
+          class="flex items-start gap-2 px-3 py-2.5 sm:items-center sm:gap-3 sm:px-4 sm:py-3"
         >
           <input
             v-model="row.selected"
             type="checkbox"
-            class="h-4 w-4 shrink-0 rounded border-gray-300"
+            class="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 sm:mt-0"
             :disabled="sending"
           >
-          <div class="w-32 shrink-0">
-            <div class="text-sm text-gray-800 font-medium font-mono dark:text-gray-100">
-              {{ row.gid }}
-            </div>
-            <div class="text-xs text-gray-400">
-              GID
-            </div>
-          </div>
           <div class="min-w-0 flex-1">
-            <div class="truncate text-sm text-gray-600 font-mono dark:text-gray-300">
+            <div class="flex items-baseline gap-2">
+              <span class="text-sm font-mono font-medium text-gray-800 dark:text-gray-100">
+                {{ row.gid || '—' }}
+              </span>
+              <span class="text-xs text-gray-400">GID</span>
+            </div>
+            <div class="truncate text-sm font-mono text-gray-600 dark:text-gray-300">
               {{ maskKey(row.key) }}
+            </div>
+            <div v-if="row.openid" class="truncate text-xs font-mono text-gray-400">
+              openid={{ row.openid }}
             </div>
             <div class="mt-0.5 flex items-center gap-1 text-xs">
               <span
-                v-if="row.keyValid"
+                v-if="row.keyValid && row.tokenKind === 'invite'"
                 class="rounded bg-green-100 px-1.5 py-0.5 text-green-700 dark:bg-green-900/30 dark:text-green-300"
-              >凭证有效</span>
+              >邀请 token</span>
+              <span
+                v-else-if="row.keyValid && row.tokenKind === 'sharekey' && row.openid"
+                class="rounded bg-green-100 px-1.5 py-0.5 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+              >分享卡 · 直发</span>
+              <span
+                v-else-if="row.keyValid"
+                class="rounded bg-amber-100 px-1.5 py-0.5 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+              >仅兜底(缺 openid)</span>
               <span
                 v-else
                 class="rounded bg-red-100 px-1.5 py-0.5 text-red-700 dark:bg-red-900/30 dark:text-red-300"
               >无有效凭证</span>
             </div>
+            <!-- 移动端：状态显示在内容下方 -->
+            <div class="mt-1 sm:hidden">
+              <span
+                v-if="row.status !== 'pending' || row.resultText"
+                class="inline-block rounded-full px-2 py-1 text-xs font-medium"
+                :class="statusBadgeClass(row)"
+              >
+                {{ row.resultText || '待发送' }}
+              </span>
+              <span v-else class="text-xs text-gray-400">待发送</span>
+            </div>
           </div>
-          <div class="w-44 shrink-0 text-right">
+          <!-- 桌面端：状态靠右 -->
+          <div class="hidden w-44 shrink-0 text-right sm:block">
             <span
               v-if="row.status !== 'pending' || row.resultText"
               class="inline-block rounded-full px-2 py-1 text-xs font-medium"

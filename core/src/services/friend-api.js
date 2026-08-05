@@ -683,110 +683,6 @@ async function delFriend(gid) {
   return reply;
 }
 
-/**
- * Send a friend application to a target GID.
- * Mirrors the game client's ApplyFriend RPC (gamepb.friendpb.FriendService.ApplyFriend).
- *
- * 【2026-07-25 经 TSDK 解密抓包逐字节还原的真实协议】
- * 加好友分两步（客户端顺序）：
- *   1) 以 reason=5 进入目标农场，Enter 请求携带一个 32 位十六进制的会话 nonce (visit_token)。
- *   2) 发送 ApplyFriend，请求体 = { gid, token }，其中
- *        token = SHA256("<visit_token>:<gid>") + ":" + gid
- *      服务器用 Enter 登记的 visit_token 重算哈希做校验；业务体不含 openid。
- *
- * visit_token 来源：Enter 响应 field7（已逐字节验证）。外部可直接传入；缺省时由随机 nonce 走 Enter 拿服务器下发值。
- *
- * 加解密 / 密钥流由底层 TSDK 透明处理，我们只负责构造 protobuf 并调用 sendMsgAsync。
- *
- * @param {number|string} gid 目标用户 gid
- * @param {{visitToken?:string, enterReason?:number}} [opts]
- */
-async function applyFriend(gid, opts = {}) {
-  const numericGid = toNum(gid);
-  if (!numericGid) {
-    throw new Error('缺少目标 gid');
-  }
-  if (!types.ApplyFriendRequest || !types.ApplyFriendReply) {
-    throw new Error('ApplyFriend 接口类型未加载');
-  }
-
-  // 会话 nonce：必须来自目标的新鲜分享卡片 share_key（32-hex）。
-  // 【2026-07-26 抓包逐字节验证】ApplyFriend token = SHA256(nonce:gid)，nonce 即卡片下发的 share_key；
-  // 服务器只认该值，自造随机 nonce 必被拒（1005024 凭证已过期/无效）。故缺失时直接报错，不再静默降级。
-  if (typeof opts.visitToken !== 'string' || !/^[0-9a-f]{32}$/i.test(opts.visitToken)) {
-    throw new Error('缺少有效的分享凭证 share_key（32 位十六进制）：请粘贴目标的新鲜分享卡片（uid=GID&share_key=...），不能只填 gid');
-  }
-  const visitToken = opts.visitToken.toLowerCase();
-  const enterReason = opts.enterReason != null ? Number(opts.enterReason) : 5;
-
-  // 默认走第一种流程（skipEnter）：跳过 Enter 直接发 ApplyFriend，绕过 1002007 拜访开关校验。
-  // 仅当显式传 skipEnter:false 时才回到 Enter 前置流程。
-  const skipEnter = opts.skipEnter === true;
-
-  // 步骤 1：以 reason=5 进入目标农场并登记 visit_token
-  let effectiveNonce = visitToken;
-  console.log('[applyFriend start] gid=%s skipEnter=%s enterReason=%s visitTokenHead=%s', numericGid, skipEnter, enterReason, visitToken.slice(0,8));
-  if (!skipEnter) {
-    try {
-      const reply = await enterFriendFarm(numericGid, { reason: enterReason, visitToken });
-      console.log('[applyFriend enter done] gid=%s nonce=%s', numericGid, reply?.__nonce);
-      // 仅当响应 nonce 为合法 32hex 才覆盖；否则回退请求里 bot 生成的 nonce
-      // （客户端协议：Enter 请求 field7 携带客户端生成的 32hex nonce，ApplyFriend 复用同一 nonce 算 token）
-      if (reply && reply.__nonce && /^[0-9a-fA-F]{32}$/.test(reply.__nonce)) effectiveNonce = reply.__nonce;
-    } catch (err) {
-      console.error('[applyFriend enter failed] gid=%s err=%s', numericGid, err?.message || err);
-      logWarn('好友', `加好友前置进入农场失败(gid=${numericGid}): ${err.message}`, {
-        module: 'friend',
-        event: '发送好友申请',
-        result: 'enter_error',
-        friendGid: numericGid,
-      });
-      throw err;
-    }
-  } else {
-    log('好友', `跳过 Enter，直接发送好友申请(gid=${numericGid})`, {
-      module: 'friend',
-      event: '发送好友申请',
-      result: 'skip_enter',
-      friendGid: numericGid,
-    });
-  }
-
-  // 步骤 2：token = sha256(nonce:gid) + ":" + gid；nonce 取自 Enter 响应 field7（已逐字节验证）
-  const gidStr = String(numericGid);
-  const digest = crypto.createHash('sha256').update(`${effectiveNonce}:${gidStr}`).digest('hex');
-  const token = `${digest}:${gidStr}`;
-
-  const payload = types.ApplyFriendRequest.encode(
-    types.ApplyFriendRequest.create({
-      gid: toLong(numericGid),
-      token,
-    })
-  ).finish();
-  console.error('[DIAG apply req] gid=%s effectiveNonce=%s token=%s payload=%s', gidStr, effectiveNonce, token, payload.toString('hex'));
-
-  let body;
-  try {
-    ({ body } = await sendMsgAsync(
-      'gamepb.friendpb.FriendService',
-      'ApplyFriend',
-      payload
-    ));
-  } catch (err) {
-    console.error('[applyFriend ApplyFriend error] gid=%s err=%s', gidStr, err?.message || err);
-    throw err;
-  }
-  console.log('[applyFriend ApplyFriend ok] gid=%s bodyLen=%d', gidStr, body?.length || 0);
-  const reply = types.ApplyFriendReply.decode(body);
-
-  log('好友', `已发送加好友申请: gid=${gidStr}`, {
-    module: 'friend',
-    event: '发送好友申请',
-    result: 'ok',
-    friendGid: numericGid,
-  });
-  return reply;
-}
 
 /**
  * Enter a friend's farm.
@@ -943,7 +839,6 @@ module.exports = {
   getApplications,
   acceptFriends,
   delFriend,
-  applyFriend,
   enterFriendFarm,
   leaveFriendFarm,
   checkCanOperateRemote,

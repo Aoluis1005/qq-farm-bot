@@ -228,30 +228,26 @@ function registerAdminFriendRoutes({
     if (!accountId) return;
 
     try {
-      // 加好友按 gid 发起（真实协议：ApplyFriend 请求体只含 gid + token，不含 openid）
-      const gid = Number((req.body || {}).gid);
-      if (!gid || !Number.isFinite(gid)) {
-        return res.status(400).json({ ok: false, error: "请提供目标 gid" });
+      const body = req.body || {};
+
+      // 唯一路径（2026-08-05 抓包解密 + 实测验证）：分享卡数据 → UserService.ReportArkClick 发送好友申请。
+      // 需要卡主 uid(gid) + 卡主 openid + 卡主 share_key(32hex)；无需 Enter，天然绕过 1002007 拜访开关。
+      // ⚠️ 必须经 provider 转发到账号 worker 进程执行（WS 连接在 worker 内，主进程无连接会报「连接未打开」）。
+      const cardUid = Number(body.gid || body.uid);
+      const cardOpenid = typeof body.openid === "string" ? body.openid.trim() : "";
+      const cardShareKey = typeof body.shareKey === "string" ? body.shareKey.trim().toLowerCase() : "";
+      if (!cardUid || !cardOpenid || !/^[0-9a-f]{32}$/.test(cardShareKey)) {
+        return res.status(400).json({
+          ok: false,
+          error: "请提供完整的分享卡数据：gid(uid) + openid + share_key(32位十六进制)",
+        });
       }
-
-      // skipEnter 默认走第一种流程（跳过 Enter）；仅显式传 false 才回到 Enter 前置流程。
-      // 不能在未传时强制传 false，否则会覆盖 applyFriend 的默认值。
-      let skipEnter; // undefined => 交给 applyFriend 默认（true）
-      const rawSkip = req.body?.skipEnter;
-      if (rawSkip === false || rawSkip === 'false') skipEnter = false;
-      else if (rawSkip === true || rawSkip === 'true') skipEnter = true;
-
-      const opts = {
-        visitToken: req.body?.visitToken,
-        enterReason: req.body?.enterReason,
-        skipEnter,
-      };
-      const data = await provider.applyFriend(accountId, gid, opts);
-      res.json({ ok: true, data });
+      const data = await provider.sendReportArkClick(accountId, cardUid, cardOpenid, cardShareKey);
+      res.json({ ok: true, data, method: "ReportArkClick" });
     } catch (error) {
-      // 游戏业务错误（如 code=1005024 分享链接已过期 / 1002007 未开拜访开关）以 200 + 结构化
-      // 返回，前端可解析 code 做友好展示，避免触发通用 500 错误提示。
-      const message = String(error?.message || error || "加好友失败");
+      // 游戏业务错误（如 code=1005024 分享链接已过期）以 200 + 结构化返回，
+      // 前端可解析 code 做友好展示，避免触发通用 500 错误提示。
+      const message = String(error?.message || error || "发送好友申请失败");
       const codeMatch = message.match(/code=(\d+)/);
       const code = codeMatch ? Number(codeMatch[1]) : 0;
       // 提取纯净的游戏错误文案（去掉 "服务名.方法名 错误: code=xxx " 前缀）

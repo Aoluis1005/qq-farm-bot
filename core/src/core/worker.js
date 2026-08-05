@@ -40,11 +40,10 @@ const {
     batchGetFriendDogInfo,
     syncFriendsFromGids,
     fetchFriendsDogInfo,
-    delFriend,
-    applyFriend
+    delFriend
 } = require('../services/friend');
 const { getInteractRecords } = require('../services/interact');
-const { processInviteCodes } = require('../services/invite');
+const { processInviteCodes, sendReportArkClick } = require('../services/invite');
 const {
     autoBuyFertilizer,
     checkAndBuyFertilizerBoth,
@@ -820,8 +819,9 @@ async function handleApiCall(msg) {
             case 'delFriend':
                 result = await delFriend(args[0]);
                 break;
-            case 'applyFriend':
-                result = await applyFriend(args[0], args[1] || {});
+            case 'sendReportArkClick':
+                // 分享卡加好友：uid(gid) + openid + share_key → ReportArkClick（在账号 worker 的 WS 连接上执行）
+                result = await sendReportArkClick(args[0], args[1], args[2]);
                 break;
             case 'getSeeds':
                 result = await getAvailableSeeds();

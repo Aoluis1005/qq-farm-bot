@@ -412,18 +412,23 @@ export const useFriendStore = defineStore('friend', () => {
 
   async function applyFriend(
     accountId: string,
-    gid: number,
-    visitToken?: string,
-    skipEnter?: boolean,
+    opts: {
+      gid?: number
+      shareKey?: string
+      openid?: string
+    },
   ) {
-    if (!accountId || !gid)
+    if (!accountId)
       return { ok: false, code: 0, error: '参数无效' }
     try {
-      const payload: Record<string, any> = { gid }
-      if (visitToken)
-        payload.visitToken = visitToken
-      if (typeof skipEnter === 'boolean')
-        payload.skipEnter = skipEnter
+      const o = opts || {}
+      const payload: Record<string, any> = {}
+      if (o.gid)
+        payload.gid = o.gid
+      if (o.shareKey)
+        payload.shareKey = o.shareKey
+      if (o.openid)
+        payload.openid = o.openid
       const res = await api.post('/api/friend/apply', payload, {
         headers: { 'x-account-id': accountId },
         timeout: 30000,
