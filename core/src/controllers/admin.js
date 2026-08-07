@@ -538,6 +538,8 @@ function startAdminServer(dataProvider) {
     getDefaultSystemConfig,
     getRuntimeConfig,
     updateRuntimeConfig,
+    // 保存/重置系统配置后广播 config_sync 到所有 Worker（clientVersion 秒级生效）
+    broadcastConfig: provider.broadcastConfig,
   });
   registerAdminCaptureRoutes({
     app,

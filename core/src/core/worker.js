@@ -450,6 +450,25 @@ function applyRuntimeConfig(config, syncStatusAfter = false) {
     const revision = Number((config || {}).__revision || 0);
     if (revision > 0) appliedConfigRevision = revision;
 
+    // 系统配置同步：clientVersion / serverUrl / os 随快照下发，秒级更新本地 CONFIG
+    // （platform 属于账号级，由 startBot 按账号设置，这里不覆盖）
+    let sysChanged = false;
+    if (config && typeof config.clientVersion === 'string' && config.clientVersion && config.clientVersion !== CONFIG.clientVersion) {
+        CONFIG.clientVersion = config.clientVersion;
+        sysChanged = true;
+    }
+    if (config && typeof config.serverUrl === 'string' && config.serverUrl && config.serverUrl !== CONFIG.serverUrl) {
+        CONFIG.serverUrl = config.serverUrl;
+        sysChanged = true;
+    }
+    if (config && typeof config.os === 'string' && config.os && config.os !== CONFIG.os) {
+        CONFIG.os = config.os;
+        sysChanged = true;
+    }
+    if (sysChanged) {
+        log('系统', `系统配置已同步: clientVersion=${CONFIG.clientVersion}, serverUrl=${CONFIG.serverUrl}, os=${CONFIG.os}`);
+    }
+
     const intervals = config && config.intervals && typeof config.intervals === 'object'
         ? config.intervals : null;
     if (intervals) applyIntervalsToRuntime(intervals);

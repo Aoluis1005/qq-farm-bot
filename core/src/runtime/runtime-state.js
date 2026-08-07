@@ -42,6 +42,16 @@ function createRuntimeState(deps) {
             bagPriorityLandTypes: store.getBagPriorityLandTypes(accountId),
             autoAcceptFriendMinLevel: store.getAutoAcceptFriendMinLevel(accountId),
             mysteryAutoBuyCurrencies: store.getMysteryAutoBuyCurrencies(accountId),
+            // 系统配置随快照下发（Worker 收到后更新本地 CONFIG.clientVersion 等）
+            clientVersion: store.getSystemConfig
+                ? String((store.getSystemConfig() || {}).clientVersion || '')
+                : '',
+            serverUrl: store.getSystemConfig
+                ? String((store.getSystemConfig() || {}).serverUrl || '')
+                : '',
+            os: store.getSystemConfig
+                ? String((store.getSystemConfig() || {}).os || '')
+                : '',
             __revision: configRevision
         };
     }

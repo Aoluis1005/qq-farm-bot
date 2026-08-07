@@ -56,7 +56,19 @@ function registerAdminSystemRoutes({
   getDefaultSystemConfig,
   getRuntimeConfig,
   updateRuntimeConfig,
+  broadcastConfig,
 }) {
+  /** 保存/重置系统配置后同步到所有账号 Worker（config_sync 广播，秒级生效） */
+  function syncSystemConfigToWorkers() {
+    if (typeof broadcastConfig === "function") {
+      try {
+        broadcastConfig();
+      } catch (error) {
+        logger.error("广播系统配置失败", { error: error.message });
+      }
+    }
+  }
+
   const isAllowedPublicLink = (value) => {
     const link = String(value || "").trim();
     return (
@@ -330,6 +342,7 @@ function registerAdminSystemRoutes({
           os,
         });
         updateRuntimeConfig(saved);
+        syncSystemConfigToWorkers();
         logger.warn("更新系统配置", {
           admin: req.currentUser?.username || "",
           serverUrl: saved?.serverUrl || "",
@@ -361,6 +374,7 @@ function registerAdminSystemRoutes({
         const saved = getDefaultSystemConfig();
         store.setSystemConfig(saved);
         updateRuntimeConfig(saved);
+        syncSystemConfigToWorkers();
         logger.warn("重置系统配置", {
           admin: req.currentUser?.username || "",
           confirmation: "RESET_SYSTEM_CONFIG",
