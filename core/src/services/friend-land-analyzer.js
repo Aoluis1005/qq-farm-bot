@@ -22,6 +22,7 @@ const {
   getFriendBlacklist,
   readFriendDogInfoCache,
   writeFriendDogInfoCache,
+  removeFriendFromCache,
 } = require('../models/store');
 const {
   enterFriendFarm,
@@ -166,6 +167,19 @@ async function getFriendDogInfo(gid, friendName = '') {
     if (handled.handled && handled.kind === 'blacklist') {
       return { dogId: 0, dogName: '无狗', blacklisted: true };
     }
+    if (handled.handled && handled.kind === 'invalid_removed') {
+      // 【2026-08-07 修复】好友已被删除（如 code=1002002 不是好友）：
+      // handleFriendEnterError 已将其移出"已知 GID 列表"（QQ 平台），
+      // 这里再补上内存/磁盘好友缓存清理，避免残留导致反复 Enter 失败 + 前端数量不刷新。
+      try {
+        removeFriendFromCache(accountId, numericGid);
+        if (friendsListCache) {
+          friendsListCache = friendsListCache.filter(f => toNum(f.gid) !== numericGid);
+          friendsListCacheAt = Date.now();
+        }
+      } catch { /* 清理失败不影响主流程 */ }
+      return { dogId: 0, dogName: '无狗', invalidRemoved: true };
+    }
     logWarn('好友', `获取好友 ${numericGid} 狗信息失败: ${err.message}`, {
       module: 'friend',
       event: '获取好友狗信息',
@@ -252,7 +266,11 @@ async function batchGetFriendDogInfo(friends) {
 }
 
 // ===== Friends list =====
+// 【2026-08-07 修复】好友列表内存缓存加 TTL：过期后自动重新拉取，
+// 否则被删好友会一直残留（前端好友页数量/列表不刷新，必须手动 forceSync）
+const FRIENDS_LIST_CACHE_TTL_MS = 5 * 60 * 1000;
 let friendsListCache = null;
+let friendsListCacheAt = 0;
 
 /**
  * Get a processed friends list with dog info from cache if available.
@@ -260,7 +278,9 @@ let friendsListCache = null;
  */
 async function getFriendsList(forceRefresh = false) {
   try {
-    if (!forceRefresh && friendsListCache) return friendsListCache;
+    if (!forceRefresh && friendsListCache && (Date.now() - friendsListCacheAt) < FRIENDS_LIST_CACHE_TTL_MS) {
+      return friendsListCache;
+    }
 
     log('好友', '开始获取好友列表', {
       module: 'friend',
@@ -316,6 +336,7 @@ async function getFriendsList(forceRefresh = false) {
       });
 
     friendsListCache = friends;
+    friendsListCacheAt = Date.now();
 
     const cachedDogCount = dogInfoCache ? Object.keys(dogInfoCache).length : 0;
     log('好友',
@@ -413,6 +434,7 @@ async function fetchFriendsDogInfo(forceRefresh = false) {
   }
 
   friendsListCache = friends;
+  friendsListCacheAt = Date.now();
 
   // 持久化护主犬信息到磁盘缓存
   if (accountId) {
@@ -612,6 +634,7 @@ function getFriendsListCache() {
 
 function setFriendsListCache(cache) {
   friendsListCache = cache;
+  friendsListCacheAt = Date.now();
 }
 
 // ===== Exports =====

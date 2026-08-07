@@ -426,11 +426,16 @@ function isInvalidFriendAccessError(err) {
   const msg = String((err && err.message) || err || '');
   if (!msg || isEnterFarmBannedError(err) || isTransientNetworkError(err)) return false;
 
+  const code = parseRpcErrorCode(err);
+  // 【2026-08-07 修复】错误码硬匹配：VisitService.Enter 返回 code=1002002「不是好友无法拜访」，
+  // 中文消息不含关键词（无效/不存在/not friend 等），原关键词匹配会漏判 → 被删好友残留。
+  if (code === 1002002) return true;
+
   const lower = msg.toLowerCase();
   const matched = ['无效', '不存在', '删除', '关系', 'not found', 'invalid', 'not friend', 'friend']
     .some(kw => lower.includes(kw.toLowerCase()));
 
-  return matched && parseRpcErrorCode(err) > 0;
+  return matched && code > 0;
 }
 
 /** Add a friend to the blacklist via IPC to master process. */
