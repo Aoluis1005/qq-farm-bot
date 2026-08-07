@@ -56,7 +56,9 @@ let externalSchedulerMode = false;
 const friendScheduler = createScheduler('friend');
 let badExecutedOnStartup = false;
 let consecutiveBadFailureCount = 0;
-let dogInfoBootstrapAttempted = false;
+// 护主犬缓存全量刷新周期（30 分钟）：周期性重拉好友狗信息，清理伪护主犬、发现新护主犬
+const DOG_INFO_FULL_REFRESH_TTL_MS = 30 * 60 * 1000;
+let lastFullDogInfoRefreshAt = 0;
 let dogInfoBootstrapReadyAt = 0;
 // 当前巡查账号 id（checkFriends 开头写入），供经验上限持久化回调使用，
 // 避免依赖容器内可能为空的环境变量 FARM_ACCOUNT_ID。
@@ -93,25 +95,34 @@ function clearFriendsListCache() {
 }
 
 async function bootstrapFriendDogInfoCacheIfNeeded() {
-  if (dogInfoBootstrapAttempted) return;
   if (Date.now() < dogInfoBootstrapReadyAt) return;
 
   const accountId = process.env.FARM_ACCOUNT_ID || '';
   if (!accountId) return;
   if (!isAutomationOn('friend') || !isConnected()) return;
 
+  // 【2026-08-07 修复】护主犬缓存改为周期全量刷新（默认 30 分钟一次）：
+  // 原逻辑"只拉一次 + 缓存非空即跳过"→ 新护主犬不被发现、换狗/删好友的伪护主犬永久残留。
+  const now = Date.now();
   const dogInfoCache = readFriendDogInfoCache(accountId);
-  if (dogInfoCache && Object.keys(dogInfoCache).length > 0) return;
+  const cacheEmpty = !dogInfoCache || Object.keys(dogInfoCache).length === 0;
+  const stale = (now - lastFullDogInfoRefreshAt) > DOG_INFO_FULL_REFRESH_TTL_MS;
+  if (!cacheEmpty && !stale) return;
 
-  dogInfoBootstrapAttempted = true;
+  lastFullDogInfoRefreshAt = now;
   try {
-    log('好友', '护主犬缓存为空，上号稳定后自动获取一次好友狗信息', {
+    log('好友', cacheEmpty
+      ? '护主犬缓存为空，上号稳定后自动获取一次好友狗信息'
+      : '护主犬缓存已过期，执行周期性全量刷新', {
       module: 'friend',
       event: '自动获取好友狗信息',
       source: 'friend_loop_bootstrap',
+      fullRefresh: !cacheEmpty,
     });
-    await fetchFriendsDogInfo();
+    await fetchFriendsDogInfo(true); // forceRefresh：全量重拉并重建缓存
   } catch (err) {
+    // 失败重置时间戳，下轮巡查可重试（不再一次性放弃）
+    lastFullDogInfoRefreshAt = 0;
     logWarn('好友', `自动获取好友狗信息失败: ${err.message}`);
   }
 }
@@ -582,11 +593,12 @@ async function friendCheckLoop() {
   if (!friendLoopRunning) return;
 
   // 经验满(仅帮护主犬)模式下缩短巡查间隔，让护主犬好友更快被复查
+  // 【2026-08-07 提速】对齐/反超同类工具：经验满 8s、普通 15s（原 15s/30s），提升抢帮响应速度
   const expLimitActive = !!isAutomationOn('friend_help_exp_limit') && !getCanGetHelpExp();
   const turboMode = !!isAutomationOn('friend_turbo_mode');
   const interval = (expLimitActive || turboMode)
-    ? Math.max(15000, CONFIG.friendCheckInterval)
-    : Math.max(30000, CONFIG.friendCheckInterval);
+    ? Math.max(6000, CONFIG.friendCheckInterval)
+    : Math.max(15000, CONFIG.friendCheckInterval);
   friendScheduler.setTimeoutTask('friend_check_loop', interval, () => friendCheckLoop());
 }
 
@@ -595,7 +607,7 @@ function startFriendCheckLoop(opts = {}) {
 
   externalSchedulerMode = !!opts.externalScheduler;
   friendLoopRunning = true;
-  dogInfoBootstrapAttempted = false;
+  lastFullDogInfoRefreshAt = 0;
   dogInfoBootstrapReadyAt = Date.now() + (2 * 60 * 1000);
 
   // Sync operation limits callback
@@ -605,9 +617,9 @@ function startFriendCheckLoop(opts = {}) {
   networkEvents.on('friendApplicationReceived', onFriendApplicationReceived);
 
   if (!externalSchedulerMode) {
-    // Start after a 2-minute delay
-    const initialDelay = 2 * 60 * 1000;
-    log('好友', '好友巡查循环将在 2 分钟后启动', {
+    // Start after a 10-second delay（登录稳定即可巡查；原 2 分钟，抢帮响应太慢）
+    const initialDelay = 10 * 1000;
+    log('好友', '好友巡查循环将在 10 秒后启动', {
       module: 'friend',
       event: '好友巡查延迟启动',
       delayMs: initialDelay,
@@ -626,7 +638,7 @@ function startFriendCheckLoop(opts = {}) {
 function stopFriendCheckLoop() {
   friendLoopRunning = false;
   externalSchedulerMode = false;
-  dogInfoBootstrapAttempted = false;
+  lastFullDogInfoRefreshAt = 0;
   dogInfoBootstrapReadyAt = 0;
   clearAllInvalidKnownFriendGidCooldown();
   networkEvents.off('friendApplicationReceived', onFriendApplicationReceived);

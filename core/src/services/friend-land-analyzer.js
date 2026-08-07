@@ -347,7 +347,7 @@ async function getFriendsList(forceRefresh = false) {
  * 优先用本地缓存（巡查时随 enterFriendFarm 收集的），只对缓存缺失的好友拉取。
  * Caches guard dog (护主犬, id=90021) info locally.
  */
-async function fetchFriendsDogInfo() {
+async function fetchFriendsDogInfo(forceRefresh = false) {
   const accountId = process.env.FARM_ACCOUNT_ID || '';
   let friends = friendsListCache;
 
@@ -363,27 +363,31 @@ async function fetchFriendsDogInfo() {
   const existingCache = accountId ? readFriendDogInfoCache(accountId) : null;
   const cachedGids = existingCache ? new Set(Object.keys(existingCache).map(Number)) : new Set();
 
-  // 只对缓存里没有的好友拉取狗信息
-  const uncachedTargets = friends
-    .filter(f => !cachedGids.has(toNum(f.gid)))
-    .map(f => ({
-      gid: toNum(f.gid),
-      name: f.name || `GID:${toNum(f.gid)}`,
-    }));
+  // 【2026-08-07 修复】forceRefresh（周期性全量刷新）时对全部好友重拉狗信息，
+  // 原逻辑只拉"缓存里没有的" → 已缓存的护主犬换狗/消失永远不会被更新。
+  const targets = forceRefresh
+    ? friends.map(f => ({ gid: toNum(f.gid), name: f.name || `GID:${toNum(f.gid)}` }))
+    : friends
+        .filter(f => !cachedGids.has(toNum(f.gid)))
+        .map(f => ({
+          gid: toNum(f.gid),
+          name: f.name || `GID:${toNum(f.gid)}`,
+        }));
 
-  log('好友', `获取狗信息：共 ${friends.length} 个好友，缓存命中 ${friends.length - uncachedTargets.length} 个，需拉取 ${uncachedTargets.length} 个`, {
+  log('好友', `获取狗信息：共 ${friends.length} 个好友，${forceRefresh ? '全量刷新' : `缓存命中 ${friends.length - targets.length} 个，需拉取 ${targets.length} 个`}`, {
     module: 'friend',
     event: 'fetchFriendsDogInfo',
     total: friends.length,
-    cached: friends.length - uncachedTargets.length,
-    uncached: uncachedTargets.length,
+    forceRefresh,
+    cached: forceRefresh ? 0 : friends.length - targets.length,
+    uncached: targets.length,
   });
 
   let failCount = 0;
   let blacklistCount = 0;
 
-  if (uncachedTargets.length > 0) {
-    const result = await batchGetFriendDogInfo(uncachedTargets);
+  if (targets.length > 0) {
+    const result = await batchGetFriendDogInfo(targets);
     failCount = result.failCount;
     blacklistCount = result.blacklistCount;
     // 合并新拉取的狗信息到好友列表
@@ -413,8 +417,11 @@ async function fetchFriendsDogInfo() {
   // 持久化护主犬信息到磁盘缓存
   if (accountId) {
     const guardDogFriends = {};
-    // 合并已有缓存 + 新拉取的
-    const mergedCache = { ...(existingCache || {}) };
+    // 【2026-08-07 修复】forceRefresh（全量刷新）时重建缓存：只保留当前确认是护主犬的好友，
+    // 清理"换狗/删好友"后残留的伪护主犬记录；增量模式下仍合并旧缓存 + 新拉取的。
+    const mergedCache = forceRefresh
+      ? {}
+      : { ...(existingCache || {}) };
     for (const friend of friends) {
       if (friend.dogId === 90021) {
         mergedCache[friend.gid] = {

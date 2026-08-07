@@ -85,7 +85,16 @@ function cacheDogInfoFromEnterReply(gid, enterReply) {
     if (!accountId) return;
 
     // 只缓存护主犬（与 friend-land-analyzer.fetchFriendsDogInfo 的持久化策略一致）
-    if (dogId !== 90021) return;
+    if (dogId !== 90021) {
+      // 【2026-08-07 修复】好友已不是护主犬：从缓存删除旧记录。
+      // 原逻辑直接 return 导致"换狗/删好友"后伪护主犬永久残留 → 每轮白进 + 漏掉真正的护主犬。
+      const existing = readFriendDogInfoCache(accountId) || {};
+      if (existing[gid]) {
+        delete existing[gid];
+        writeFriendDogInfoCache(accountId, existing);
+      }
+      return;
+    }
 
     const existing = readFriendDogInfoCache(accountId) || {};
     if (existing[gid] && existing[gid].dogId === dogId) return;  // 已缓存，跳过写盘
