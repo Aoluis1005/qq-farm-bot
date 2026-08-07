@@ -722,6 +722,11 @@ watch(currentAccountId, async (newId, oldId) => {
   }
   syncRealtimeAccount()
   await refresh(true)
+  // 切换账号后重新拉取当前账号的策略设置与自动控制配置，避免残留上一账号的数据
+  if (currentAccountId.value) {
+    await loadStrategyData()
+    syncLocalAutomationSettings()
+  }
   scrollToBottom()
 })
 

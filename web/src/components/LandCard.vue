@@ -160,7 +160,7 @@ function getPlantSizeText(targetLand: any) {
 <template>
   <div
     class="relative min-h-[140px] flex flex-col items-center border rounded-lg p-2 transition dark:border-gray-700 hover:shadow-md"
-    :class="getLandStatusClass(land)"
+    :class="[getLandStatusClass(land), { 'land-card--merged': Number(land.plantSize) > 1 }]"
   >
     <div class="land-card-id absolute left-1 top-1 text-[10px] text-gray-400 font-mono">
       #{{ land.id }}
@@ -168,10 +168,16 @@ function getPlantSizeText(targetLand: any) {
 
     <div
       v-if="land.plantSize > 1"
-      class="absolute right-1 top-1 rounded bg-pink-100 px-1 py-0.5 text-[10px] text-pink-700 dark:bg-pink-900/30 dark:text-pink-300"
+      class="absolute right-1 top-1 z-10 rounded bg-pink-100 px-1.5 py-0.5 text-[10px] font-semibold text-pink-700 dark:bg-pink-900/30 dark:text-pink-300"
     >
       合种 {{ getPlantSizeText(land) }}
     </div>
+
+    <!-- 合种（2x2 合并）土地：跨 2 行 2 列占位，直观区别于普通土地 -->
+    <div
+      v-if="Number(land.plantSize) > 1"
+      class="pointer-events-none absolute inset-x-0 top-0 h-[3px] rounded-t-lg bg-gradient-to-r from-pink-400 via-fuchsia-400 to-pink-400 opacity-80"
+    />
 
     <div
       v-if="mutantEffects.length > 0"
@@ -188,7 +194,10 @@ function getPlantSizeText(targetLand: any) {
       >
     </div>
 
-    <div class="mb-1 mt-4 h-10 w-10 flex items-center justify-center">
+    <div
+      class="mb-1 mt-4 flex items-center justify-center"
+      :class="Number(land.plantSize) > 1 ? 'h-14 w-14' : 'h-10 w-10'"
+    >
       <img
         v-if="land.seedImage"
         :src="getSafeImageUrl(land.seedImage)"
@@ -405,4 +414,19 @@ function getPlantSizeText(targetLand: any) {
       inset 0 -1px 2px rgba(0, 0, 0, 0.2);
   }
 }
+
+/* ===== 合种（2x2 合并）土地：跨 2 行 2 列，直观区别于普通土地 ===== */
+.land-card--merged {
+  grid-column: span 2;
+  grid-row: span 2;
+  min-height: 220px;
+}
+.land-card--merged .land-seed-icon {
+  width: 56px;
+  height: 56px;
+}
+.land-card--merged .land-card-id {
+  font-size: 11px;
+}
+
 </style>

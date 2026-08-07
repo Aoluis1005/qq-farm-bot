@@ -260,6 +260,7 @@ onUnmounted(() => { pause(); pauseRefresh() })
 .land-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  grid-auto-flow: dense;
   gap: 10px;
 }
 @media (max-width: 480px) { .land-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; } }
