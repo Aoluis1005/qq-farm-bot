@@ -438,9 +438,9 @@ async function fetchFriendsDogInfo(forceRefresh = false) {
 
   // 持久化护主犬信息到磁盘缓存
   if (accountId) {
-    const guardDogFriends = {};
-    // 【2026-08-07 修复】forceRefresh（全量刷新）时重建缓存：只保留当前确认是护主犬的好友，
-    // 清理"换狗/删好友"后残留的伪护主犬记录；增量模式下仍合并旧缓存 + 新拉取的。
+    // 【2026-08-10 修复】forceRefresh（全量刷新）时无论是否有护主犬都必须落盘，
+    // 否则 "mergedCache 为空 → 不写盘 → 磁盘仍无缓存 → cacheEmpty 永远 true → bootstrap 死循环触发全量刷新"
+    // （日志里以 1-3 秒间隔疯狂刷"fetchFriendsDogInfo / batchGetFriendDogInfo / 获取狗信息完成 / 自动获取好友狗信息"，见 issue #30）。
     const mergedCache = forceRefresh
       ? {}
       : { ...(existingCache || {}) };
@@ -452,7 +452,10 @@ async function fetchFriendsDogInfo(forceRefresh = false) {
         };
       }
     }
-    if (Object.keys(mergedCache).length > 0) {
+    if (forceRefresh) {
+      // 全量刷新落盘：保留当前确认为护主犬的好友，清掉旧缓存里的"换狗/删好友后残留的伪护主犬"
+      writeFriendDogInfoCache(accountId, mergedCache);
+    } else if (Object.keys(mergedCache).length > 0) {
       writeFriendDogInfoCache(accountId, mergedCache);
     }
   }

@@ -723,13 +723,11 @@ async function enterFriendFarm(gid, opts = {}) {
   const payload = types.VisitEnterRequest.encode(
     types.VisitEnterRequest.create(enterReq)
   ).finish();
-  console.error('[DIAG enter req] gid=%s reason=%s payload=%s', gid, reason, payload.toString('hex'));
   const { body } = await sendMsgAsync(
     'gamepb.visitpb.VisitService',
     'Enter',
     payload
   );
-  console.error('[DIAG enter resp] body=%s', Buffer.from(body).toString('hex'));
   const reply = types.VisitEnterReply.decode(body);
   reply.__nonce = extractEnterNonce(body);
 
