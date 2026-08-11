@@ -101,23 +101,26 @@ async function bootstrapFriendDogInfoCacheIfNeeded() {
   if (!accountId) return;
   if (!isAutomationOn('friend') || !isConnected()) return;
 
-  // 【2026-08-07 修复】护主犬缓存改为周期全量刷新（默认 30 分钟一次）：
-  // 原逻辑"只拉一次 + 缓存非空即跳过"→ 新护主犬不被发现、换狗/删好友的伪护主犬永久残留。
+  // 【2026-08-11 修复】护主犬缓存刷新判断改用"上次全量刷新时间戳"，不再看缓存内容：
+  // 无护主犬好友时 fetchFriendsDogInfo(forceRefresh) 会写入空对象 {}，
+  // readFriendDogInfoCache 返回 {} 后 Object.keys({}).length===0 恒为 true → cacheEmpty 永远 true
+  // → 每轮巡查都触发全量刷新（issue #30 死循环，"护主犬 0 个"用户修复前永远刷屏）。
+  // 改为时间戳判断：只要全量刷新执行过（无论有没有护主犬），30 分钟 TTL 内不再触发；
+  // 刷新失败才重置时间戳允许下轮重试。
   const now = Date.now();
-  const dogInfoCache = readFriendDogInfoCache(accountId);
-  const cacheEmpty = !dogInfoCache || Object.keys(dogInfoCache).length === 0;
   const stale = (now - lastFullDogInfoRefreshAt) > DOG_INFO_FULL_REFRESH_TTL_MS;
-  if (!cacheEmpty && !stale) return;
+  if (lastFullDogInfoRefreshAt > 0 && !stale) return;
 
+  const isInitialRefresh = lastFullDogInfoRefreshAt <= 0;
   lastFullDogInfoRefreshAt = now;
   try {
-    log('好友', cacheEmpty
-      ? '护主犬缓存为空，上号稳定后自动获取一次好友狗信息'
+    log('好友', isInitialRefresh
+      ? '护主犬缓存尚未建立（或上次失败），自动获取一次好友狗信息'
       : '护主犬缓存已过期，执行周期性全量刷新', {
       module: 'friend',
       event: '自动获取好友狗信息',
       source: 'friend_loop_bootstrap',
-      fullRefresh: !cacheEmpty,
+      fullRefresh: !isInitialRefresh,
     });
     await fetchFriendsDogInfo(true); // forceRefresh：全量重拉并重建缓存
   } catch (err) {
@@ -341,7 +344,12 @@ async function checkFriends(options = {}) {
 
     // Help targets
     if (doHelp) {
-      if ((turboMode || helpExpReached) && guardDogGidSet.size > 0) {
+      // 【2026-08-11 修复】极速务农/经验满时无条件走"只帮护主犬"分支：
+      // 原条件 `&& guardDogGidSet.size > 0` 在护主犬缓存为空（新号、无护主犬好友、缓存丢失）时
+      // 落到 else 分支无差别帮所有好友 → 极速务农退化成普通模式（issue #30 关联）。
+      // 现在缓存空时 guardDogGidSet 为空，循环里 `!guardDogGidSet.has(gid) continue` 自然跳过全部，
+      // 帮助列表为空 = "暂不帮任何人"，等 bootstrap 全量刷新拉取缓存后恢复，严格符合"只帮护主犬"语义。
+      if (turboMode || helpExpReached) {
         // Experience limit reached — only help guard dog friends
         for (const friend of rawFriends) {
           const gid = toNum(friend.gid);
