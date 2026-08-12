@@ -1828,7 +1828,9 @@ const DEFAULT_WX_CONFIG = {
     appId: 'wx5306c5978fdb76e4',
     autoAddAccount: true,
     userIsolation: true,
-    autoReconnect: false,
+    // 【2026-08-12 修复】内置 YYB 自动重连默认为开（原 false 导致多数用户从未触发重连，
+    // 表现为"老是没重连"）。第三方 YYB 账号级默认本就是 true，二者对齐。
+    autoReconnect: true,
     reconnectDelayMin: 5,
     reconnectMaxAttempts: 3
 };

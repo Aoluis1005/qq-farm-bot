@@ -31,6 +31,11 @@ function createWorkerManager(deps) {
 
     // 应用宝离线重连的独立计数（不受 startWorker 成功清零影响，否则 maxAttempts 会失效导致无限重连）
     const reconnectAttemptsMap = new Map();
+    // 【2026-08-12 修复】重连成功后"稳定在线时长"：账号在线超过该时长未再断线，则清零重连计数。
+    // 原逻辑计数永不清零 → 断线 3 次（无论重连是否成功）后 currentAttempt>=maxAttempts → 永久放弃重连，
+    // 频繁被踢/网络不稳的账号表现为"老是没重连"。改为成功后稳定 10 分钟再清零：
+    // 既保留"防止无限重连"（10 分钟内反复断线仍累积计数受 maxAttempts 约束），又不会 3 次就永久放弃。
+    const RECONNECT_SUCCESS_STABLE_MS = 10 * 60 * 1000;
 
     /** 是否支持 Thread 模式（非 pkg 打包 + Worker 可用） */
     const threadMode = runtimeMode === 'thread' && !processRef.pkg && typeof WorkerThread === 'function';
@@ -348,6 +353,8 @@ function createWorkerManager(deps) {
 
         // 取消尚未触发的离线重连计划
         scheduler.clear(`reconnect_attempt_${accountId}`);
+        // 【2026-08-12】同步清理"重连成功稳定期清零"定时器，避免账号停止后残留定时器意外清零计数
+        scheduler.clear(`reconnect_reset_${accountId}`);
         if (resetReconnect) {
             // 仅「账号退役 / 用户主动停止」场景清零计数；自动重连循环内不在此清零
             reconnectAttemptsMap.delete(accountId);
@@ -535,6 +542,14 @@ function createWorkerManager(deps) {
                     log('系统', `账号 ${name} 开始自动重连 (${nextAttempt}/${cfg.reconnectMaxAttempts})`);
                     const started = await startWorker(account2);
                     if (started) {
+                        // 【2026-08-12 修复】重连成功后：若账号稳定在线 10 分钟未再断线，清零重连计数。
+                        // 原逻辑计数永不清零 → 断线 3 次后 currentAttempt>=maxAttempts 直接停止重连、账号永久离线。
+                        // 若 10 分钟内再次断线，计数保留继续累积，仍受 maxAttempts 限制，防止无限重连。
+                        scheduler.setTimeoutTask(`reconnect_reset_${accountId}`, RECONNECT_SUCCESS_STABLE_MS, () => {
+                            if (workers[accountId]) {
+                                reconnectAttemptsMap.delete(accountId);
+                            }
+                        });
                         addAccountLog('reconnect_success',
                             `账号 ${name} 已通过应用宝离线重连恢复在线 (${nextAttempt}/${cfg.reconnectMaxAttempts})`,
                             accountId, name, { attempt: nextAttempt, maxAttempts: cfg.reconnectMaxAttempts });
