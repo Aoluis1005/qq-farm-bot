@@ -79,9 +79,9 @@ const HELU_EXCHANGE_ACTIVITY_ID = 2026072702;
 const HELU_JOURNEY_ACTIVITY_ID = 2026072701;
 const HELU_NOTES_ACTIVITY_ID = 2026072701;
 const HELU_CURRENCY_ITEM_ID = 1023;
-const QINGMEI_ACTIVITY_ID = 2026080100;
-const QINGMEI_SEED_CLAIM_ACTIVITY_ID = 2026080101;
-const QINGMEI_WINE_ACTIVITY_ID = 2026080102;
+const QINGMEI_ACTIVITY_ID = 2026081200;
+const QINGMEI_SEED_CLAIM_ACTIVITY_ID = 2026081201;
+const QINGMEI_WINE_ACTIVITY_ID = 2026081202;
 const QINGMEI_SEED_CLAIM_CMD = 4;
 const QINGMEI_WINE_PREVIEW_CMD = 14;
 const QINGMEI_WINE_BREW_CMD = 15;
@@ -90,6 +90,8 @@ const QINGMEI_SEED_ITEM_ID = 21221;
 const QINGMEI_FRUIT_ITEM_ID = 41221;
 const QINGMEI_SEED_REWARD_COUNT = 24;
 const QINGMEI_FINE_BREW_STEPS = 3;
+// 抄自 liyangpengs：每日领种子请求里的 grant_id（对应旧代码的 type=2）
+const QINGMEI_DAILY_GRANT_ID = 3;
 const HELU_PASSPORT_UID = 'SAIJI_PASSPORT';
 const HELU_TITLE = '荷风十里蝉初鸣';
 const HELU_SUB_ACTIVITY_KEYS = {
@@ -175,7 +177,7 @@ async function operateActivity(activityId, cmd, options = {}) {
   }
   if (options?.qingmeiClaim && typeof options.qingmeiClaim === 'object') {
     payload.qingmei_claim_params = {
-      type: Math.max(0, toNum(options.qingmeiClaim.type)),
+      grant_id: Math.max(0, toNum(options.qingmeiClaim.grantId)),
     };
   }
   if (options?.qingmeiWineStart && typeof options.qingmeiWineStart === 'object') {
@@ -1102,7 +1104,7 @@ function normalizeQingmeiActivity(reply) {
 
   return {
     uid: reply?.__activityUid || QINGMEI_ACTIVITY_UID,
-    title: '青梅酿万金',
+    title: '青酿换万金',
     activityId: toNum(root?.id) || QINGMEI_ACTIVITY_ID,
     claimActivityId: toNum(claim?.id) || QINGMEI_SEED_CLAIM_ACTIVITY_ID,
     claimCommand: QINGMEI_SEED_CLAIM_CMD,
@@ -1142,7 +1144,7 @@ async function getQingmeiActivity() {
     const materialInfo = getItemById(QINGMEI_FRUIT_ITEM_ID);
     return {
       uid: QINGMEI_ACTIVITY_UID,
-      title: '青梅酿万金',
+      title: '青酿换万金',
       activityId: QINGMEI_ACTIVITY_ID,
       claimActivityId: QINGMEI_SEED_CLAIM_ACTIVITY_ID,
       claimCommand: QINGMEI_SEED_CLAIM_CMD,
@@ -1175,7 +1177,7 @@ async function claimQingmeiSeeds() {
   let reply = null;
   try {
     reply = await operateActivityReply(QINGMEI_SEED_CLAIM_ACTIVITY_ID, QINGMEI_SEED_CLAIM_CMD, {
-      qingmeiClaim: { type: 2 },
+      qingmeiClaim: { grantId: QINGMEI_DAILY_GRANT_ID },
     });
   } catch (err) {
     if (isAlreadyClaimedError(err)) {

@@ -471,7 +471,26 @@ async function checkFriends(options = {}) {
 
     // Help
     if (helpTargets.length > 0 && doHelp) {
+      // 【2026-08-13 修复】极速务农连接健康门控 + 自适应退避（治 Enter 超时 / 假断连）：
+      // A) 进每个好友前先 isConnected()；连续进入失败 ≥3 次立即终止本轮，把连接交还重连，
+      //    不再往已退化的管道里继续塞 Enter（否则每个干等 9~20s，pending 堆积、心跳失联）。
+      // B) 失败则好友间延迟指数退避（上限 2s），成功则回落到安全基线，避免持续高压触发限流。
+      // C) 本轮已进入失败的好友加入临时黑名单，本轮内不再重试，避免同一死 gid 反复卡住。
+      // 以下新逻辑仅 turboMode 生效，普通模式行为保持原样（100~200ms、失败跳过不中断）。
+      let consecutiveEnterFailures = 0;
+      let gapMin = turboMode ? 80 : 100;
+      let gapMax = turboMode ? 150 : 200;
+      const roundFailedGids = new Set();
       for (const target of helpTargets) {
+        const tgid = toNum(target.gid);
+        if (turboMode && roundFailedGids.has(tgid)) continue;
+        // A) 连接已断开（ws 关闭）直接结束本轮，交还应用宝离线重连
+        if (turboMode && !isConnected()) {
+          logWarn('好友', 'turbo: 连接已断开，提前结束本轮护主犬巡查', {
+            module: 'friend', event: 'turbo_early_exit', reason: 'disconnected',
+          });
+          break;
+        }
         // 经验满判定（detectExpFull）可能在巡逻中途触发并翻转 canGetHelpExp=false。
         // 本轮已在开头按 helpExpReached 建好 helpTargets（含普通好友），需对每个普通好友实时复核，
         // 否则开关触发后本轮剩余普通好友仍会被无差别帮助（表现="只帮护主犬"未生效）。
@@ -488,16 +507,37 @@ async function checkFriends(options = {}) {
             log('好友', `成功帮助${target.hasGuardDog ? '护主犬' : '好友'} ${target.name}`, {
               module: 'friend',
               event: '帮助成功',
-              gid: toNum(target.gid),
+              gid: tgid,
               hasGuardDog: !!target.hasGuardDog,
             });
           }
-        } catch {
-          // Skip individual failures
+          // B) 成功：失败计数清零，延迟回落基线
+          if (turboMode) {
+            consecutiveEnterFailures = 0;
+            gapMin = Math.max(80, Math.floor(gapMin / 2));
+            gapMax = Math.max(150, Math.floor(gapMax / 2));
+          }
+        } catch (err) {
+          // A/B) 失败：累加计数 + 本轮临时黑名单 + 指数退避，连续 3 次直接终止本轮
+          if (turboMode) {
+            consecutiveEnterFailures++;
+            roundFailedGids.add(tgid);
+            logWarn('好友', `turbo: 进入 ${target.name} 农场失败 (连续 ${consecutiveEnterFailures}/3): ${err && err.message ? err.message : err}`, {
+              module: 'friend', event: 'turbo_enter_fail', gid: tgid,
+            });
+            gapMin = Math.min(2000, gapMin * 2);
+            gapMax = Math.min(2000, gapMax * 2);
+            if (consecutiveEnterFailures >= 3) {
+              logWarn('好友', 'turbo: 连续 3 次进入好友失败，提前结束本轮（交还应用宝离线重连）', {
+                module: 'friend', event: 'turbo_early_exit', reason: 'consecutive_failures',
+              });
+              break;
+            }
+          }
         }
         // 放慢访问节奏，降低单账号短时请求密度，避免触发游戏风控导致断连
-        // 【2026-08-13 优化】极速务农（turboMode）压缩好友间延迟 100~200ms → 20~50ms
-        await randomDelay(turboMode ? 20 : 100, turboMode ? 50 : 200);
+        // 【2026-08-13 修复】极速务农（turboMode）好友间延迟从 20~50ms 回稳到 80~150ms（含自适应退避）
+        await randomDelay(turboMode ? gapMin : 100, turboMode ? gapMax : 200);
       }
     }
 
@@ -626,7 +666,7 @@ async function friendCheckLoop() {
   const expLimitActive = !!isAutomationOn('friend_help_exp_limit') && !getCanGetHelpExp();
   const turboMode = !!isAutomationOn('friend_turbo_mode');
   const interval = (expLimitActive || turboMode)
-    ? Math.max(6000, CONFIG.friendCheckInterval)
+    ? Math.max(10000, CONFIG.friendCheckInterval)
     : Math.max(15000, CONFIG.friendCheckInterval);
   friendScheduler.setTimeoutTask('friend_check_loop', interval, () => friendCheckLoop());
 }

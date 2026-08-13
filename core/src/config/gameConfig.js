@@ -409,6 +409,43 @@ function getItemById(itemId) {
     return itemInfoMap.get(Number(itemId) || 0);
 }
 
+/**
+ * 解析 sells 字段，格式为 "货币ID:价格" 或 "货币ID1:价格1;货币ID2:价格2"
+ * 返回 [{ currencyId, price }, ...]
+ */
+function parseSells(sells) {
+    if (!sells) return [];
+    return String(sells).split(';').map((part) => {
+        const [cid, price] = part.split(':');
+        return { currencyId: Number(cid) || 0, price: Number(price) || 0 };
+    });
+}
+
+/**
+ * 判定物品是否可出售，以及出售条件/价格。
+ * 依据 ItemInfo.json 的 sells / sell_cond / cond_sells 字段。
+ * 抄自 liyangpengs/qq-farm-bot 的 getEffectiveSellInfo。
+ * @returns {{sellable:boolean, status:'available'|'conditional'|'unavailable', condition:?string, sells:Array<{currencyId:number,price:number}>}}
+ */
+function getEffectiveSellInfo(itemOrId) {
+    const item = typeof itemOrId === 'number'
+        ? getItemById(itemOrId)
+        : (itemOrId || undefined);
+    if (!item) return { sellable: false, status: 'unavailable', condition: null, sells: [] };
+
+    const normalSells = parseSells(item.sells).filter(s => s.currencyId > 0 && s.price > 0);
+    const condition = item.sell_cond ? String(item.sell_cond).trim() : '';
+    const conditionalSells = parseSells(item.cond_sells).filter(s => s.currencyId > 0 && s.price > 0);
+
+    if (normalSells.length > 0) {
+        return { sellable: true, status: 'available', condition: condition || null, sells: normalSells };
+    }
+    if (condition && conditionalSells.length > 0) {
+        return { sellable: false, status: 'conditional', condition, sells: [] };
+    }
+    return { sellable: false, status: 'unavailable', condition: condition || null, sells: [] };
+}
+
 /** 判断是否是种子物品 */
 function isSeedItem(itemId) {
     return seedItemMap.has(Number(itemId) || 0);
@@ -513,6 +550,8 @@ module.exports = {
     getPlantByFruitId,
     getItemById,
     getItemImageById,
+    parseSells,
+    getEffectiveSellInfo,
     isSeedItem,
     getSeedPrice,
     getFruitPrice,

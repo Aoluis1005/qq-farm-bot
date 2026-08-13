@@ -39,7 +39,7 @@ message HeluPaidDrawParams {
 }
 
 message QingmeiClaimParams {
-    int32 type = 1;
+    int64 grant_id = 1;
 }
 
 message QingmeiWineStartParams {

@@ -68,7 +68,7 @@ const L: ActivityLabels = {
   activityStatus: '\u6D3B\u52A8\u72B6\u6001',
 } as const
 
-const SHOW_QINGMEI_ACTIVITY = false
+const SHOW_QINGMEI_ACTIVITY = true
 // 荷风活动已于 2026-07 结束，隐藏入口（后端代码保留）
 const HELU_EXPIRED = false
 
@@ -124,7 +124,7 @@ const sectionTabs = computed<ActivitySection[]>(() => [
   { key: 'journey', label: L.journeyTab, icon: 'i-carbon-observation', count: guanxingActivity.value?.summary?.claimableCount || 0 },
   { key: 'notes', label: L.notesTab, icon: 'i-carbon-notebook', count: solarTerms.value?.claimableCount || 0 },
   ...(SHOW_QINGMEI_ACTIVITY
-    ? [{ key: 'qingmei' as const, label: '青梅酿万金', icon: 'i-carbon-fruit-bowl', count: qingmeiActivity.value?.claimable ? 1 : 0 }]
+    ? [{ key: 'qingmei' as const, label: '青酿换万金', icon: 'i-carbon-fruit-bowl', count: qingmeiActivity.value?.claimable ? 1 : 0 }]
     : []),
 ])
 const activeError = computed(() => heluError.value || (activeSection.value === 'journey' ? guanxingError.value : ''))

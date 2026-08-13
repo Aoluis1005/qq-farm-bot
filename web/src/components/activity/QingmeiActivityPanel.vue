@@ -31,7 +31,7 @@ function formatTime(value?: number) {
         <div class="i-carbon-fruit-bowl text-3xl" />
         <div>
           <h2 class="text-lg font-bold">
-            {{ activity?.title || '青梅酿万金' }}
+            {{ activity?.title || '青酿换万金' }}
           </h2>
           <p class="mt-0.5 text-sm text-white/85">
             每日领取青梅种子，种植青梅参与限时酿造活动

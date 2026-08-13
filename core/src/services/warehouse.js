@@ -15,6 +15,7 @@ const {
   getPlantBySeedId,
   getItemById,
   getItemImageById,
+  getEffectiveSellInfo,
   getSeedLevel,
   getSeedImageBySeedId,
   isSeedItem,
@@ -29,6 +30,11 @@ const { updateStatusGold } = require('./status');
 
 // 批量出售大小
 const SELL_BATCH_SIZE = 15;
+
+// 自动出售跳过名单：这些物品即便在物品表标记为可售，实际调 ItemService.Sell
+// 也会被服务端以 code=1000020 请求参数错误 拒绝（如 41221）。为避免每轮刷屏报错，
+// 自动出售前直接从候选剔除（手动出售不受影响，仍会真实尝试并报错）。
+const AUTO_SELL_SKIP_ITEM_IDS = new Set([41221]);
 
 // 化肥容器上限（小时）
 const FERTILIZER_CONTAINER_LIMIT_HOURS = 990;
@@ -93,8 +99,20 @@ function toSellItem(raw) {
 }
 
 async function sellItems(items) {
+  const requested = Array.isArray(items) ? items : [];
+  if (requested.length === 0) throw new Error('没有可出售的物品');
+  for (const item of requested) {
+    const id = toNum(item && item.id);
+    const count = toNum(item && item.count);
+    if (id <= 0 || count <= 0) throw new Error('出售物品参数无效');
+    const sellInfo = getEffectiveSellInfo(id);
+    if (!sellInfo.sellable) {
+      const info = getItemById(id);
+      throw new Error(`${info ? info.name : `物品${id}`}当前不可出售`);
+    }
+  }
   const request = types.SellRequest.encode(
-    types.SellRequest.create({ items: items.map(toSellItem) })
+    types.SellRequest.create({ items: requested.map(toSellItem) })
   ).finish();
   const { body } = await sendMsgAsync('gamepb.itempb.ItemService', 'Sell', request);
   return types.SellReply.decode(body);
@@ -500,7 +518,8 @@ async function sellAllFruits() {
     for (const item of items) {
       const id = toNum(item.id);
       const count = toNum(item.count);
-      if (isFruitItemId(id) && count > 0) {
+      if (isFruitItemId(id) && count > 0 && getEffectiveSellInfo(id).sellable
+          && !AUTO_SELL_SKIP_ITEM_IDS.has(id)) {
         fruits.push(item);
       }
     }

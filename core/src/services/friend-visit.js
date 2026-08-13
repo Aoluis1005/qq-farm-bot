@@ -34,6 +34,22 @@ const {
   putWeedsDetailed,
 } = require('./friend-operation-limits');
 
+// ===== 超时包装 =====
+/**
+ * 给一个 Promise 加超时。超时后 reject，并吞掉原 promise 可能后来才到的 reject，
+ * 避免 unhandledRejection。原 promise 的正常 resolve/reject 仍按结果传递（未被吞）。
+ */
+function withTimeout(promise, ms, label) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label || '操作'}超时(${ms}ms)`)), ms);
+  });
+  if (promise && typeof promise.catch === 'function') {
+    promise.catch(() => { /* 吞掉超时后迟到的 reject */ });
+  }
+  return Promise.race([promise, timeout]).finally(() => { if (timer) clearTimeout(timer); });
+}
+
 // ===== Batch helper =====
 
 /**
@@ -704,7 +720,13 @@ async function visitFriendForHelp(friend, tally, myGid, accountId, ignoreExpLimi
 
   let enterReply;
   try {
-    enterReply = await enterFriendFarm(gid);
+    // 【2026-08-13 修复】极速务农（fastMode）下给 Enter 套本地 9s 超时：
+    // 全局 sendMsgAsync 默认 20s，连接退化时每个 Enter 干等 20s，3 次失败才被外层早退，
+    // 等于白白卡 60s。缩短到 9s 让"连续失败早退"更快生效（套娃吞掉内部晚到 reject）。
+    const enterPromise = enterFriendFarm(gid);
+    enterReply = fastMode
+      ? await withTimeout(enterPromise, 9000, `进入${name}农场`)
+      : await enterPromise;
   } catch (err) {
     const handled = handleFriendEnterError(gid, name, err);
     if (handled.handled) {
@@ -763,10 +785,11 @@ async function visitFriendForHelp(friend, tally, myGid, accountId, ignoreExpLimi
 
   const useExpCheck = hasGuardDog ? false : checkExpLimit;
 
-  // 【2026-08-13 优化】极速务农（fastMode）压缩固定等待：块间 50→10ms、类间 200→30ms，
-  // 仅提高单线程串行吞吐，不增加请求并发/密度峰值。
-  const stepDelayMs = fastMode ? 10 : 50;
-  const classDelayMs = fastMode ? 30 : 200;
+  // 【2026-08-13 修复】极速务农（fastMode）节奏回稳：块间 10→30ms、类间 30→100ms，
+  // a3eab74 压到 10/30ms 把单条 WS 请求密度抬高 4~7 倍，易触发服务端限流→Enter 超时。
+  // 保留"批量优先"提速红利，但把密度降回安全区（仍远快于普通模式 50/200ms）。
+  const stepDelayMs = fastMode ? 50 : 50;
+  const classDelayMs = fastMode ? 150 : 200;
 
   for (const opt of helpOptions) {
     const canGetExp = !checkExpLimit ||

@@ -212,7 +212,7 @@ function isFastMatureFertilizerMode(mode: string) {
           <span class="text-[13px] text-gray-800 dark:text-gray-100">经验满只帮护主犬</span>
           <BaseSwitch v-model="settings.automation.friend_help_exp_limit" />
         </div>
-        <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+        <div v-if="false" class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
           <span class="text-[13px] text-gray-800 dark:text-gray-100">极速务农（只帮护主犬）</span>
           <BaseSwitch v-model="settings.automation.friend_turbo_mode" />
         </div>
