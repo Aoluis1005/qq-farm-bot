@@ -1,10 +1,5 @@
 const { getItemById, getPlantBySeedId, getPlantByFruitId } = require("../config/gameConfig");
 const { toNum } = require("../utils/utils");
-const {
-  getBagLockedItemIds,
-  setBagLockedItemIds,
-  toggleBagLockedItemId,
-} = require("../models/store");
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -177,49 +172,6 @@ function registerAdminBagRoutes({
       res.json({ ok: true, data: seeds });
     }
     catch (error) {
-      sendProviderError(res, error);
-    }
-  });
-
-  // ==================== 背包物品上锁（跳过自动出售） ====================
-
-  // 获取当前账号的上锁物品 ID 列表
-  app.get("/api/bag/locked", (req, res) => {
-    const accountId = requireAccessibleAccount(req, res, getAccountIdFromRequest, canAccessAccount, null);
-    if (!accountId) return;
-    try {
-      res.json({ ok: true, data: { itemIds: getBagLockedItemIds(accountId) } });
-    } catch (error) {
-      sendProviderError(res, error);
-    }
-  });
-
-  // 上锁/解锁某个物品（body: { itemId, locked? }，locked 缺省为切换）
-  app.post("/api/bag/lock", (req, res) => {
-    const accountId = requireAccessibleAccount(req, res, getAccountIdFromRequest, canAccessAccount);
-    if (!accountId) return;
-
-    try {
-      const { itemId, locked } = req.body;
-      if (!itemId) return res.status(400).json({ ok: false, error: "缺少 itemId" });
-      const ids = toggleBagLockedItemId(accountId, itemId, locked);
-      res.json({ ok: true, data: { itemIds: ids } });
-    } catch (error) {
-      sendProviderError(res, error);
-    }
-  });
-
-  // 批量设置上锁列表（body: { itemIds: number[] }，整体替换）
-  app.post("/api/bag/lock/batch", (req, res) => {
-    const accountId = requireAccessibleAccount(req, res, getAccountIdFromRequest, canAccessAccount);
-    if (!accountId) return;
-
-    try {
-      const { itemIds } = req.body;
-      if (!Array.isArray(itemIds)) return res.status(400).json({ ok: false, error: "缺少 itemIds" });
-      const ids = setBagLockedItemIds(accountId, itemIds);
-      res.json({ ok: true, data: { itemIds: ids } });
-    } catch (error) {
       sendProviderError(res, error);
     }
   });

@@ -15,7 +15,7 @@ const statusStore = useStatusStore()
 const toastStore = useToastStore()
 
 const { currentAccountId, currentAccount } = storeToRefs(accountStore)
-const { items, loading: bagLoading, originalItems, lockedItemIds } = storeToRefs(bagStore)
+const { items, loading: bagLoading, originalItems } = storeToRefs(bagStore)
 const { status, loading: statusLoading, error: statusError, realtimeConnected, currentStatusReady } = storeToRefs(statusStore)
 
 const imageErrors = ref<Record<string | number, boolean>>({})
@@ -92,29 +92,8 @@ function canSell(item: any) {
   return itemType === 17 || itemType === 6
 }
 
-// 【2026-08-13】背包上锁：该物品 ID 是否在锁定名单（跳过自动出售）
-function isLocked(item: any) {
-  return lockedItemIds.value.includes(Number(item?.id || 0))
-}
-
 function canBatchSell(item: any) {
-  return canSell(item) && Number(item.count || 0) > 0 && !isLocked(item)
-}
-
-async function toggleLockClick(item: any) {
-  if (!currentAccountId.value)
-    return
-  const itemId = Number(item?.id || 0)
-  if (!itemId)
-    return
-  try {
-    await bagStore.toggleLock(currentAccountId.value, itemId)
-    const locked = isLocked(item)
-    toastStore.success(locked ? `已上锁 ${item.name || `物品${item.id}`}（自动出售将跳过）` : `已解锁 ${item.name || `物品${item.id}`}`)
-  }
-  catch (e: any) {
-    toastStore.error(`操作失败: ${e.message || '未知错误'}`)
-  }
+  return canSell(item) && Number(item.count || 0) > 0
 }
 
 function canUse(item: any) {
@@ -123,11 +102,6 @@ function canUse(item: any) {
 }
 
 function handleSellClick(item: any) {
-  // 【2026-08-13】已上锁物品禁止出售
-  if (isLocked(item)) {
-    toastStore.warning(`「${item.name || `物品${item.id}`}」已上锁，请先解锁再出售`)
-    return
-  }
   if (batchMode.value) {
     const isSelected = selectedForBatch.value.has(Number(item.id))
     if (isSelected) {
@@ -346,7 +320,6 @@ async function loadBag() {
 
     if (acc.running)
       await bagStore.fetchBag(currentAccountId.value)
-    await bagStore.fetchLocked(currentAccountId.value)
   }
   finally {
     bagLoaded.value = true
@@ -477,7 +450,6 @@ useIntervalFn(loadBag, 60000)
           :class="{
             'ring-2 ring-orange-500 dark:ring-orange-400': batchMode && selectedForBatch.has(Number(item.id)),
             'opacity-50': batchMode && canBatchSell(item) && !selectedForBatch.has(Number(item.id)),
-            'ring-1 ring-amber-400 dark:ring-amber-500': isLocked(item) && !batchMode,
           }"
           @click="batchMode && canBatchSell(item) && handleSellClick(item)"
         >
@@ -489,19 +461,7 @@ useIntervalFn(loadBag, 60000)
             <template v-if="!batchMode">
               <button
                 v-if="canSell(item)"
-                class="rounded px-1.5 py-0.5 text-[10px] transition"
-                :class="isLocked(item)
-                  ? 'bg-amber-500 text-white hover:bg-amber-600'
-                  : 'bg-gray-400 text-white opacity-70 hover:opacity-100 dark:bg-gray-600'"
-                :title="isLocked(item) ? '已上锁（自动出售跳过），点击解锁' : '上锁（自动出售跳过）'"
-                @click.stop="toggleLockClick(item)"
-              >
-                {{ isLocked(item) ? '🔒' : '锁' }}
-              </button>
-              <button
-                v-if="canSell(item)"
                 class="rounded bg-red-500 px-1.5 py-0.5 text-[10px] text-white opacity-70 transition dark:bg-red-600 hover:opacity-100"
-                :class="{ 'pointer-events-none opacity-30': isLocked(item) }"
                 title="出售全部"
                 @click.stop="handleSellClick(item)"
               >
@@ -557,9 +517,8 @@ useIntervalFn(loadBag, 60000)
             </span>
           </div>
 
-          <div class="mt-auto flex items-center justify-center gap-1 font-medium" :class="item.hoursText ? 'text-blue-500' : 'text-gray-600 dark:text-gray-300'">
-            <div v-if="isLocked(item)" class="i-carbon-locked text-xs text-amber-500" />
-            <span>{{ item.hoursText || `x${item.count || 0}` }}</span>
+          <div class="mt-auto font-medium" :class="item.hoursText ? 'text-blue-500' : 'text-gray-600 dark:text-gray-300'">
+            {{ item.hoursText || `x${item.count || 0}` }}
           </div>
         </div>
       </div>

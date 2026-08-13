@@ -19,7 +19,7 @@ const {
   getSeedImageBySeedId,
   isSeedItem,
 } = require('../config/gameConfig');
-const { isAutomationOn, getBagLockedItemIds } = require('../models/store');
+const { isAutomationOn } = require('../models/store');
 const { sendMsgAsync, networkEvents, getUserState } = require('../utils/network');
 const { types } = require('../utils/proto');
 const { toLong, toNum, log, logWarn, sleep } = require('../utils/utils');
@@ -93,16 +93,8 @@ function toSellItem(raw) {
 }
 
 async function sellItems(items) {
-  // 【2026-08-13】背包上锁名单过滤：锁定的物品（含果实）不发送出售请求（兜底，手动/自动共用）
-  const accountId = process.env.FARM_ACCOUNT_ID || '';
-  const lockedSet = new Set(getBagLockedItemIds(accountId));
-  const sellable = (Array.isArray(items) ? items : [])
-    .filter(raw => !lockedSet.has(toNum(raw && raw.id)));
-  if (sellable.length === 0) {
-    return { sell_items: [], get_items: [] };
-  }
   const request = types.SellRequest.encode(
-    types.SellRequest.create({ items: sellable.map(toSellItem) })
+    types.SellRequest.create({ items: items.map(toSellItem) })
   ).finish();
   const { body } = await sendMsgAsync('gamepb.itempb.ItemService', 'Sell', request);
   return types.SellReply.decode(body);
@@ -504,34 +496,18 @@ async function sellAllFruits() {
     const bag = await getBag();
     const items = getBagItems(bag);
     const fruits = [];
-    // 【2026-08-13】背包上锁名单过滤：锁定的果实不自动出售
-    const accountId = process.env.FARM_ACCOUNT_ID || '';
-    const lockedSet = new Set(getBagLockedItemIds(accountId));
-    let lockedSkippedCount = 0;
 
     for (const item of items) {
       const id = toNum(item.id);
       const count = toNum(item.count);
       if (isFruitItemId(id) && count > 0) {
-        if (lockedSet.has(id)) {
-          lockedSkippedCount += count;
-          continue;
-        }
         fruits.push(item);
       }
     }
 
     if (fruits.length === 0) {
-      log('仓库', lockedSkippedCount > 0
-        ? `无果实可出售（已上锁跳过 ${lockedSkippedCount} 个）`
-        : '无果实可出售');
+      log('仓库', '无果实可出售');
       return 0;
-    }
-
-    if (lockedSkippedCount > 0) {
-      log('仓库', `自动出售跳过已上锁果实 x${lockedSkippedCount}`, {
-        module: 'warehouse', event: '跳过上锁果实', result: 'skip', count: lockedSkippedCount,
-      });
     }
 
     const totalsBefore = getCurrentTotals();
