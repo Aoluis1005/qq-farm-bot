@@ -7,6 +7,8 @@ export const useBagStore = defineStore('bag', () => {
   const allItems = ref<any[]>([])
   const originalItems = ref<any[]>([])
   const loading = ref(false)
+  // 【2026-08-13】背包物品上锁名单（跳过自动出售）
+  const lockedItemIds = ref<number[]>([])
 
   function clearBag() {
     allItems.value = []
@@ -73,5 +75,34 @@ export const useBagStore = defineStore('bag', () => {
     return res.data
   }
 
-  return { items, allItems, originalItems, dashboardItems, loading, fetchBag, clearBag, useItem, sellItems }
+  async function fetchLocked(accountId: string) {
+    if (!accountId)
+      return
+    try {
+      const res = await api.get('/api/bag/locked', {
+        headers: { 'x-account-id': accountId },
+      })
+      if (res.data?.ok && res.data.data) {
+        lockedItemIds.value = Array.isArray(res.data.data.itemIds) ? res.data.data.itemIds : []
+      }
+    }
+    catch {
+      // 忽略：锁定接口不可用时不影响背包展示
+    }
+  }
+
+  async function toggleLock(accountId: string, itemId: number) {
+    const res = await api.post('/api/bag/lock', { itemId }, {
+      headers: { 'x-account-id': accountId },
+    })
+    if (res.data?.ok && res.data.data) {
+      lockedItemIds.value = Array.isArray(res.data.data.itemIds) ? res.data.data.itemIds : []
+    }
+    return res.data
+  }
+
+  return {
+    items, allItems, originalItems, dashboardItems, loading, lockedItemIds,
+    fetchBag, clearBag, useItem, sellItems, fetchLocked, toggleLock,
+  }
 })

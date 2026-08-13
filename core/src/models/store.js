@@ -260,6 +260,8 @@ const DEFAULT_ACCOUNT_CONFIG = {
     friendQuietHours: DEFAULT_QUIET_HOURS,
     knownFriendGids: [],
     friendBlacklist: [],
+    // 【2026-08-13】背包物品上锁名单（跳过自动出售，如保护某些果实）
+    bagLockedItemIds: [],
     plantBlacklist: DEFAULT_PLANT_BLACKLIST,
     stealDelaySeconds: 1,
     plantOrderRandom: true,
@@ -291,6 +293,19 @@ function normalizeKnownFriendGids(rawGids, fallback = []) {
         if (!Number.isFinite(gid) || gid <= 0) continue;
         if (result.includes(gid)) continue;
         result.push(gid);
+    }
+    return result;
+}
+
+// 【2026-08-13】背包物品上锁名单：只保留正整数 itemId 并去重
+function normalizeBagLockedItemIds(rawIds, fallback = []) {
+    const input = Array.isArray(rawIds) ? rawIds : fallback;
+    const result = [];
+    for (const item of input) {
+        const id = Number.parseInt(item, 10);
+        if (!Number.isFinite(id) || id <= 0) continue;
+        if (result.includes(id)) continue;
+        result.push(id);
     }
     return result;
 }
@@ -471,6 +486,7 @@ function cloneAccountConfig(config = DEFAULT_ACCOUNT_CONFIG) {
         friendQuietHours: { ...config.friendQuietHours || DEFAULT_ACCOUNT_CONFIG.friendQuietHours },
         knownFriendGids,
         friendBlacklist: normalizeFriendBlacklist(config.friendBlacklist),
+        bagLockedItemIds: normalizeBagLockedItemIds(config.bagLockedItemIds),
         plantingStrategy: ALLOWED_PLANTING_STRATEGIES.includes(String(config.plantingStrategy || ''))
             ? String(config.plantingStrategy) : DEFAULT_ACCOUNT_CONFIG.plantingStrategy,
         preferredSeedId: Math.max(0, Number.parseInt(config.preferredSeedId, 10) || 0),
@@ -1345,6 +1361,33 @@ function setFriendBlacklist(accountId, list) {
     return getFriendBlacklistDetails(accountId);
 }
 
+// ==================== 背包物品上锁名单（跳过自动出售） ====================
+
+function getBagLockedItemIds(accountId) {
+    return normalizeBagLockedItemIds(getAccountConfigSnapshot(accountId).bagLockedItemIds);
+}
+
+function setBagLockedItemIds(accountId, ids) {
+    const base = getAccountConfigSnapshot(accountId);
+    const cfg = normalizeAccountConfig(base, accountFallbackConfig);
+    cfg.bagLockedItemIds = normalizeBagLockedItemIds(ids);
+    setAccountConfigSnapshot(accountId, cfg);
+    return getBagLockedItemIds(accountId);
+}
+
+function toggleBagLockedItemId(accountId, itemId, locked) {
+    const targetId = Number(itemId);
+    if (!Number.isFinite(targetId) || targetId <= 0) return getBagLockedItemIds(accountId);
+    const current = new Set(getBagLockedItemIds(accountId));
+    const wantLock = locked === undefined ? !current.has(targetId) : !!locked;
+    if (wantLock) {
+        current.add(targetId);
+    } else {
+        current.delete(targetId);
+    }
+    return setBagLockedItemIds(accountId, [...current]);
+}
+
 function addFriendToBlacklist(accountId, gid, skipSteal = true, skipHelp = true) {
     const targetGid = Number(gid);
     if (!targetGid || targetGid <= 0)
@@ -2039,6 +2082,9 @@ module.exports = {
     addFriendToBlacklist,
     removeFriendFromBlacklist,
     updateBlacklistItem,
+    getBagLockedItemIds,
+    setBagLockedItemIds,
+    toggleBagLockedItemId,
     getStealDelaySeconds,
     getPlantOrderRandom,
     getPlantDelaySeconds,
