@@ -84,8 +84,28 @@ function ensureExpLimitCallback() {
   });
 }
 
+// 【2026-08-13 优化】极速务农模式下好友列表短 TTL 缓存（30s）：
+// turbo 巡查 6 秒一轮，每轮 getAllFriends 分批拉取（35 人/批）在好友多时很耗时。
+// turbo 目标是"进全部护主犬、忽略快照"，护主犬集合来自磁盘缓存，列表缓存对判定几乎无副作用。
+const TURBO_FRIENDS_LIST_TTL_MS = 30 * 1000;
+let turboFriendsListCache = null;
+let turboFriendsListCacheAt = 0;
+
 async function getCachedFriendsList(forceRefresh = false) {
-  return await getAllFriends();
+  const turboMode = !!isAutomationOn('friend_turbo_mode');
+  if (
+    turboMode && !forceRefresh &&
+    turboFriendsListCache &&
+    (Date.now() - turboFriendsListCacheAt) < TURBO_FRIENDS_LIST_TTL_MS
+  ) {
+    return turboFriendsListCache;
+  }
+  const reply = await getAllFriends();
+  if (turboMode) {
+    turboFriendsListCache = reply;
+    turboFriendsListCacheAt = Date.now();
+  }
+  return reply;
 }
 
 // ===== Helpers =====
@@ -461,7 +481,7 @@ async function checkFriends(options = {}) {
         try {
           const result = await visitFriendForHelp(
             target, tally, userState.gid, userState.accountId,
-            ignoreExpLimit, helpExpReached || turboMode
+            ignoreExpLimit, helpExpReached || turboMode, turboMode
           );
           // 帮助成功才输出日志；失败（无有效操作/异常）不打日志
           if (result && result.acted) {
@@ -476,7 +496,8 @@ async function checkFriends(options = {}) {
           // Skip individual failures
         }
         // 放慢访问节奏，降低单账号短时请求密度，避免触发游戏风控导致断连
-        await randomDelay(100, 200);
+        // 【2026-08-13 优化】极速务农（turboMode）压缩好友间延迟 100~200ms → 20~50ms
+        await randomDelay(turboMode ? 20 : 100, turboMode ? 50 : 200);
       }
     }
 
@@ -648,6 +669,9 @@ function stopFriendCheckLoop() {
   externalSchedulerMode = false;
   lastFullDogInfoRefreshAt = 0;
   dogInfoBootstrapReadyAt = 0;
+  // 【2026-08-13】清理极速务农好友列表短 TTL 缓存，避免停止后残留旧名单
+  turboFriendsListCache = null;
+  turboFriendsListCacheAt = 0;
   clearAllInvalidKnownFriendGidCooldown();
   networkEvents.off('friendApplicationReceived', onFriendApplicationReceived);
   friendScheduler.clearAll();

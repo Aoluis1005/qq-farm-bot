@@ -37,16 +37,30 @@ const {
 // ===== Batch helper =====
 
 /**
- * Run an operation on multiple land IDs. Falls back to single-ID calls if batch fails.
+ * Run an operation on multiple land IDs. Batch-first, per-block fallback.
  * Returns the number of successful operations.
+ *
+ * 【2026-08-13 优化】批量优先：先用 batchFn 一次请求全部 landIds（单次网络往返），
+ * 批量成功即按全部计数；批量失败（服务端不支持批量/整批报错）才逐块回退精确统计。
+ * 原实现纯逐块调用（服务端对批量 land_ids 处理不可靠的顾虑），极速务农下是最大耗时源。
+ * stepDelayMs 可调（极速务农传小值，普通模式保持 50ms 节奏）。
  */
-async function runBatchWithFallback(landIds, batchFn, singleFn) {
+async function runBatchWithFallback(landIds, batchFn, singleFn, opts = {}) {
   const ids = Array.isArray(landIds) ? landIds.filter(Boolean) : [];
   if (ids.length === 0) return 0;
+  const rawDelay = opts.stepDelayMs === undefined ? 50 : Number(opts.stepDelayMs) || 0;
+  const delay = Math.max(0, Math.min(rawDelay, 500));
 
-  // 逐块调用但不批量——服务端对批量 land_ids 的处理不可靠（可能部分成功），
-  // 逐块调用能精确知道每块是否成功，统计准确。
-  // 性能影响小（帮忙/偷菜的地块数通常 < 10）。
+  // 1) 批量优先：一次请求全部 landIds
+  try {
+    await batchFn(ids);
+    if (delay > 0) await sleep(delay);
+    return ids.length;
+  } catch (batchErr) {
+    // 批量失败（可能服务端部分处理/整批报错），落到逐块回退精确统计
+  }
+
+  // 2) 逐块回退：精确知道每块是否成功，统计准确。
   let ok = 0;
   for (const id of ids) {
     try {
@@ -66,7 +80,7 @@ async function runBatchWithFallback(landIds, batchFn, singleFn) {
         });
       }
     }
-    await sleep(50);
+    if (delay > 0) await sleep(delay);
   }
   return ok;
 }
@@ -672,7 +686,7 @@ async function visitFriendForSteal(friend, tally, myGid, accountId) {
  * Visit a friend specifically to help (water/weed/bug).
  * Honors experience limit. Guard dog friends bypass the limit.
  */
-async function visitFriendForHelp(friend, tally, myGid, accountId, ignoreExpLimit = false, expLimitMode = false) {
+async function visitFriendForHelp(friend, tally, myGid, accountId, ignoreExpLimit = false, expLimitMode = false, fastMode = false) {
   const { gid, name } = friend;
   const expLimitEnabled = !!isAutomationOn('friend_help_exp_limit');
   const checkExpLimit = expLimitEnabled && !ignoreExpLimit;
@@ -749,6 +763,11 @@ async function visitFriendForHelp(friend, tally, myGid, accountId, ignoreExpLimi
 
   const useExpCheck = hasGuardDog ? false : checkExpLimit;
 
+  // 【2026-08-13 优化】极速务农（fastMode）压缩固定等待：块间 50→10ms、类间 200→30ms，
+  // 仅提高单线程串行吞吐，不增加请求并发/密度峰值。
+  const stepDelayMs = fastMode ? 10 : 50;
+  const classDelayMs = fastMode ? 30 : 200;
+
   for (const opt of helpOptions) {
     const canGetExp = !checkExpLimit ||
       hasGuardDog ||
@@ -760,6 +779,7 @@ async function visitFriendForHelp(friend, tally, myGid, accountId, ignoreExpLimi
         opt.list,
         ids => opt.fn(gid, ids, useExpCheck),
         id => opt.fn(gid, id, useExpCheck),
+        { stepDelayMs },
       );
       if (okCount > 0) {
         if (expLimitMode && hasGuardDog) {
@@ -781,7 +801,7 @@ async function visitFriendForHelp(friend, tally, myGid, accountId, ignoreExpLimi
     } catch (_) {
       // 单个帮助操作整体失败，跳过
     }
-    await sleep(200);
+    if (classDelayMs > 0) await sleep(classDelayMs);
   }
 
   if (actionLogs.length > 0) {
