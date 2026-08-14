@@ -15,7 +15,6 @@ const {
   getPlantBySeedId,
   getItemById,
   getItemImageById,
-  getEffectiveSellInfo,
   getSeedLevel,
   getSeedImageBySeedId,
   isSeedItem,
@@ -105,11 +104,6 @@ async function sellItems(items) {
     const id = toNum(item && item.id);
     const count = toNum(item && item.count);
     if (id <= 0 || count <= 0) throw new Error('出售物品参数无效');
-    const sellInfo = getEffectiveSellInfo(id);
-    if (!sellInfo.sellable) {
-      const info = getItemById(id);
-      throw new Error(`${info ? info.name : `物品${id}`}当前不可出售`);
-    }
   }
   const request = types.SellRequest.encode(
     types.SellRequest.create({ items: requested.map(toSellItem) })
@@ -518,8 +512,7 @@ async function sellAllFruits() {
     for (const item of items) {
       const id = toNum(item.id);
       const count = toNum(item.count);
-      if (isFruitItemId(id) && count > 0 && getEffectiveSellInfo(id).sellable
-          && !AUTO_SELL_SKIP_ITEM_IDS.has(id)) {
+      if (isFruitItemId(id) && count > 0 && !AUTO_SELL_SKIP_ITEM_IDS.has(id)) {
         fruits.push(item);
       }
     }
