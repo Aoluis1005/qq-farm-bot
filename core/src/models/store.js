@@ -221,7 +221,9 @@ const DEFAULT_AUTOMATION = {
     fertilizer_land_types: [...DEFAULT_FERTILIZER_LAND_TYPES],
     fertilizer_smart_seconds: 300,
     skip_own_weed_bug: true,
-    golden_bug_clear: true
+    golden_bug_clear: true,
+    friend_turbo_scheduled: false,
+    friend_turbo_schedule_time: '08:00-10:00'
 };
 
 /** 默认间隔配置（秒） */
@@ -563,6 +565,9 @@ function normalizeAccountConfig(raw, fallbackConfig = accountFallbackConfig) {
                 cfg.automation[key] = normalizeFertilizerLandTypes(value, cfg.automation[key]);
             } else if (key === 'fertilizer_smart_seconds') {
                 cfg.automation[key] = Math.max(60, Math.min(7200, Number(value) || 300));
+            } else if (typeof value === 'string') {
+                // 字符串型自动化配置（如定时极速务农的 HH:mm）原样保留，避免被 !!value 强转成布尔
+                cfg.automation[key] = value;
             } else {
                 cfg.automation[key] = !!value;
             }
@@ -1096,6 +1101,9 @@ function applyConfigSnapshot(patch = {}, opts = {}) {
                 cfg.automation[key] = normalizeFertilizerLandTypes(value, cfg.automation[key]);
             } else if (key === 'fertilizer_smart_seconds') {
                 cfg.automation[key] = Math.max(60, Math.min(7200, Number(value) || 300));
+            } else if (typeof value === 'string') {
+                // 字符串型自动化配置（如定时极速务农的 HH:mm）原样保留，避免被 !!value 强转成布尔
+                cfg.automation[key] = value;
             } else {
                 cfg.automation[key] = !!value;
             }

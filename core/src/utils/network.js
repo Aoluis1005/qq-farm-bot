@@ -85,7 +85,7 @@ function startAceService() {
     if (aceService) aceService.stop('重新启动');
     aceService = new AceService({
         runtime: tsdkRuntime,
-        sendRequest: sendMsgAsync,
+        sendRequest: (...args) => sendMsgAsync(...args, { priority: 'high' }),
         isConnected,
         types,
         logger: logAce,
@@ -227,14 +227,17 @@ async function sendMsg(serviceName, methodName, bodyBytes, callback) {
 }
 
 /** Promise 版发送 */
-function sendMsgAsync(serviceName, methodName, bodyBytes, timeout = 20000) {
+// opts.priority === 'high' 的请求（心跳、ACE 反作弊）拥有保留通道：
+// 即使普通请求把 pending 堆到上限也不会被拒绝，确保连接健康上报永不被 turbo 淹没。
+function sendMsgAsync(serviceName, methodName, bodyBytes, timeout = 20000, opts = {}) {
+    const isHighPriority = !!(opts && opts.priority === 'high');
     return new Promise((resolve, reject) => {
         if (!ws || ws.readyState !== WebSocket.OPEN) {
             reject(new Error(`连接未打开: ${methodName}`));
             return;
         }
 
-        if (pendingCallbacks.size >= 50) {
+        if (!isHighPriority && pendingCallbacks.size >= 50) {
             reject(new Error(`请求队列已满: ${methodName} (pending=${pendingCallbacks.size})`));
             return;
         }
@@ -627,7 +630,7 @@ function startHeartbeat() {
             gid: toLong(userState.gid),
             client_version: CONFIG.clientVersion,
         })).finish();
-        sendMsgAsync('gamepb.userpb.UserService', 'Heartbeat', body).then(({ body: replyBody }) => {
+        sendMsgAsync('gamepb.userpb.UserService', 'Heartbeat', body, 20000, { priority: 'high' }).then(({ body: replyBody }) => {
             lastHeartbeatResponse = Date.now();
             heartbeatMissCount = 0;
             try {
