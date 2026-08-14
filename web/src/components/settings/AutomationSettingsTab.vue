@@ -3,6 +3,7 @@ import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseSelect from '@/components/ui/BaseSelect.vue'
 import BaseSwitch from '@/components/ui/BaseSwitch.vue'
+import { computed } from 'vue'
 
 interface AutomationSettings {
   automation: {
@@ -18,6 +19,8 @@ interface AutomationSettings {
     friend_golden_bug: boolean
     friend_help_exp_limit: boolean
     friend_turbo_mode: boolean
+    friend_turbo_scheduled: boolean
+    friend_turbo_schedule_time: string
     golden_bug_clear: boolean
     fertilizer_gift: boolean
     fertilizer_buy_organic: boolean
@@ -57,6 +60,17 @@ const emit = defineEmits<{
 }>()
 
 const settings = defineModel<AutomationSettings>('settings', { required: true })
+
+// 定时极速务农时间段：拆成起止两个 time input，回写为 "HH:mm-HH:mm"
+const turboWindow = computed({
+  get: () => {
+    const [s, e] = (settings.value.automation.friend_turbo_schedule_time || '').split('-')
+    return { start: s || '08:00', end: e || '10:00' }
+  },
+  set: (v) => {
+    settings.value.automation.friend_turbo_schedule_time = `${v.start}-${v.end}`
+  },
+})
 
 function isFastMatureFertilizerMode(mode: string) {
   return mode === 'smart' || mode === 'smart_only' || mode === 'smart_normal'
@@ -212,9 +226,29 @@ function isFastMatureFertilizerMode(mode: string) {
           <span class="text-[13px] text-gray-800 dark:text-gray-100">经验满只帮护主犬</span>
           <BaseSwitch v-model="settings.automation.friend_help_exp_limit" />
         </div>
-        <div v-if="false" class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+        <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
           <span class="text-[13px] text-gray-800 dark:text-gray-100">极速务农（只帮护主犬）</span>
           <BaseSwitch v-model="settings.automation.friend_turbo_mode" />
+        </div>
+        <div class="flex items-center justify-between gap-3 rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
+          <div class="flex flex-col gap-0.5">
+            <span class="text-[13px] text-gray-800 dark:text-gray-100">定时极速务农（北京时间）</span>
+            <span class="text-[11px] text-gray-500">仅在设定时间段内开启极速务农，段外为正常巡查；需先开启上方极速务农</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <input
+              v-model="turboWindow.start"
+              type="time"
+              class="rounded-md border border-white/40 bg-white/70 px-2 py-1 text-[13px] text-gray-800 dark:bg-white/10 dark:text-gray-100"
+            />
+            <span class="text-[13px] text-gray-500">至</span>
+            <input
+              v-model="turboWindow.end"
+              type="time"
+              class="rounded-md border border-white/40 bg-white/70 px-2 py-1 text-[13px] text-gray-800 dark:bg-white/10 dark:text-gray-100"
+            />
+            <BaseSwitch v-model="settings.automation.friend_turbo_scheduled" />
+          </div>
         </div>
         </div>
       </div>

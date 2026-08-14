@@ -12,7 +12,13 @@ const {
 } = require('../models/store');
 const { getUserState, isConnected, networkEvents } = require('../utils/network');
 const { toNum, log, logWarn, randomDelay, isTransientNetworkError } = require('../utils/utils');
-const { setOperationLimitsCallback } = require('./farm');
+const {
+  setOperationLimitsCallback,
+  stopFarmCheckLoop,
+  startFarmCheckLoop,
+} = require('./farm');
+const { stopFertilizerBuyCheckTimer, startFertilizerBuyCheckTimer } = require('./farm-scheduler');
+const { stopMysteryAutoBuyTimer, startMysteryAutoBuyTimer } = require('./mystery-scheduler');
 const { createScheduler } = require('./scheduler');
 const {
   getAllFriends,
@@ -53,6 +59,84 @@ const {
 let isCheckingFriends = false;
 let friendLoopRunning = false;
 let externalSchedulerMode = false;
+
+// ===== 极速务农独占模式 =====
+// 设计：极速务农开启时，暂停农场巡查/买肥/神秘购买等其它会占用同一条 WS 的定时任务，
+// 让连接只服务于「只帮护主犬」循环 + 心跳/ACE，避免动作冲突与心跳被淹没导致假断连。
+// 定时极速务农：开启后仅在用户设定的北京时间时间段内进入独占模式；时间段之外极速务农视为关闭、走正常巡查（前提极速务农总开关已开）。
+let lastEffectiveTurbo = null; // null = 尚未同步
+
+/** 当前北京时间（UTC+8）的分钟数，用于时间段比较 */
+function beijingMinutes() {
+  const d = new Date(Date.now() + 8 * 60 * 60 * 1000);
+  return d.getUTCHours() * 60 + d.getUTCMinutes();
+}
+
+/** 解析 "HH:mm-HH:mm" 时间段；返回 [startMin, endMin]，非法/跨午夜返回 null */
+function parseScheduleWindow(raw) {
+  const m = /^(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})$/.exec(String(raw || '').trim());
+  if (!m) return null;
+  const s = Number(m[1]) * 60 + Number(m[2]);
+  const e = Number(m[3]) * 60 + Number(m[4]);
+  if (s >= e) return null;
+  return [s, e];
+}
+
+/**
+ * 极速务农当前是否「生效」：
+ * - 总开关关 → 不生效
+ * - 未启用定时 → 持续生效
+ * - 启用定时 → 仅当北京时间落在设定时间段 [start, end) 内生效；段外视为关闭、正常巡查
+ */
+function computeEffectiveTurbo() {
+  if (!isAutomationOn('friend_turbo_mode')) return false;
+  if (!isAutomationOn('friend_turbo_scheduled')) return true;
+  const raw = getConfigSnapshot(userState.accountId || '').automation.friend_turbo_schedule_time || '';
+  const win = parseScheduleWindow(raw);
+  if (!win) return false;
+  const now = beijingMinutes();
+  return now >= win[0] && now < win[1];
+}
+
+/** 同步独占模式：进入时暂停其它巡查，退出时按各自开关恢复 */
+function syncTurboExclusiveMode(accountId) {
+  const effective = computeEffectiveTurbo();
+
+  // 首次调用仅建立基线，避免与 worker-manager 的常规启动逻辑重复启停：
+  // - 启动即开启极速务农 → 暂停其它巡查（必须有动作）
+  // - 启动未开启 → 仅记录状态，农场等由 worker-manager 正常拉起，此处不重复 start
+  if (lastEffectiveTurbo === null) {
+    lastEffectiveTurbo = effective;
+    if (effective) {
+      stopFarmCheckLoop();
+      stopFertilizerBuyCheckTimer();
+      stopMysteryAutoBuyTimer();
+      log('好友', '极速务农独占模式已启用（启动即生效）：已暂停农场巡查 / 化肥自动购买 / 神秘商人自动购买', {
+        module: 'friend', event: 'turbo_exclusive_on',
+      });
+    }
+    return;
+  }
+
+  if (effective === lastEffectiveTurbo) return;
+  lastEffectiveTurbo = effective;
+
+  if (effective) {
+    stopFarmCheckLoop();
+    stopFertilizerBuyCheckTimer();
+    stopMysteryAutoBuyTimer();
+    log('好友', '极速务农独占模式已启用：已暂停农场巡查 / 化肥自动购买 / 神秘商人自动购买', {
+      module: 'friend', event: 'turbo_exclusive_on',
+    });
+  } else {
+    if (isAutomationOn('farm')) startFarmCheckLoop();
+    if (isAutomationOn('fertilizer_buy_organic') || isAutomationOn('fertilizer_buy_normal')) startFertilizerBuyCheckTimer();
+    if (isAutomationOn('mystery_auto_buy')) startMysteryAutoBuyTimer();
+    log('好友', '极速务农独占模式已退出：已恢复农场巡查 / 化肥自动购买 / 神秘商人自动购买', {
+      module: 'friend', event: 'turbo_exclusive_off',
+    });
+  }
+}
 const friendScheduler = createScheduler('friend');
 let badExecutedOnStartup = false;
 let consecutiveBadFailureCount = 0;
@@ -276,10 +360,13 @@ async function checkFriends(options = {}) {
 
   const accountId = userState.accountId || process.env.FARM_ACCOUNT_ID || '';
   currentAccountId = accountId;
+  // 极速务农独占模式：依据开关/定时同步其它巡查的暂停与恢复（幂等，仅状态翻转时动作）
+  syncTurboExclusiveMode(accountId);
+
   const helpEnabled = !!isAutomationOn('friend_help');
   const stealEnabled = !!isAutomationOn('friend_steal');
   const badEnabled = !!isAutomationOn('friend_bad');
-  const turboMode = !!isAutomationOn('friend_turbo_mode');
+  const turboMode = computeEffectiveTurbo();
 
   const onlyHelp = options.onlyHelp || false;
   const onlySteal = options.onlySteal || false;
@@ -664,7 +751,7 @@ async function friendCheckLoop() {
   // 经验满(仅帮护主犬)模式下缩短巡查间隔，让护主犬好友更快被复查
   // 【2026-08-07 提速】对齐/反超同类工具：经验满 8s、普通 15s（原 15s/30s），提升抢帮响应速度
   const expLimitActive = !!isAutomationOn('friend_help_exp_limit') && !getCanGetHelpExp();
-  const turboMode = !!isAutomationOn('friend_turbo_mode');
+  const turboMode = computeEffectiveTurbo();
   const interval = (expLimitActive || turboMode)
     ? Math.max(10000, CONFIG.friendCheckInterval)
     : Math.max(15000, CONFIG.friendCheckInterval);
