@@ -60,6 +60,12 @@ let isCheckingFriends = false;
 let friendLoopRunning = false;
 let externalSchedulerMode = false;
 
+// 【2026-08-15】极速务农每轮最多进 24 人（用户指定分批大小）：
+// 86 个护主犬全量连发 Enter 会把 WS 压垮（9s/15s 超时连锁），
+// 分批 + 轮换起点保证覆盖全部好友且连接稳定。
+const TURBO_MAX_HELP_PER_ROUND = 24;
+let turboRoundIndex = 0;
+
 // ===== 极速务农独占模式 =====
 // 设计：极速务农开启时，暂停农场巡查/买肥/神秘购买等其它会占用同一条 WS 的定时任务，
 // 让连接只服务于「只帮护主犬」循环 + 心跳/ACE，避免动作冲突与心跳被淹没导致假断连。
@@ -199,39 +205,10 @@ function clearFriendsListCache() {
 }
 
 async function bootstrapFriendDogInfoCacheIfNeeded() {
-  if (Date.now() < dogInfoBootstrapReadyAt) return;
-
-  const accountId = process.env.FARM_ACCOUNT_ID || '';
-  if (!accountId) return;
-  if (!isAutomationOn('friend') || !isConnected()) return;
-
-  // 【2026-08-11 修复】护主犬缓存刷新判断改用"上次全量刷新时间戳"，不再看缓存内容：
-  // 无护主犬好友时 fetchFriendsDogInfo(forceRefresh) 会写入空对象 {}，
-  // readFriendDogInfoCache 返回 {} 后 Object.keys({}).length===0 恒为 true → cacheEmpty 永远 true
-  // → 每轮巡查都触发全量刷新（issue #30 死循环，"护主犬 0 个"用户修复前永远刷屏）。
-  // 改为时间戳判断：只要全量刷新执行过（无论有没有护主犬），30 分钟 TTL 内不再触发；
-  // 刷新失败才重置时间戳允许下轮重试。
-  const now = Date.now();
-  const stale = (now - lastFullDogInfoRefreshAt) > DOG_INFO_FULL_REFRESH_TTL_MS;
-  if (lastFullDogInfoRefreshAt > 0 && !stale) return;
-
-  const isInitialRefresh = lastFullDogInfoRefreshAt <= 0;
-  lastFullDogInfoRefreshAt = now;
-  try {
-    log('好友', isInitialRefresh
-      ? '护主犬缓存尚未建立（或上次失败），自动获取一次好友狗信息'
-      : '护主犬缓存已过期，执行周期性全量刷新', {
-      module: 'friend',
-      event: '自动获取好友狗信息',
-      source: 'friend_loop_bootstrap',
-      fullRefresh: !isInitialRefresh,
-    });
-    await fetchFriendsDogInfo(true); // forceRefresh：全量重拉并重建缓存
-  } catch (err) {
-    // 失败重置时间戳，下轮巡查可重试（不再一次性放弃）
-    lastFullDogInfoRefreshAt = 0;
-    logWarn('好友', `自动获取好友狗信息失败: ${err.message}`);
-  }
+  // 【2026-08-15】主动刷新护主犬缓存已删除（用户明确要求）：启动/周期全量刷新会
+  // 逐个进 468 好友查狗（串行 ~90 秒），压垮 WS 连接导致掉线。
+  // 狗信息只靠日常偷菜/帮忙被动收集（cacheDogInfoFromEnterReply），手动刷新走面板按钮。
+  return;
 }
 
 function syncAutomationPatchToMaster(patch) {
@@ -470,8 +447,10 @@ async function checkFriends(options = {}) {
           const weedNum = plant ? toNum(plant.weed_num) : 0;
           const insectNum = plant ? toNum(plant.insect_num) : 0;
 
-          // 极速务农：忽略滞后快照筛选，进全部护主犬（依赖进农场后的实时数据，根治漏帮）
-          if (turboMode || dryNum > 0 || weedNum > 0 || insectNum > 0) {
+          // 【2026-08-15】极速务农也走快照需求筛选（与经验满/普通帮忙一致）：
+          // 快照有需求(dry/weed/insect>0)才进护主犬农场，进农场后 analyzeFriendLands 实时二次确认，
+          // 无需求不浪费 Enter。不再无条件进全部护主犬（86 人连发 Enter 压垮连接 + 白跑）。
+          if (dryNum > 0 || weedNum > 0 || insectNum > 0) {
             helpTargets.push({
               gid,
               name,
@@ -482,6 +461,19 @@ async function checkFriends(options = {}) {
               hasGuardDog: true,
             });
           }
+        }
+
+        if (helpTargets.length > TURBO_MAX_HELP_PER_ROUND) {
+          // 【2026-08-15】每轮上限 24 + 轮换起点：分批覆盖全部护主犬，
+          // 避免每轮都从排序前 24 个开始、其余永远轮不到，也避免 86 人全进压垮连接。
+          const start = turboRoundIndex % helpTargets.length;
+          const rotated = [
+            ...helpTargets.slice(start),
+            ...helpTargets.slice(0, start),
+          ];
+          helpTargets.length = 0;
+          helpTargets.push(...rotated.slice(0, TURBO_MAX_HELP_PER_ROUND));
+          turboRoundIndex++;
         }
 
         if (helpTargets.length > 0) {
@@ -622,9 +614,11 @@ async function checkFriends(options = {}) {
             }
           }
         }
-        // 放慢访问节奏，降低单账号短时请求密度，避免触发游戏风控导致断连
-        // 【2026-08-13 修复】极速务农（turboMode）好友间延迟从 20~50ms 回稳到 80~150ms（含自适应退避）
-        await randomDelay(turboMode ? gapMin : 100, turboMode ? gapMax : 200);
+        // 【2026-08-15】对齐纯 Go 版（friendVisitDelay help=0）：turbo 帮忙模式好友间零延迟，
+        // 不再 sleep 100~200ms（24 人白等 2.4~4.8s）。普通模式保持原节奏。
+        if (!turboMode) {
+          await randomDelay(100, 200);
+        }
       }
     }
 
@@ -1166,4 +1160,5 @@ module.exports = {
   isCheckingFriendsRunning,
   clearFriendsListCache,
   syncFriendsFromGids,
+  computeEffectiveTurbo,
 };

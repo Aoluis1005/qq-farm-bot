@@ -177,12 +177,18 @@ message WaterLandReply {
 message FarmingRequest {
     repeated int64 land_ids = 1;
     int64 host_gid = 2;
+    int32 field_3 = 3;
+    int32 field_4 = 4;
 }
 
 message FarmingReply {
     repeated LandInfo land = 1;
     repeated OperationLimit operation_limits = 2;
-    repeated SocialItemResult social_rewards = 3;
+    repeated FarmingResult results = 3;
+}
+
+message FarmingResult {
+    int64 land_id = 1;
 }
 
 // --- 除草 ---

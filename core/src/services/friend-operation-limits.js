@@ -1,7 +1,7 @@
 const { toNum, log, sleep } = require('../utils/utils');
 const { getUserState } = require('../utils/network');
 const { types } = require('../utils/proto');
-const { sendMsgAsync } = require('../utils/network');
+const { sendMsgAsync, GatewayError } = require('../utils/network');
 const { toLong } = require('../utils/utils');
 
 // ===== Operation limits state =====
@@ -517,6 +517,69 @@ async function putWeedsDetailed(gid, landIds) {
 }
 
 // ===== Exports =====
+/**
+ * 【2026-08-15】帮好友一键务农（浇水+除草+除虫合并），完整对齐参考仓库 api.ts：
+ * FarmingRequest{land_ids, host_gid, field_3:0, field_4:2}（抓包实测值）；
+ * 回包 FarmingReply.results 逐地块确认；code=1001057（无可操作）静默返回 noop；
+ * 非预期错误抛 GatewayError（含 code），由调用方处理，不再静默吞。
+ */
+async function helpFarming(gid, landIds, stopWhenExpLimit = false) {
+  const targetIds = [...new Set((landIds || []).map(id => toNum(id)).filter(id => id > 0))];
+  if (targetIds.length === 0) {
+    return { effect: 'noop', operationCount: 0, landCount: 0, landIds: [], operationLimits: [], code: 0 };
+  }
+
+  const expBefore = toNum((getUserState() || {}).exp);
+  const payload = types.FarmingRequest.encode(
+    types.FarmingRequest.create({
+      land_ids: targetIds,
+      host_gid: toLong(gid),
+      field_3: 0,
+      field_4: 2,
+    })
+  ).finish();
+
+  try {
+    // 第4参直接传 opts 对象（network.js 已支持）：1001057 命中预期码 → 正常返回 body
+    const { body } = await sendMsgAsync('gamepb.plantpb.PlantService', 'Farming', payload, {
+      expectedErrorCodes: [1001057],
+    });
+    const reply = types.FarmingReply.decode(body);
+    const results = Array.isArray(reply.results) ? reply.results : [];
+    const confirmedLandIds = [...new Set(results.map(r => toNum(r && r.land_id)).filter(id => id > 0))];
+    const operationLimits = Array.isArray(reply.operation_limits) ? reply.operation_limits : [];
+    updateOperationLimits(operationLimits);
+
+    if (stopWhenExpLimit && results.length > 0) {
+      await sleep(200);
+      const expAfter = toNum((getUserState() || {}).exp);
+      if (expAfter <= expBefore) autoDisableHelpByExpLimit();
+    }
+
+    return {
+      effect: results.length > 0 ? 'confirmed' : 'uncertain',
+      operationCount: results.length,
+      landCount: confirmedLandIds.length,
+      landIds: confirmedLandIds,
+      operationLimits,
+      code: 0,
+    };
+  } catch (e) {
+    if (e instanceof GatewayError && e.code === 1001057) {
+      return { effect: 'noop', operationCount: 0, landCount: 0, landIds: [], operationLimits: [], code: 1001057 };
+    }
+    // 非预期错误：打日志后抛出，绝不再静默吞（farming=0 且零日志的教训）
+    logWarn('好友', `helpFarming 失败: ${e && e.message || e}`, {
+      module: 'friend',
+      event: 'helpFarming_error',
+      friendGid: gid,
+      landIds: targetIds,
+      code: (e && e.code) || 0,
+    });
+    throw e;
+  }
+}
+
 module.exports = {
   OP_NAMES,
   PUT_BUG_OPERATION_ID,
@@ -542,6 +605,7 @@ module.exports = {
   helpWater,
   helpWeed,
   helpInsecticide,
+  helpFarming,
   stealHarvest,
   putPlantItems,
   putPlantItemsDetailed,

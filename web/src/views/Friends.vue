@@ -160,10 +160,6 @@ async function handleBatchDeleteFriends() {
     // 删除请求结束即关闭弹窗、停止 loading（不再等待整表同步）
     showDeleteModal.value = false
   }
-  // 后台静默刷新好友列表（整表 forceSync 同步较慢，不阻塞确认按钮 loading）
-  if (currentAccountId.value) {
-    friendStore.fetchFriends(currentAccountId.value, true).catch(() => {})
-  }
 }
 const expandedFriends = ref<Set<string>>(new Set())
 const currentPage = ref(1)
@@ -335,7 +331,7 @@ async function loadData() {
 
     if (acc.running) {
       avatarErrorKeys.value.clear()
-      friendStore.fetchFriends(currentAccountId.value)
+      // 【2026-08-15】好友列表只手动刷新，不再页面加载/账号切换时自动请求
       friendStore.fetchBlacklist(currentAccountId.value)
       friendStore.fetchInteractRecords(currentAccountId.value)
       if (isQqAccount.value) {

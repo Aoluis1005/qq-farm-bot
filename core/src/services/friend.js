@@ -18,6 +18,7 @@ const {
   isHelpExpLimitReached,
   clearFriendsListCache,
   syncFriendsFromGids,
+  computeEffectiveTurbo,
 } = require('./friend-orchestrator');
 
 module.exports = {
@@ -37,5 +38,6 @@ module.exports = {
   batchGetFriendDogInfo,
   syncFriendsFromGids,
   fetchFriendsDogInfo,
+  computeEffectiveTurbo,
   delFriend: friendApi.delFriend,
 };

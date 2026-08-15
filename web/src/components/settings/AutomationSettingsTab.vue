@@ -226,7 +226,6 @@ function isFastMatureFertilizerMode(mode: string) {
           <span class="text-[13px] text-gray-800 dark:text-gray-100">经验满只帮护主犬</span>
           <BaseSwitch v-model="settings.automation.friend_help_exp_limit" />
         </div>
-        <template v-if="false"><!-- 【2026-08-15 隐藏】极速务农 + 定时器，保留代码便于恢复 -->
         <div class="flex items-center justify-between rounded-full border border-white/40 bg-[var(--theme-glass)] px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-white/10">
           <span class="text-[13px] text-gray-800 dark:text-gray-100">极速务农</span>
           <BaseSwitch v-model="settings.automation.friend_turbo_mode" />
@@ -251,7 +250,6 @@ function isFastMatureFertilizerMode(mode: string) {
             class="rounded-md border border-white/40 bg-white/70 px-2 py-1 text-[13px] text-gray-800 dark:bg-white/10 dark:text-gray-100"
           />
         </div>
-        </template>
         </div>
       </div>
 

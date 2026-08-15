@@ -110,14 +110,20 @@ function analyzeFriendLands(lands, myGid, friendName = '', options = {}) {
 
     // Dry / weeds / insects
     // 注意：用 weed_num/insect_num 判定（和 checkFriends 好友列表快照一致），
-    // 不能只用 weed_owners/insect_owners（进入农场后 owners 可能为空导致漏判）
-    if (toNum(plant.dry_num) > 0) result.needWater.push(landId);
+    // 不能只用 weed_owners/insect_owners（进入农场后 owners 可能为空导致漏判）。
+    // 【2026-08-15】叠加阶段时间戳判定（对齐纯 Go 版 analyzeLands）：
+    // dry_time/weeds_time/insect_time >0 且 <= 服务器时间 也算有需求（到点干/草/虫）。
+    const serverTime = getServerTimeSec();
+    const dryTime = toTimeSec(currentPhase.dry_time);
+    const weedTime = toTimeSec(currentPhase.weeds_time);
+    const insectTime = toTimeSec(currentPhase.insect_time);
+    if (toNum(plant.dry_num) > 0 || (dryTime > 0 && dryTime <= serverTime)) result.needWater.push(landId);
     const weedNum = toNum(plant.weed_num);
     const hasWeedOwners = plant.weed_owners && plant.weed_owners.length > 0;
-    if (weedNum > 0 || hasWeedOwners) result.needWeed.push(landId);
+    if (weedNum > 0 || hasWeedOwners || (weedTime > 0 && weedTime <= serverTime)) result.needWeed.push(landId);
     const insectNum = toNum(plant.insect_num);
     const hasInsectOwners = plant.insect_owners && plant.insect_owners.length > 0;
-    if (insectNum > 0 || hasInsectOwners) result.needBug.push(landId);
+    if (insectNum > 0 || hasInsectOwners || (insectTime > 0 && insectTime <= serverTime)) result.needBug.push(landId);
 
     // Can put weed / bug (limit: max 2 owners, and we haven't put one yet)
     if (phase !== PlantPhase.MATURE) {

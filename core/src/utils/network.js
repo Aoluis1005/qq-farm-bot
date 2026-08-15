@@ -226,11 +226,32 @@ async function sendMsg(serviceName, methodName, bodyBytes, callback) {
     return true;
 }
 
+
+/** Gateway 业务错误：带 code，供调用方精确处理（对齐参考仓库）。 */
+class GatewayError extends Error {
+  constructor(meta) {
+    const code = toNum(meta && meta.error_code);
+    super(`${meta && meta.service_name}.${meta && meta.method_name} 错误: code=${code} ${(meta && meta.error_message) || ''}`);
+    this.name = 'GatewayError';
+    this.code = code;
+    this.meta = meta;
+  }
+}
+
 /** Promise 版发送 */
+
 // opts.priority === 'high' 的请求（心跳、ACE 反作弊）拥有保留通道：
 // 即使普通请求把 pending 堆到上限也不会被拒绝，确保连接健康上报永不被 turbo 淹没。
 function sendMsgAsync(serviceName, methodName, bodyBytes, timeout = 20000, opts = {}) {
+    // 【2026-08-15】对齐参考仓库：第4参可直接传 opts 对象（{expectedErrorCodes, timeoutMs, priority}）
+    if (timeout && typeof timeout === 'object') {
+        opts = timeout;
+        timeout = Number(opts.timeoutMs) || 20000;
+    }
     const isHighPriority = !!(opts && opts.priority === 'high');
+    const expectedErrorCodes = new Set(
+        ((opts && opts.expectedErrorCodes) || []).map(Number).filter(Number.isFinite)
+    );
     return new Promise((resolve, reject) => {
         if (!ws || ws.readyState !== WebSocket.OPEN) {
             reject(new Error(`连接未打开: ${methodName}`));
@@ -254,13 +275,15 @@ function sendMsgAsync(serviceName, methodName, bodyBytes, timeout = 20000, opts 
             reject(new Error(`请求超时: ${methodName} (seq=${seq}, pending=${pending})`));
         });
 
-        sendMsg(serviceName, methodName, bodyBytes, (err, body, meta) => {
+        const _cb = (err, body, meta) => {
             networkScheduler.clear(timeoutKey);
             if (settled) return;
             settled = true;
             if (err) reject(err);
             else resolve({ body, meta });
-        }).then((sent) => {
+        };
+        _cb.expectedErrorCodes = expectedErrorCodes;
+        sendMsg(serviceName, methodName, bodyBytes, _cb).then((sent) => {
             if (sent || settled) return;
             networkScheduler.clear(timeoutKey);
             settled = true;
@@ -305,7 +328,12 @@ function handleMessage(data) {
             if (cb) {
                 pendingCallbacks.delete(clientSeqVal);
                 if (errorCode !== 0) {
-                    cb(new Error(`${meta.service_name}.${meta.method_name} 错误: code=${errorCode} ${meta.error_message || ''}`));
+                    // 预期错误码：正常返回 body（调用方自行判断），不抛异常（对齐参考仓库）
+                    if (cb.expectedErrorCodes && cb.expectedErrorCodes.has(errorCode)) {
+                        cb(null, msg.body, meta);
+                    } else {
+                        cb(new GatewayError(meta));
+                    }
                 } else {
                     cb(null, msg.body, meta);
                 }

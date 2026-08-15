@@ -40,6 +40,7 @@ const {
     batchGetFriendDogInfo,
     syncFriendsFromGids,
     fetchFriendsDogInfo,
+    computeEffectiveTurbo,
     delFriend
 } = require('../services/friend');
 const { getInteractRecords } = require('../services/interact');
@@ -356,6 +357,8 @@ let nextStealRunAt = 0;
 async function runStealTick(autoConfig) {
     if (stealTaskRunning || friendSyncPaused) return;
     if (!autoConfig.friend_steal) return;
+    // 【2026-08-15】极速务农生效时完全停偷菜（onlySteal 会绕过 checkFriends 的 !turboMode 保护）
+    if (computeEffectiveTurbo()) return;
     stealTaskRunning = true;
 
     const nextDelay = randomIntervalMs(

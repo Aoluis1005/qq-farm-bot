@@ -579,7 +579,7 @@ async function fetchQqFriendsByLegacyMethod() {
  * Get all friends. For QQ platform, try GetGameFriends first (with known GIDs),
  * then fall back to legacy methods. For WeChat, use GetAll directly.
  */
-async function getAllFriends(forceRefresh = false) {
+async function getAllFriendsInternal(forceRefresh = false) {
   const isQQ = CONFIG.platform === 'qq';
 
   if (isQQ) {
@@ -628,6 +628,22 @@ async function getAllFriends(forceRefresh = false) {
     payload
   );
   return types.GetAllFriendsReply.decode(body);
+}
+
+// 【2026-08-15】进程级 in-flight 去重：巡查(getCachedFriendsList)/面板(getFriendsList)/
+// 金虫(golden-bug-service)在启动时可能并发拉好友列表，各自缓存 miss 会重复发 GetAllFriends。
+// 这里合并为同一时刻只发一次，其余调用复用同一个进行中的请求，消除"两条开始获取好友列表"。
+let _allFriendsInflight = null;
+
+async function getAllFriends(forceRefresh = false) {
+  if (!forceRefresh && _allFriendsInflight) return _allFriendsInflight;
+  const p = getAllFriendsInternal(forceRefresh);
+  if (!forceRefresh) _allFriendsInflight = p;
+  try {
+    return await p;
+  } finally {
+    if (_allFriendsInflight === p) _allFriendsInflight = null;
+  }
 }
 
 /** Get pending friend applications. */
