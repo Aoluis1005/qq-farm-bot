@@ -826,8 +826,7 @@ async function handleBatchAddKnownFriendGids() {
           </p>
         </div>
 
-        <template v-else>
-          <div class="flex flex-wrap items-center gap-2 rounded-lg bg-white p-3 shadow dark:bg-gray-800">
+        <div class="flex flex-wrap items-center gap-2 rounded-lg bg-white p-3 shadow dark:bg-gray-800">
             <button
               v-for="filter in dogFilters"
               :key="filter.key"
@@ -893,8 +892,8 @@ async function handleBatchAddKnownFriendGids() {
             @delete-friend="handleDeleteFriend"
             @remove-known-friend-gid="handleRemoveKnownFriendGid"
             @friend-avatar-error="handleFriendAvatarError"
+            v-if="friends.length > 0"
           />
-        </template>
       </div>
 
       <div v-else-if="activeTab === 'blacklist'" class="space-y-4">
