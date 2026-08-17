@@ -1,10 +1,10 @@
 > 📦 **Go 重写版（单文件二进制 · 免 Node 环境）已发布，欢迎测试！**
 >
-> 不想折腾 Node 环境的同学，可以直接用编译好的单文件二进制，下载即跑。
-> 仓库地址：https://github.com/Aoluis1005/qq-farm-bot-binary
+> 不想折腾 Node 环境的同学，可以直接用 Go 重写版源码编译出单文件二进制使用。
+> 仓库地址：https://github.com/Aoluis1005/QQ-farm-BOT-GO
 > 测试过程中遇到问题、建议或 Bug，请到该仓库提 **Issue**。
 >
-> ⚠️ 该分发版不含后台 / 卡密系统，仅限个人自用。
+> ⚠️ 测试版可能存在 Bug，请提 Issue 反馈；不含后台 / 卡密系统，仅限个人自用。
 
 # QQ Farm Bot Private
 
