@@ -331,7 +331,9 @@ async function loadData() {
 
     if (acc.running) {
       avatarErrorKeys.value.clear()
-      // 【2026-08-15】好友列表只手动刷新，不再页面加载/账号切换时自动请求
+      // 进入好友页 / 切换账号时自动加载一次好友列表（依赖 fetchFriends 内部并发去重，不会重复请求）
+      if (friends.value.length === 0)
+        friendStore.fetchFriends(currentAccountId.value)
       friendStore.fetchBlacklist(currentAccountId.value)
       friendStore.fetchInteractRecords(currentAccountId.value)
       if (isQqAccount.value) {
@@ -816,16 +818,6 @@ async function handleBatchAddKnownFriendGids() {
           @open-batch-add="showBatchAddGidModal = true"
         />
 
-        <div v-if="friends.length === 0" class="rounded-lg bg-white p-8 text-center text-gray-500 shadow dark:bg-gray-800">
-          <div class="i-carbon-user-multiple mx-auto mb-3 text-4xl text-gray-300" />
-          <div class="text-base text-gray-700 font-medium dark:text-gray-200">
-            暂无好友数据
-          </div>
-          <p class="mt-2 text-sm text-gray-400">
-            可以先刷新好友列表，或等待最近访客为 QQ 账号补充新的 GID。
-          </p>
-        </div>
-
         <div class="flex flex-wrap items-center gap-2 rounded-lg bg-white p-3 shadow dark:bg-gray-800">
             <button
               v-for="filter in dogFilters"
@@ -866,6 +858,16 @@ async function handleBatchAddKnownFriendGids() {
               获取狗信息
             </button>
           </div>
+
+        <div v-if="friends.length === 0" class="rounded-lg bg-white p-8 text-center text-gray-500 shadow dark:bg-gray-800">
+          <div class="i-carbon-user-multiple mx-auto mb-3 text-4xl text-gray-300" />
+          <div class="text-base text-gray-700 font-medium dark:text-gray-200">
+            暂无好友数据
+          </div>
+          <p class="mt-2 text-sm text-gray-400">
+            可以先刷新好友列表，或等待最近访客为 QQ 账号补充新的 GID。
+          </p>
+        </div>
 
           <FriendsFriendList
             v-model:current-page="currentPage"

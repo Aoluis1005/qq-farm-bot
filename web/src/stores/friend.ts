@@ -101,16 +101,23 @@ export const useFriendStore = defineStore('friend', () => {
     }
   }
 
+  // 并发去重：连续触发（如账号切换 + 页面加载两个 watch 同时调用）时，
+  // 只让最后一次请求的结果生效，避免重复拉取好友列表
+  let friendsFetchToken = 0
+
   async function fetchFriends(accountId: string, forceSync = false) {
     if (!accountId)
       return
     const requestedId = String(accountId)
+    const token = ++friendsFetchToken
     loading.value = true
     try {
       const res = await api.get('/api/friends', {
         headers: { 'x-account-id': accountId },
         params: forceSync ? { forceSync: 'true' } : {},
       })
+      if (token !== friendsFetchToken)
+        return // 已有更新的请求，丢弃本次过期结果
       if (!isCurrentAccount(requestedId))
         return
       if (res.data.ok) {
@@ -118,7 +125,8 @@ export const useFriendStore = defineStore('friend', () => {
       }
     }
     finally {
-      loading.value = false
+      if (token === friendsFetchToken)
+        loading.value = false
     }
   }
 
